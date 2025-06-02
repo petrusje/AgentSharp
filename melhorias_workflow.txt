@@ -1,0 +1,116 @@
+LISTA DE MELHORIAS PARA WORKFLOW - AGENTS.NET
+=====================================================
+
+=== CRÍTICAS (Resolver Imediatamente) ===
+
+1. Corrigir Lógica Quebrada no SequentialWorkflow
+   - Problema: Cast incorreto de TResult para TContext na linha 67-75
+   - Ação: Remover cast incorreto, manter contexto original
+   - Arquivo: Agents.net/Core/Orchestration/SequentialWorkflow.cs
+
+2. Implementar Gerenciamento de Estado Thread-Safe
+   - Problema: _context e _isExecuting não são thread-safe
+   - Ação: Adicionar locks ou usar estruturas concorrentes
+   - Impacto: Evitar corrupção de estado em execuções paralelas
+
+3. Corrigir Sistema de Contadores no Agent e ExecutionEngine
+   - Problema: _executionCount e _callCount são globais e compartilhados
+   - Ação: Criar ExecutionContext por operação
+   - Arquivos: Agent.cs (linha 32-34), ExecutionEngine.cs (linha 24-26)
+
+4. Eliminar Falhas Silenciosas
+   - Problema: Exceções ignoradas no PromptManager e ProcessResponse
+   - Ação: Implementar logging e tratamento adequado de erros
+   - Arquivo: PrompManager.cs (linha 67-78), Agent.cs (linha 386-393)
+
+=== ALTAS (Resolver em Seguida) ===
+
+5. Implementar Validação Robusta de Entrada
+   - Problema: Apenas validação básica de prompt vazio
+   - Ação: Criar InputValidator com validação de tamanho e sanitização
+   - Impacto: Prevenir ataques e inputs maliciosos
+
+6. Adicionar Limite de Recursão Explícito
+   - Problema: ExecuteWithToolsAsync pode entrar em recursão infinita
+   - Ação: Adicionar parâmetro recursionDepth com limite máximo
+   - Arquivo: ExecutionEngine.cs (linha 74-88)
+
+7. Implementar Cache para BuildSystemPrompt
+   - Problema: BuildSystemPrompt recalculado a cada acesso
+   - Ação: Implementar cache com ConcurrentDictionary
+   - Arquivo: SequentialWorkflow.cs (linha 26-30)
+
+8. Separar Responsabilidades no Workflow
+   - Problema: Workflow mistura execução, gerenciamento e logging
+   - Ação: Criar interfaces IWorkflowExecutor, IWorkflowStepManager, IWorkflowStateManager
+   - Impacto: Melhor testabilidade e manutenibilidade
+
+=== MÉDIAS (Melhorias Significativas) ===
+
+9. Implementar Limpeza de Histórico de Mensagens
+   - Problema: Histórico cresce indefinidamente
+   - Ação: Criar MessageHistoryManager com limite de mensagens/tokens
+   - Impacto: Controlar custos de API e performance
+
+10. Adicionar Sistema de Retry com Backoff
+    - Problema: Falhas temporárias causam falha total
+    - Ação: Implementar RetryPolicy com backoff exponencial
+    - Impacto: Melhor resiliência contra falhas temporárias
+
+11. Implementar Timeout para Operações
+    - Problema: Operações podem travar indefinidamente
+    - Ação: Adicionar CancellationTokenSource com timeout configurável
+    - Impacto: Prevenir travamentos e melhorar responsividade
+
+12. Implementar Isolamento de Contexto Entre Steps
+    - Problema: Contexto mutável compartilhado entre steps
+    - Ação: Usar ContextSnapshot com versionamento
+    - Impacto: Prevenir corrupção de dados entre steps
+
+=== BAIXAS (Otimizações e Polish) ===
+
+13. Implementar Métricas e Observabilidade
+    - Ação: Criar IWorkflowMetrics para coletar métricas de execução
+    - Benefício: Monitoramento e debugging melhorados
+
+14. Adicionar Configuração Flexível
+    - Ação: Criar WorkflowConfiguration com timeouts e limites configuráveis
+    - Benefício: Adaptabilidade para diferentes cenários
+
+15. Implementar Sistema de Plugins/Extensions
+    - Ação: Criar IWorkflowExtension para hooks antes/depois de steps
+    - Benefício: Extensibilidade sem modificar código core
+
+16. Melhorar Sistema de Logging
+    - Ação: Substituir ConsoleLogger por IStructuredLogger
+    - Benefício: Logs estruturados e contextuais
+
+=== ORDEM DE IMPLEMENTAÇÃO ===
+
+Semana 1: Itens 1-4 (Críticos)
+Semana 2: Itens 5-8 (Altos)
+Semana 3: Itens 9-12 (Médios)
+Semana 4: Itens 13-16 (Baixos)
+
+=== IMPACTO ESPERADO ===
+
+Estabilidade: +90% (eliminando crashes e comportamentos inesperados)
+Performance: +40% (cache, otimizações, cleanup)
+Manutenibilidade: +70% (separação de responsabilidades, logging)
+Robustez: +80% (validação, retry, timeout)
+
+=== ARQUIVOS PRINCIPAIS A MODIFICAR ===
+
+- Agents.net/Core/Orchestration/SequentialWorkflow.cs
+- Agents.net/Core/Agent.cs
+- Agents.net/Core/ExecutionEngine.cs
+- Agents.net/Core/PrompManager.cs
+- Agents.net/Core/Orchestration/Workflow.cs
+- Agents.net/Core/Memory/InMemoryStore.cs
+
+=== NOTAS IMPORTANTES ===
+
+- Focar nos itens críticos primeiro - eles resolvem bugs que quebram a aplicação
+- Implementar testes unitários para cada correção
+- Considerar breaking changes apenas para itens críticos
+- Documentar mudanças de API para usuários da biblioteca 

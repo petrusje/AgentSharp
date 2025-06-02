@@ -1,0 +1,167 @@
+Especificação de Workflow JSON para Biblioteca Conversacional (.NET Standard 2.0)
+=================================================================================
+Contexto
+--------
+Este documento descreve o formato JSON e as regras de execução de um sistema conversacional genérico,
+voltado à implementação de uma *library* em **C# /.NET Standard 2.0**.
+As chamadas externas (integrações a APIs ou funções fora do core) foram removidas para garantir portabilidade
+e simplicidade.
+
+1. Visão Geral
+---------------
+O workflow é orientado a eventos: cada mensagem do usuário aciona a avaliação de um nó, que gera saída e define
+o próximo estado. A estrutura privilegia:
+  • Modularidade – fluxos podem ser compostos ou reutilizados.  
+  • Internacionalização – idioma e voz configuráveis globalmente.  
+  • Validação de dados – regras declarativas por variável.  
+  • Persistência de estado – serialização completa do contexto entre chamadas (detalhes na seção 8).
+
+2. Formato Geral do JSON
+------------------------
+```json
+{
+  "workflow_name": "string",
+  "description": "string (opcional)",
+  "global_settings": { /* … */ },
+  "nodes": [ { /* nó 1 */ }, { /* nó 2 */ } /* … */ ]
+}
+```
+
+3. Global Settings
+------------------
+Campo           | Tipo   | Obr. | Descrição
+--------------- | ------ | ---- | ------------------------------------------------------------
+language        | string | Sim  | Código BCP‑47 do idioma (ex.: pt‑BR, en‑US).
+default_voice   | string | Sim  | Nome da voz TTS padrão.
+default_model   | string | Sim  | Modelo de linguagem (ex.: gpt‑4‑turbo).
+global_prompt   | string | Não  | Instrução a ser injetada em todo prompt de sistema.
+
+4. Nodes
+--------
+Campo         | Tipo   | Obr. | Descrição
+------------- | ------ | ---- | ------------------------------------------------------------
+id            | string | Sim  | Identificador único do nó.
+type          | enum   | Sim  | prompt, response, end.
+name          | string | Sim  | Nome legível para desenvolvedores.
+properties    | objeto | Sim  | Atributos específicos do tipo.
+variables     | array  | Não  | Declarações de variáveis capturadas/validadas.
+transitions   | array  | Não  | Rotas de saída condicionais.
+
+4.1. Tipos de nó
+----------------
+Tipo      | Propriedades obrigatórias | Descrição
+--------- | ------------------------- | ---------------------------------------------
+prompt    | prompt_text               | Pergunta aguardando entrada do usuário.
+response  | response_text             | Mensagem enviada sem esperar resposta.
+end       | —                         | Finaliza o diálogo.
+
+5. Variables
+------------
+Campo              | Tipo         | Obr. | Descrição
+------------------ | ------------ | ---- | ---------------------------------------------
+name               | string       | Sim  | Identificador da variável.
+source             | enum         | Sim  | input, context, static.
+pattern            | string/regex | Não  | Expressão para validar a entrada.
+required           | boolean      | Não  | true bloqueia a transição até valor válido.
+prompt_if_missing  | string       | Não  | Texto de reprompt automático.
+
+6. Transitions
+--------------
+Exemplo de bloco de transições:
+```json
+"transitions": [
+  { "condition": "input.contains('cancelar')", "target_node_id": "cancel" },
+  { "condition": "email != null && phone != null", "target_node_id": "sucesso" },
+  { "condition": "true", "target_node_id": "fallback" }
+]
+```
+As condições são avaliadas na ordem; a primeira verdadeira define o próximo nó.
+
+7. Regras de Validação
+----------------------
+1. id dos nós únicos.  
+2. Todo target_node_id deve existir.  
+3. Expressões em condition precisam compilar.  
+4. Variáveis required: true devem ser fornecidas ou reprompt será emitido.  
+5. Nó end encerra o fluxo.
+
+8. Persistência de Estado
+-------------------------
+Requisito                    | Recomendações (.NET Standard 2.0)
+---------------------------- | ---------------------------------------------------------------
+Escopo                       | Serializar currentNodeId, variáveis e histórico de mensagens.
+Interface sugerida           | IConversationStorage.SaveAsync / LoadAsync.
+Serialização                 | System.Text.Json (WriteIndented = false).
+Chave de correlação          | Combinar id de sessão e usuário.
+Resiliência                  | Se LoadAsync falhar, reiniciar no nó inicial.
+Extensão                     | Implementação em memória, arquivo ou banco (Redis, SQL).
+
+Importante: o host da biblioteca deve chamar SaveAsync após cada processamento e repassar o
+estado carregado em LoadAsync antes da próxima interação, garantindo idempotência.
+
+9. Exemplo de Fluxo: Captura de E‑mail e Telefone
+-------------------------------------------------
+```json
+{
+  "workflow_name": "captura_email_telefone",
+  "global_settings": {
+    "language": "pt-BR",
+    "default_voice": "br-VitoriaNeural",
+    "default_model": "gpt-4-turbo"
+  },
+  "nodes": [
+    {
+      "id": "ask_email",
+      "type": "prompt",
+      "name": "Solicitar e-mail",
+      "properties": { "prompt_text": "Qual é o seu e-mail?" },
+      "variables": [
+        {
+          "name": "email",
+          "source": "input",
+          "pattern": "^[\\w\\.-]+@[\\w\\.-]+\\.\\w+$",
+          "required": true,
+          "prompt_if_missing": "E-mail inválido, tente novamente:"
+        }
+      ],
+      "transitions": [
+        { "condition": "email != null", "target_node_id": "ask_phone" }
+      ]
+    },
+    {
+      "id": "ask_phone",
+      "type": "prompt",
+      "name": "Solicitar telefone",
+      "properties": { "prompt_text": "Agora, seu telefone com DDD:" },
+      "variables": [
+        {
+          "name": "phone",
+          "source": "input",
+          "pattern": "^\\d{10,11}$",
+          "required": true,
+          "prompt_if_missing": "Telefone inválido, tente novamente:"
+        }
+      ],
+      "transitions": [
+        { "condition": "phone != null", "target_node_id": "sucesso" }
+      ]
+    },
+    {
+      "id": "sucesso",
+      "type": "response",
+      "name": "Dados capturados",
+      "properties": { "response_text": "Obrigado! Seus dados foram registrados." },
+      "transitions": [
+        { "condition": "true", "target_node_id": "fim" }
+      ]
+    },
+    { "id": "fim", "type": "end", "name": "Encerrar" }
+  ]
+}
+```
+
+10. Observação Final
+--------------------
+A especificação prioriza clareza e manutenção. A ausência de chamadas externas mantém o núcleo
+autossuficiente; integrações podem ser adicionadas em camadas superiores respeitando a separação
+de responsabilidades.

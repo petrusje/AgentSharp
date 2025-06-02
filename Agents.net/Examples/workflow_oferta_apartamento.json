@@ -1,0 +1,155 @@
+{
+  "workflow_name": "oferta_apartamento",
+  "description": "Atendimento para oferta de apartamento e abertura de chamado para clientes",
+  "global_settings": {
+    "language": "pt-BR",
+    "default_model": "gpt-4-mini",
+    "global_prompt": "Você é Lucas, um assistente de chat consultivo da Creative Content, especializado em desenvolvimento de negócios no setor imobiliário. Sua missão é qualificar potenciais clientes (leads), entendendo seus desafios, avaliando o grau de aderência com as soluções da Creative Content e, quando apropriado, agendar uma conversa com um especialista. Você mantém um tom humano, profissional e genuinamente interessado no sucesso do cliente. Conduz a conversa como um consultor de negócios, não como um vendedor agressivo. Seu objetivo é agregar valor em cada etapa da conversa, mesmo que o lead não seja qualificado naquele momento."
+  },
+  "nodes": [
+    {
+      "id": "boas_vindas",
+      "type": "response",
+      "name": "Boas-vindas",
+      "properties": { "response_text": "Olá! Bem-vindo à Imobiliária Alpha. Você está buscando um novo apartamento ou já é nosso cliente?" },
+      "transitions": [
+        { "condition": "input.contains('novo')", "target_node_id": "captura_localizacao" },
+        { "condition": "input.contains('cliente')", "target_node_id": "verifica_cliente" },
+        { "condition": "true", "target_node_id": "boas_vindas" }
+      ]
+    },
+    {
+      "id": "captura_localizacao",
+      "type": "prompt",
+      "name": "Capturar localização",
+      "properties": { "prompt_text": "Ótimo! Em qual bairro ou região você procura o apartamento?" },
+      "variables": [
+        {
+          "name": "bairro",
+          "source": "input",
+          "pattern": ".+",
+          "required": true,
+          "prompt_if_missing": "Por favor, informe o bairro ou região desejada:"
+        }
+      ],
+      "transitions": [
+        { "condition": "bairro != null", "target_node_id": "oferta_apto" }
+      ]
+    },
+    {
+      "id": "oferta_apto",
+      "type": "response",
+      "name": "Oferta de apartamento",
+      "properties": { "response_text": "Temos ótimas opções em {bairro}! Gostaria de agendar uma visita ou receber mais detalhes por WhatsApp?" },
+      "transitions": [
+        { "condition": "input.contains('visita')", "target_node_id": "agendar_visita" },
+        { "condition": "input.contains('whatsapp')", "target_node_id": "enviar_whatsapp" },
+        { "condition": "true", "target_node_id": "oferta_apto" }
+      ]
+    },
+    {
+      "id": "agendar_visita",
+      "type": "prompt",
+      "name": "Agendar visita",
+      "properties": { "prompt_text": "Perfeito! Qual o melhor dia e horário para sua visita?" },
+      "variables": [
+        {
+          "name": "data_visita",
+          "source": "input",
+          "pattern": ".+",
+          "required": true,
+          "prompt_if_missing": "Por favor, informe um dia e horário:"
+        }
+      ],
+      "transitions": [
+        { "condition": "data_visita != null", "target_node_id": "confirmar_visita" }
+      ]
+    },
+    {
+      "id": "confirmar_visita",
+      "type": "response",
+      "name": "Confirmar visita",
+      "properties": { "response_text": "Visita agendada para {data_visita}. Um de nossos corretores entrará em contato. Obrigado!" },
+      "transitions": [
+        { "condition": "true", "target_node_id": "fim" }
+      ]
+    },
+    {
+      "id": "enviar_whatsapp",
+      "type": "prompt",
+      "name": "Solicitar WhatsApp",
+      "properties": { "prompt_text": "Por favor, informe seu número de WhatsApp para enviarmos as opções:" },
+      "variables": [
+        {
+          "name": "whatsapp",
+          "source": "input",
+          "pattern": "^\\d{11}$",
+          "required": true,
+          "prompt_if_missing": "Número inválido, digite no formato DDD+Número (ex: 11999999999):"
+        }
+      ],
+      "transitions": [
+        { "condition": "whatsapp != null", "target_node_id": "confirmar_envio" }
+      ]
+    },
+    {
+      "id": "confirmar_envio",
+      "type": "response",
+      "name": "Confirmação WhatsApp",
+      "properties": { "response_text": "Enviaremos as opções para o número {whatsapp}. Obrigado pelo interesse!" },
+      "transitions": [
+        { "condition": "true", "target_node_id": "fim" }
+      ]
+    },
+    {
+      "id": "verifica_cliente",
+      "type": "prompt",
+      "name": "Verificar cliente",
+      "properties": { "prompt_text": "Por favor, informe seu CPF para localizarmos seu cadastro:" },
+      "variables": [
+        {
+          "name": "cpf",
+          "source": "input",
+          "pattern": "^\\d{11}$",
+          "required": true,
+          "prompt_if_missing": "CPF inválido, digite apenas números:"
+        }
+      ],
+      "transitions": [
+        { "condition": "cpf != null", "target_node_id": "abrir_chamado" }
+      ]
+    },
+    {
+      "id": "abrir_chamado",
+      "type": "prompt",
+      "name": "Abrir chamado",
+      "properties": { "prompt_text": "Qual o motivo do seu chamado?" },
+      "variables": [
+        {
+          "name": "motivo",
+          "source": "input",
+          "pattern": ".+",
+          "required": true,
+          "prompt_if_missing": "Descreva brevemente o motivo do chamado:"
+        }
+      ],
+      "transitions": [
+        { "condition": "motivo != null", "target_node_id": "handoff" }
+      ]
+    },
+    {
+      "id": "handoff",
+      "type": "response",
+      "name": "Handoff para agente",
+      "properties": { "response_text": "Seu chamado foi registrado. Um agente humano irá te atender em instantes. Obrigado!" },
+      "transitions": [
+        { "condition": "true", "target_node_id": "fim" }
+      ]
+    },
+    {
+      "id": "fim",
+      "type": "end",
+      "name": "Encerrar"
+    }
+  ]
+}

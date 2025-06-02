@@ -1,0 +1,7 @@
+# Ignore .env files
+.env
+
+# Ignore bin and obj directories
+bin/
+obj/
+AdvancedExamples/
