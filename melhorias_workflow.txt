@@ -114,3 +114,6 @@ Robustez: +80% (validação, retry, timeout)
 - Implementar testes unitários para cada correção
 - Considerar breaking changes apenas para itens críticos
 - Documentar mudanças de API para usuários da biblioteca 
+
+
+dotnet pack -c Release

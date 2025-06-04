@@ -2,22 +2,21 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Agents.net.Utils
 {
-    /// <summary>
-    /// Generic cache manager with automatic expiration of items.
-    /// Provides memory caching to improve performance and reduce redundant operations.
-    /// </summary>
-    /// <typeparam name="TKey">The type of keys in the cache</typeparam>
-    /// <typeparam name="TValue">The type of values in the cache</typeparam>
-    /// <remarks>
-    /// This is a lightweight in-memory cache implementation with automatic cleanup of expired items.
-    /// It's particularly useful for caching expensive AI model responses or API results.
-    /// The implementation is thread-safe using ConcurrentDictionary for the underlying storage.
-    /// </remarks>
-    public class CacheManager<TKey, TValue>
+  /// <summary>
+  /// Generic cache manager with automatic expiration of items.
+  /// Provides memory caching to improve performance and reduce redundant operations.
+  /// </summary>
+  /// <typeparam name="TKey">The type of keys in the cache</typeparam>
+  /// <typeparam name="TValue">The type of values in the cache</typeparam>
+  /// <remarks>
+  /// This is a lightweight in-memory cache implementation with automatic cleanup of expired items.
+  /// It's particularly useful for caching expensive AI model responses or API results.
+  /// The implementation is thread-safe using ConcurrentDictionary for the underlying storage.
+  /// </remarks>
+  public class CacheManager<TKey, TValue>
     {
         private readonly ConcurrentDictionary<TKey, CacheItem> _cache = new ConcurrentDictionary<TKey, CacheItem>();
         private readonly TimeSpan _defaultExpiration;

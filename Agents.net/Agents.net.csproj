@@ -1,14 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<PackageId>SeuNomeDoPacote</PackageId>
+		<Version>1.0.0</Version>
+		<Authors>SeuNome</Authors>
+		<Company>SuaEmpresa</Company>
+		<Description>Breve descrição da sua biblioteca ou do que ela faz</Description>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<RepositoryUrl>https://github.com/petrusje/Agents.net</RepositoryUrl>
+	</PropertyGroup>
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
-    <PackageReference Include="OpenAI" Version="2.1.0" />
-    <PackageReference Include="System.Data.SQLite" Version="1.0.119" />
-    <PackageReference Include="System.Text.Json" Version="6.0.10" />
-  </ItemGroup>
-
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
+		<PackageReference Include="OpenAI" Version="2.1.0" />
+		<PackageReference Include="System.Text.Json" Version="6.0.10" />
+	</ItemGroup>
 </Project>
