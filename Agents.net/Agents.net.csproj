@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<PackageId>SeuNomeDoPacote</PackageId>
+		<PackageId></PackageId>
 		<Version>1.0.0</Version>
-		<Authors>SeuNome</Authors>
-		<Company>SuaEmpresa</Company>
-		<Description>Breve descrição da sua biblioteca ou do que ela faz</Description>
+		<Authors>Agents .Net</Authors>
+		<Company>TOTVS</Company>
+		<Description>Abstraction layer of other agent libraries, to facilitate the use of agents with the least possible code to be implemented.</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<RepositoryUrl>https://github.com/petrusje/Agents.net</RepositoryUrl>
 	</PropertyGroup>
