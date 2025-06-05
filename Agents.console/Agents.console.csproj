@@ -8,12 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="Agents.net">
-      <HintPath>../Agents.net/bin/Debug/netstandard2.0/Agents.net.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="DotNetEnv" Version="2.5.0" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.119" />
   </ItemGroup>
