@@ -569,7 +569,7 @@ namespace Agents.net.Tools
           { typeof(double), element => element.TryGetDouble(out var result) ? result : default },
           { typeof(float), element => element.TryGetSingle(out var result) ? result : default },
           { typeof(decimal), element => element.TryGetDecimal(out var result) ? result : default },
-          { typeof(bool), element => element.ValueKind == JsonValueKind.True || element.ValueKind == JsonValueKind.False },
+          { typeof(bool), element => element.GetBoolean() },
           { typeof(string), element => element.ValueKind == JsonValueKind.String ? element.GetString() : element.ToString() },
           { typeof(DateTime), element => element.TryGetDateTime(out var result) ? result : default }
       };
@@ -622,7 +622,7 @@ namespace Agents.net.Tools
 
         return typedArray;
       }
-      return Array.CreateInstance(elementType, 0); // Return empty array
+      throw new InvalidOperationException($"Expected JSON array but found {value.ValueKind}.");
     }
 
     private static object ConvertList(JsonElement value, Type listType)
