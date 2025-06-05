@@ -4,4 +4,5 @@
 # Ignore bin and obj directories
 bin/
 obj/
+.vs/
 AdvancedExamples/
