@@ -622,7 +622,7 @@ namespace Agents.net.Tools
 
         return typedArray;
       }
-      return Array.CreateInstance(elementType, 0); // Return empty array
+      throw new InvalidOperationException($"Expected JSON array but found {value.ValueKind}.");
     }
 
     private static object ConvertList(JsonElement value, Type listType)
