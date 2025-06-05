@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Agents.net.Attributes;
 using Agents.net.Models;
 using Agents.net.Tools;
 using Agents.net.Utils;
 using Agents.net.Core.Memory; // Added for IMemoryStore
-using System.Text.Json; // Added for JsonSerializer
+using System.Text.Json;
+using System.Reflection; // Added for JsonSerializer
 
 namespace Agents.net.Core
 {
@@ -24,13 +26,13 @@ namespace Agents.net.Core
         private readonly ExecutionEngine<TContext, TResult> _executionEngine;
         private readonly IModel _model;
         private readonly ILogger _logger;
-        private  ModelConfiguration _modelConfig;
+        private ModelConfiguration _modelConfig;
 
         private readonly IMemory _memory;
-        
+
         // Estado do agente
         private AgentContext<TContext> _agentContext;
-        
+
         // Configurações de reasoning
         private bool _reasoning = false;
         private IModel _reasoningModel;
@@ -76,66 +78,66 @@ namespace Agents.net.Core
             _promptManager.AddPersona(_ => persona);
             return this;
         }
-        
+
         public Agent<TContext, TResult> WithPersona(Func<TContext, string> personaGenerator)
         {
             _promptManager.AddPersona(personaGenerator);
             return this;
         }
-        
+
         public Agent<TContext, TResult> WithInstructions(string instructions)
         {
             _promptManager.AddInstructions(_ => instructions);
             return this;
         }
-        
+
         public Agent<TContext, TResult> WithInstructions(Func<TContext, string> instructionsGenerator)
         {
             _promptManager.AddInstructions(instructionsGenerator);
             return this;
         }
-        
+
         public Agent<TContext, TResult> WithGuardRails(string guardRails)
         {
             _promptManager.AddGuardRails(_ => guardRails);
             return this;
         }
-        
+
         public Agent<TContext, TResult> WithGuardRails(Func<TContext, string> guardRailsGenerator)
         {
             _promptManager.AddGuardRails(guardRailsGenerator);
             return this;
         }
-        
+
         public Agent<TContext, TResult> AddSystemPrompt(string prompt)
         {
             _promptManager.AddSystemPrompt(_ => prompt);
             return this;
         }
-        
+
         public Agent<TContext, TResult> AddSystemPrompt(Func<TContext, string> promptGenerator)
         {
             _promptManager.AddSystemPrompt(promptGenerator);
             return this;
         }
-        
+
         public Agent<TContext, TResult> RegisterSystemPromptFunction(Func<TContext, string> generator)
         {
             return AddSystemPrompt(generator); // Compatibilidade
         }
-        
+
         public Agent<TContext, TResult> AddTool(Tool tool)
         {
             _toolManager.RegisterTool(tool);
             return this;
         }
-        
+
         public Agent<TContext, TResult> WithTools(ToolPack toolPack)
         {
             _toolManager.RegisterToolPack(toolPack);
             return this;
         }
-        
+
         public Agent<TContext, TResult> WithToolPacks(params ToolPack[] toolPacks)
         {
             foreach (var pack in toolPacks)
@@ -144,7 +146,7 @@ namespace Agents.net.Core
             }
             return this;
         }
-        
+
         public Agent<TContext, TResult> WithContext(TContext context)
         {
             if (_agentContext == null)
@@ -171,7 +173,7 @@ namespace Agents.net.Core
             // Configuração aplicada ao ExecutionContext quando criado
             return this;
         }
-        
+
         /// <summary>
         /// Habilita reasoning step-by-step
         /// </summary>
@@ -180,7 +182,7 @@ namespace Agents.net.Core
             _reasoning = reasoning;
             return this;
         }
-        
+
         /// <summary>
         /// Define modelo específico para reasoning
         /// </summary>
@@ -190,7 +192,7 @@ namespace Agents.net.Core
             _reasoning = true; // Habilita reasoning automaticamente
             return this;
         }
-        
+
         /// <summary>
         /// Configura número mínimo e máximo de passos de reasoning
         /// </summary>
@@ -201,11 +203,11 @@ namespace Agents.net.Core
             return this;
         }
         #endregion
-        
+
         #region Acesso a Context
-        
+
         public TContext Context => _agentContext.ContextVar;
-        
+
         public void setContext(object context)
         {
             if (context is TContext typedContext)
@@ -220,7 +222,7 @@ namespace Agents.net.Core
                 }
             }
         }
-        
+
         public object GetProperty(string propertyName)
         {
             if (_agentContext != null && _agentContext.ContextVar != null)
@@ -234,11 +236,11 @@ namespace Agents.net.Core
             }
             return null;
         }
-        
+
         #endregion
-        
+
         #region Execução
-        
+
         public virtual async Task<AgentResult<TResult>> ExecuteAsync(
             string prompt,
             TContext contextVar = default(TContext),
@@ -253,18 +255,18 @@ namespace Agents.net.Core
             {
                 // Preparar contexto
                 PrepareContext(contextVar, messageHistory);
-      
+
                 // Processar reasoning PRIMEIRO se habilitado
                 string reasoningContent = null;
                 List<ReasoningStep> reasoningSteps = null;
                 string finalPrompt = prompt;
-                
+
                 if (_reasoning)
                 {
                     var reasoningResult = await ProcessReasoningAsync(prompt, _agentContext.MessageHistory, cancellationToken);
                     reasoningContent = reasoningResult.Content;
                     reasoningSteps = reasoningResult.Steps;
-                    
+
                     // Integrar reasoning no prompt final
                     if (!string.IsNullOrEmpty(reasoningContent))
                     {
@@ -280,13 +282,13 @@ Com base nesta análise, forneça sua resposta final:";
                 // Criar sistema de mensagens usando PromptManager
                 var systemPrompt = _promptManager.BuildSystemPrompt(Context);
                 var messages = new List<AIMessage>();
-                
+
                 if (!string.IsNullOrEmpty(systemPrompt))
                     messages.Add(AIMessage.System(systemPrompt));
-                    
+
                 messages.AddRange(_agentContext.MessageHistory);
                 messages.Add(AIMessage.User(finalPrompt));
-                
+
                 // Criar requisição usando ToolManager
                 var request = new ModelRequest
                 {
@@ -296,14 +298,14 @@ Com base nesta análise, forneça sua resposta final:";
 
                 // Usar ExecutionEngine para executar
                 var executionResult = await _executionEngine.ExecuteWithToolsAsync(
-                    request, 
+                    request,
                     _modelConfig,
                     cancellationToken);
-                
+
                 // Atualizar histórico
                 if (!string.IsNullOrEmpty(executionResult.RawResponse.Content))
                     _agentContext.MessageHistory.Add(AIMessage.Assistant(executionResult.RawResponse.Content));
-            
+
                 // Criar resultado do agente
                 var agentResult = new AgentResult<TResult>(
                     executionResult.Data,
@@ -314,7 +316,7 @@ Com base nesta análise, forneça sua resposta final:";
                     reasoningContent,
                     reasoningSteps
                 );
-                
+
                 return agentResult;
             }
             catch (Exception ex)
@@ -323,7 +325,7 @@ Com base nesta análise, forneça sua resposta final:";
                 throw;
             }
         }
-        
+
         public async Task<AgentResult<TResult>> ExecuteStreamingAsync(
             string prompt,
             Action<string> handler,
@@ -334,22 +336,22 @@ Com base nesta análise, forneça sua resposta final:";
             // Verificações de estado
             if (string.IsNullOrEmpty(prompt))
                 throw new ArgumentException("O prompt não pode ser vazio", nameof(prompt));
-                
+
             try
             {
                 // Preparar contexto
                 PrepareContext(contextVar, messageHistory);
-      
+
                 // Criar sistema de mensagens usando PromptManager
                 var systemPrompt = _promptManager.BuildSystemPrompt(Context);
                 var messages = new List<AIMessage>();
-                
+
                 if (!string.IsNullOrEmpty(systemPrompt))
                     messages.Add(AIMessage.System(systemPrompt));
-                    
+
                 messages.AddRange(_agentContext.MessageHistory);
                 messages.Add(AIMessage.User(prompt));
-                
+
                 // Criar requisição usando ToolManager
                 var request = new ModelRequest
                 {
@@ -359,15 +361,15 @@ Com base nesta análise, forneça sua resposta final:";
 
                 // Usar ExecutionEngine para executar em streaming
                 var executionResult = await _executionEngine.ExecuteStreamingAsync(
-                    request, 
+                    request,
                     handler,
                     _modelConfig,
                     cancellationToken);
-                
+
                 // Atualizar histórico
                 if (!string.IsNullOrEmpty(executionResult.RawResponse.Content))
                     _agentContext.MessageHistory.Add(AIMessage.Assistant(executionResult.RawResponse.Content));
-            
+
                 // Criar resultado do agente
                 var agentResult = new AgentResult<TResult>(
                     executionResult.Data,
@@ -376,7 +378,7 @@ Com base nesta análise, forneça sua resposta final:";
                     executionResult.RawResponse.Usage,
                     executionResult.ToolResults
                 );
-                
+
                 return agentResult;
             }
             catch (Exception ex)
@@ -415,7 +417,7 @@ Com base nesta análise, forneça sua resposta final:";
         {
             var reasoningModel = _reasoningModel ?? _model;
             var reasoningMemory = new ReasoningMemory(_reasoningMaxSteps);
-            
+
             // Prompt estruturado para reasoning (com JSON schema)
             var reasoningPrompt = $@"Analise este problema step-by-step usando raciocínio estruturado.
 
@@ -470,13 +472,13 @@ IMPORTANTE: Responda APENAS com JSON válido, sem texto adicional.";
                     try
                     {
                         var reasoningData = JsonSerializer.Deserialize<ReasoningSteps>(reasoningResponse.Content);
-                        
+
                         // Adicionar steps à memória
                         foreach (var step in reasoningData.Steps)
                         {
                             reasoningMemory.AddStep(step);
                         }
-                        
+
                         // Retornar reasoning formatado com steps estruturados
                         var formattedContent = FormatReasoningOutput(reasoningData.Steps);
                         return new ReasoningResult(formattedContent, reasoningData.Steps);
@@ -488,7 +490,7 @@ IMPORTANTE: Responda APENAS com JSON válido, sem texto adicional.";
                         return new ReasoningResult(reasoningResponse.Content, new List<ReasoningStep>());
                     }
                 }
-                
+
                 return new ReasoningResult("", new List<ReasoningStep>());
             }
             catch (Exception ex)
@@ -497,7 +499,7 @@ IMPORTANTE: Responda APENAS com JSON válido, sem texto adicional.";
                 return new ReasoningResult("", new List<ReasoningStep>());
             }
         }
-        
+
         /// <summary>
         /// Formata a saída do reasoning de forma estruturada
         /// </summary>
@@ -516,32 +518,32 @@ IMPORTANTE: Responda APENAS com JSON válido, sem texto adicional.";
                 output += $"🎯 Ação: {step.Action}\n";
                 output += $"💭 Raciocínio: {step.Reasoning}\n";
                 output += $"📊 Resultado: {step.Result}\n";
-                
+
                 if (step.Confidence.HasValue)
                 {
                     output += $"🎯 Confiança: {step.Confidence.Value:P0}\n";
                 }
-                
+
                 if (step.NextAction.HasValue)
                 {
                     output += $"➡️  Próxima ação: {step.NextAction.Value}\n";
                 }
-                
+
                 output += "\n" + new string('-', 40) + "\n\n";
             }
 
             return output;
         }
-        
+
         #endregion
-        
+
         #region IAgent Implementation
-        
+
         public string GetSystemPrompt()
         {
             return _promptManager.BuildSystemPrompt(Context);
         }
-        
+
         async Task<object> IAgent.ExecuteAsync(string prompt, object context, List<AIMessage> messageHistory, CancellationToken cancellationToken)
         {
             if (context is TContext typedContext)
@@ -558,5 +560,121 @@ IMPORTANTE: Responda APENAS com JSON válido, sem texto adicional.";
         }
 
         #endregion
+        
+          /// <summary>
+        /// Adiciona outro agente como uma ferramenta
+        /// </summary>
+        public Agent<TContext, TResult> WithToolAsAgent(IAgent toolAgent)
+        {
+            if (toolAgent == null)
+                throw new ArgumentNullException(nameof(toolAgent));
+            
+            var tool = toolAgent.AsTool(); // Usa o método AsTool() acima
+            return AddTool(tool);
+        }
+
+        /// <summary>
+        /// Adiciona agente como tool com configuração customizada
+        /// </summary>
+        public  Agent<TContext, TResult> WithToolAsAgent(IAgent toolAgent, string toolName, 
+            string toolDescription, bool isFinalTool = false, bool isStreamable = false)
+        {
+            if (toolAgent == null)
+                throw new ArgumentNullException(nameof(toolAgent));
+            
+            var tool = toolAgent.AsTool(toolName, toolDescription, isFinalTool, isStreamable);
+            return this.AddTool(tool);
+        }
+
+        /// <summary>
+        /// Adiciona múltiplos agentes como tools
+        /// </summary>
+        public  Agent<TContext, TResult> WithToolAsAgents( params IAgent[] agents)
+        {
+            if (agents == null)
+                throw new ArgumentNullException(nameof(agents));
+
+            foreach (var toolAgent in agents)
+            {
+                if (toolAgent != null)
+                    this.WithToolAsAgent(toolAgent);
+            }
+            return this;
+        }
+
+        #region Helper Methods
+
+        /// <summary>
+        /// Obtém o nome da tool via reflection nos atributos
+        /// </summary>
+        private string GetToolName(IAgent agent, Type agentType)
+        {
+            // 1. Tentar AgentAsToolAttribute.ToolName
+            var toolAttr = agentType.GetCustomAttribute<AgentAsToolAttribute>();
+            if (!string.IsNullOrEmpty(toolAttr?.ToolName))
+                return toolAttr.ToolName;
+
+            // 2. Tentar AgentAttribute.Name  
+            var agentAttr = agentType.GetCustomAttribute<AgentAttribute>();
+            if (!string.IsNullOrEmpty(agentAttr?.Name))
+                return $"call_{SanitizeName(agentAttr.Name)}";
+
+            // 3. Fallback para nome do agente
+            return $"call_{SanitizeName(agent.Name)}";
+        }
+
+        /// <summary>
+        /// Constrói descrição completa via reflection nos atributos
+        /// </summary>
+        private string GetToolDescription(IAgent agent, Type agentType)
+        {
+            var parts = new List<string>();
+
+            // 1. Descrição principal do AgentAsToolAttribute (prioridade)
+            var toolAttr = agentType.GetCustomAttribute<AgentAsToolAttribute>();
+            if (!string.IsNullOrEmpty(toolAttr?.ToolDescription))
+            {
+                parts.Add(toolAttr.ToolDescription);
+            }
+
+            // 2. Informações do AgentAttribute
+            var agentAttr = agentType.GetCustomAttribute<AgentAttribute>();
+            if (agentAttr != null)
+            {
+                if (!string.IsNullOrEmpty(agentAttr.Role))
+                    parts.Add($"Especialização: {agentAttr.Role}");
+                
+                if (!string.IsNullOrEmpty(agentAttr.Description) && toolAttr == null)
+                    parts.Add(agentAttr.Description);
+            }
+
+            // 3. Buscar FunctionCallAttribute se existir (para casos especiais)
+            var functionAttr = agentType.GetCustomAttribute<FunctionCallAttribute>();
+            if (functionAttr != null && !string.IsNullOrEmpty(functionAttr.Description) && toolAttr == null)
+            {
+                parts.Add($"Capacidades: {functionAttr.Description}");
+            }
+
+            // 4. Fallback para descrição do agente
+            if (parts.Count == 0)
+            {
+                parts.Add($"Executa o agente '{agent.Name}': {agent.description}");
+            }
+
+            return string.Join(". ", parts);
+        }
+
+        private string SanitizeName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return "unnamed_agent";
+            
+            return name.ToLowerInvariant()
+                      .Replace(" ", "_")
+                      .Replace("-", "_");
+        }
+
+        #endregion
+
     }
 }
