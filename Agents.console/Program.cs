@@ -125,7 +125,7 @@ namespace Agents.console
                             await ExecutarExemplo("Jornalista com Busca Web", () => ExemplosBasicos.ExecutarReporterComFerramentas(modelo));
                             break;
                         case "3":
-                            await ExecutarExemplo("Analista Financeiro", () => ExemplosBasicos.ExecutarAnalistaFinanceiroBH(modelo));
+                            await ExecutarExemplo("Analista Financeiro", () => ExemplosBasicos.ExecutarAnalistaFinanceiroRealData(modelo));
                             break;
                         case "4":
                             await ExecutarExemplo("Resolvedor de Problemas", () => ExemplosRaciocinio.ExecutarResolvedorProblemas(modelo));

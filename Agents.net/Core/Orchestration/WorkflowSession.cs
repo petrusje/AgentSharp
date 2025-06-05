@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Agents.net.Models; // Add this using for UsageInfo
 
 namespace Agents.net.Core.Orchestration
 {
@@ -60,6 +61,21 @@ namespace Agents.net.Core.Orchestration
         /// </summary>
         public bool IsActive { get; set; }
         
+        /// <summary>
+        /// Uso total de tokens em toda a sessão
+        /// </summary>
+        public UsageInfo SessionTokenUsage { get; private set; }
+        
+        /// <summary>
+        /// Total de tokens utilizados em toda a sessão
+        /// </summary>
+        public int TotalSessionTokens => SessionTokenUsage?.TotalTokens ?? 0;
+        
+        /// <summary>
+        /// Custo estimado total da sessão
+        /// </summary>
+        public decimal TotalSessionCost => SessionTokenUsage?.EstimatedCost ?? 0m;
+
         public WorkflowSession()
         {
             SessionId = Guid.NewGuid().ToString("N");
@@ -69,6 +85,7 @@ namespace Agents.net.Core.Orchestration
             CreatedAt = DateTime.UtcNow;
             UpdatedAt = DateTime.UtcNow;
             IsActive = true;
+            SessionTokenUsage = new UsageInfo { PromptTokens = 0, CompletionTokens = 0, EstimatedCost = 0m };
         }
         
         public WorkflowSession(string sessionId, string workflowId, string userId = null) : this()
@@ -86,6 +103,36 @@ namespace Agents.net.Core.Orchestration
             run.SessionId = SessionId;
             Runs.Add(run);
             UpdatedAt = DateTime.UtcNow;
+            
+            // Atualizar tokens da sessão
+            UpdateSessionTokenUsage();
+        }
+        
+        /// <summary>
+        /// Atualiza o uso total de tokens da sessão baseado em todas as execuções
+        /// </summary>
+        private void UpdateSessionTokenUsage()
+        {
+            int totalPromptTokens = 0;
+            int totalCompletionTokens = 0;
+            decimal totalCost = 0m;
+            
+            foreach (var run in Runs)
+            {
+                if (run.TokenUsage != null)
+                {
+                    totalPromptTokens += run.TokenUsage.PromptTokens;
+                    totalCompletionTokens += run.TokenUsage.CompletionTokens;
+                    totalCost += run.TokenUsage.EstimatedCost;
+                }
+            }
+            
+            SessionTokenUsage = new UsageInfo
+            {
+                PromptTokens = totalPromptTokens,
+                CompletionTokens = totalCompletionTokens,
+                EstimatedCost = totalCost
+            };
         }
         
         /// <summary>
@@ -194,11 +241,32 @@ namespace Agents.net.Core.Orchestration
         /// </summary>
         public Dictionary<string, object> Metadata { get; set; }
         
+        /// <summary>
+        /// Informações de uso de tokens para esta execução
+        /// </summary>
+        public UsageInfo TokenUsage { get; set; }
+        
+        /// <summary>
+        /// Uso de tokens por step (step_index -> UsageInfo)
+        /// </summary>
+        public Dictionary<int, UsageInfo> StepTokenUsage { get; set; }
+        
+        /// <summary>
+        /// Total de tokens utilizados em todos os steps desta execução
+        /// </summary>
+        public int TotalTokens => TokenUsage?.TotalTokens ?? 0;
+        
+        /// <summary>
+        /// Custo estimado total desta execução
+        /// </summary>
+        public decimal EstimatedCost => TokenUsage?.EstimatedCost ?? 0m;
+
         public WorkflowRun()
         {
             RunId = Guid.NewGuid().ToString("N");
             Input = new Dictionary<string, object>();
             Metadata = new Dictionary<string, object>();
+            StepTokenUsage = new Dictionary<int, UsageInfo>();
             Status = WorkflowRunStatus.Running;
             StartTime = DateTime.UtcNow;
         }
@@ -222,6 +290,51 @@ namespace Agents.net.Core.Orchestration
             Status = WorkflowRunStatus.Failed;
             EndTime = DateTime.UtcNow;
         }
+        
+        /// <summary>
+        /// Adiciona uso de tokens de um step específico
+        /// </summary>
+        /// <param name="stepIndex">Índice do step</param>
+        /// <param name="usage">Informações de uso de tokens</param>
+        public void AddStepTokenUsage(int stepIndex, UsageInfo usage)
+        {
+            if (usage == null) return;
+            
+            StepTokenUsage[stepIndex] = usage;
+            
+            // Atualizar o total de tokens da execução
+            UpdateTotalTokenUsage();
+        }
+        
+        /// <summary>
+        /// Atualiza o total de tokens desta execução baseado nos steps
+        /// </summary>
+        private void UpdateTotalTokenUsage()
+        {
+            if (StepTokenUsage.Count == 0)
+            {
+                TokenUsage = null;
+                return;
+            }
+            
+            int totalPromptTokens = 0;
+            int totalCompletionTokens = 0;
+            decimal totalCost = 0m;
+            
+            foreach (var usage in StepTokenUsage.Values)
+            {
+                totalPromptTokens += usage.PromptTokens;
+                totalCompletionTokens += usage.CompletionTokens;
+                totalCost += usage.EstimatedCost;
+            }
+            
+            TokenUsage = new UsageInfo
+            {
+                PromptTokens = totalPromptTokens,
+                CompletionTokens = totalCompletionTokens,
+                EstimatedCost = totalCost
+            };
+        }
     }
     
     /// <summary>
@@ -234,4 +347,4 @@ namespace Agents.net.Core.Orchestration
         Failed,
         Cancelled
     }
-} 
+}

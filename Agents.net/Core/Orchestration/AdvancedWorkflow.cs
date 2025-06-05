@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Agents.net.Utils;
 using Agents.net.Core.Memory;
+using Agents.net.Models;
 
 namespace Agents.net.Core.Orchestration
 {
@@ -318,6 +319,18 @@ namespace Agents.net.Core.Orchestration
             var result = await step.Agent.ExecuteAsync(input, context, messages, cancellationToken);
             string output = result?.ToString() ?? string.Empty;
             
+            // Capturar informações de uso de tokens
+            UsageInfo stepTokenUsage = null;
+            if (result is AgentResult<object> agentResult && agentResult.Usage != null)
+            {
+                stepTokenUsage = agentResult.Usage;
+                
+                if (_debugMode)
+                {
+                    _logger.Log(LogLevel.Debug, $"Step {stepIndex + 1} token usage - Prompt: {stepTokenUsage.PromptTokens}, Completion: {stepTokenUsage.CompletionTokens}, Total: {stepTokenUsage.TotalTokens}, Cost: ${stepTokenUsage.EstimatedCost:F4}");
+                }
+            }
+            
             // Processar output
             step.ProcessOutput(context, output);
             
@@ -330,20 +343,47 @@ namespace Agents.net.Core.Orchestration
             {
                 _session.UpdateState($"step_{stepIndex}_output", output);
                 _session.UpdateState($"step_{stepIndex}_duration", stepDuration);
+                
+                // Salvar informações de tokens se disponível
+                if (stepTokenUsage != null)
+                {
+                    _session.UpdateState($"step_{stepIndex}_tokens", stepTokenUsage.TotalTokens);
+                    _session.UpdateState($"step_{stepIndex}_prompt_tokens", stepTokenUsage.PromptTokens);
+                    _session.UpdateState($"step_{stepIndex}_completion_tokens", stepTokenUsage.CompletionTokens);
+                    _session.UpdateState($"step_{stepIndex}_cost", stepTokenUsage.EstimatedCost);
+                    
+                    // Adicionar ao run atual se existir
+                    if (_session.Runs.Count > 0)
+                    {
+                        var currentRun = _session.Runs[_session.Runs.Count - 1];
+                        currentRun.AddStepTokenUsage(stepIndex, stepTokenUsage);
+                    }
+                }
             }
             
             // Salvar na memória
+            var memoryMetadata = new Dictionary<string, object>
+            {
+                ["step_name"] = step.Name,
+                ["step_index"] = stepIndex,
+                ["duration_ms"] = stepDuration.TotalMilliseconds,
+                ["output_length"] = output.Length
+            };
+            
+            // Adicionar informações de tokens à memória se disponível
+            if (stepTokenUsage != null)
+            {
+                memoryMetadata["total_tokens"] = stepTokenUsage.TotalTokens;
+                memoryMetadata["prompt_tokens"] = stepTokenUsage.PromptTokens;
+                memoryMetadata["completion_tokens"] = stepTokenUsage.CompletionTokens;
+                memoryMetadata["estimated_cost"] = stepTokenUsage.EstimatedCost;
+            }
+            
             await _memory.AddItemAsync(new MemoryItem(
                 $"Step completed: {step.Name}",
                 "step_completion",
                 1.0,
-                new Dictionary<string, object>
-                {
-                    ["step_name"] = step.Name,
-                    ["step_index"] = stepIndex,
-                    ["duration_ms"] = stepDuration.TotalMilliseconds,
-                    ["output_length"] = output.Length
-                }
+                memoryMetadata
             ));
         }
 
@@ -432,7 +472,11 @@ namespace Agents.net.Core.Orchestration
                     SuccessfulRuns = _session.Runs.FindAll(r => r.Status == WorkflowRunStatus.Completed).Count,
                     FailedRuns = _session.Runs.FindAll(r => r.Status == WorkflowRunStatus.Failed).Count,
                     AverageExecutionTime = CalculateAverageExecutionTime(),
-                    LastExecutionTime = _session.Runs.Count > 0 ? _session.Runs[_session.Runs.Count - 1].StartTime : (DateTime?)null
+                    LastExecutionTime = _session.Runs.Count > 0 ? _session.Runs[_session.Runs.Count - 1].StartTime : (DateTime?)null,
+                    TotalTokens = _session.TotalSessionTokens,
+                    TotalPromptTokens = _session.SessionTokenUsage?.PromptTokens ?? 0,
+                    TotalCompletionTokens = _session.SessionTokenUsage?.CompletionTokens ?? 0,
+                    TotalEstimatedCost = _session.TotalSessionCost
                 };
             }
         }
@@ -462,6 +506,36 @@ namespace Agents.net.Core.Orchestration
         public TimeSpan? AverageExecutionTime { get; set; }
         public DateTime? LastExecutionTime { get; set; }
         
+        /// <summary>
+        /// Total de tokens utilizados em toda a sessão
+        /// </summary>
+        public int TotalTokens { get; set; }
+        
+        /// <summary>
+        /// Total de tokens de prompt utilizados
+        /// </summary>
+        public int TotalPromptTokens { get; set; }
+        
+        /// <summary>
+        /// Total de tokens de completion utilizados
+        /// </summary>
+        public int TotalCompletionTokens { get; set; }
+        
+        /// <summary>
+        /// Custo estimado total da sessão
+        /// </summary>
+        public decimal TotalEstimatedCost { get; set; }
+        
+        /// <summary>
+        /// Média de tokens por execução bem-sucedida
+        /// </summary>
+        public double AverageTokensPerRun => SuccessfulRuns > 0 ? (double)TotalTokens / SuccessfulRuns : 0.0;
+        
+        /// <summary>
+        /// Custo médio por execução bem-sucedida
+        /// </summary>
+        public decimal AverageCostPerRun => SuccessfulRuns > 0 ? TotalEstimatedCost / SuccessfulRuns : 0m;
+        
         public double SuccessRate => TotalRuns > 0 ? (double)SuccessfulRuns / TotalRuns : 0.0;
     }
-} 
+}
