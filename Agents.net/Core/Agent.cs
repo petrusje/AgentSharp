@@ -558,9 +558,5 @@ IMPORTANTE: Responda APENAS com JSON válido, sem texto adicional.";
     }
 
     #endregion
-
-    #region IAgent Implementation
-    public string
-    #endregion
   }
 }
