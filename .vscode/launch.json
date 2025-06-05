@@ -11,7 +11,18 @@
       "args": [],
       "cwd": "${workspaceFolder}/Agents.console",
       "stopAtEntry": false,
-      "console": "internalConsole"
+      "console": "internalConsole",
+      "justMyCode": true,
+      "suppressJITOptimizations": false,
+      "logging": {
+        "moduleLoad": false,
+        "exceptions": true,
+        "programOutput": true,
+        "diagnosticsLog": {
+          "protocolMessages": false,
+          "dispatcherMessages": "none"
+        }
+      }
     },
     {
       "name": ".NET Core Launch (netcoredbg)",
@@ -23,6 +34,17 @@
       "cwd": "${workspaceFolder}/Agents.console",
       "stopAtEntry": false,
       "console": "internalConsole",
+      "justMyCode": true,
+      "suppressJITOptimizations": false,
+      "logging": {
+        "moduleLoad": false,
+        "exceptions": true,
+        "programOutput": true,
+        "diagnosticsLog": {
+          "protocolMessages": false,
+          "dispatcherMessages": "none"
+        }
+      },
       "pipeTransport": {
         "pipeCwd": "${workspaceFolder}",
         "pipeProgram": "bash",

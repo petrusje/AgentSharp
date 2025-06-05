@@ -69,6 +69,9 @@ namespace Agents.net.Models
                     break;
                     
                 handler?.Invoke(chunk + " ");
+                
+                // Simula delay entre chunks para simular streaming real
+                await Task.Delay(50, cancellationToken);
             }
             
             return new ModelResponse

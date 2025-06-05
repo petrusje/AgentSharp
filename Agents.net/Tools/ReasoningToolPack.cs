@@ -39,7 +39,7 @@ namespace Agents.net.Tools
         [FunctionCall("Decompõe um problema complexo em sub-problemas menores e mais gerenciáveis")]
         [FunctionCallParameter("problema", "O problema complexo a ser decomposto")]
         [FunctionCallParameter("maxSubproblemas", "Número máximo de sub-problemas a criar (padrão: 5)")]
-        private async Task<string> DecomporProblemaAsync(string problema, int maxSubproblemas = 5)
+        private string DecomporProblema(string problema, int maxSubproblemas = 5)
         {
             
             var subproblemas = new List<string>();
@@ -70,7 +70,7 @@ namespace Agents.net.Tools
         [FunctionCall("Executa uma cadeia de raciocínio passo-a-passo para resolver um problema")]
         [FunctionCallParameter("questao", "O problema ou questão a ser analisada")]
         [FunctionCallParameter("contexto", "Contexto adicional ou informações relevantes")]
-        private async Task<string> CadeiaRaciocinioAsync(string questao, string contexto = "")
+        private string CadeiaRaciocinio(string questao, string contexto = "")
         {
             
             var passos = new List<string>
@@ -94,7 +94,7 @@ namespace Agents.net.Tools
         [FunctionCall("Avalia a qualidade e viabilidade de uma solução proposta")]
         [FunctionCallParameter("solucao", "A solução proposta a ser avaliada")]
         [FunctionCallParameter("criterios", "Critérios específicos de avaliação (ex: custo, tempo, eficácia)")]
-        private async Task<string> AvaliarSolucaoAsync(string solucao, string criterios = "")
+        private string AvaliarSolucao(string solucao, string criterios = "")
         {
             
             var pontuacao = CalcularPontuacao(solucao);
@@ -143,7 +143,7 @@ namespace Agents.net.Tools
         [FunctionCall("Identifica possíveis obstáculos e riscos em uma abordagem")]
         [FunctionCallParameter("abordagem", "A abordagem ou plano a ser analisado")]
         [FunctionCallParameter("dominio", "Área ou domínio específico (ex: tecnologia, negócios, legal)")]
-        private async Task<string> IdentificarObstaculosAsync(string abordagem, string dominio = "geral")
+        private string IdentificarObstaculos(string abordagem, string dominio = "geral")
         {
             
             var obstaculos = new List<string>
@@ -187,7 +187,7 @@ namespace Agents.net.Tools
         [FunctionCall("Gera alternativas criativas para abordar um problema")]
         [FunctionCallParameter("problema", "O problema que precisa de soluções alternativas")]
         [FunctionCallParameter("numeroAlternativas", "Número de alternativas a gerar (padrão: 3)")]
-        private async Task<string> GerarAlternativasAsync(string problema, int numeroAlternativas = 3)
+        private string GerarAlternativas(string problema, int numeroAlternativas = 3)
         {
             
             var abordagens = new List<string>

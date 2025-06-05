@@ -27,6 +27,13 @@ namespace Agents.net.Models
                     var model = new OpenAIModel(options.ModelName, options.ApiKey, options.Endpoint);
                     return model;
                 
+              /*()  case "ollama":
+                    var ollamaModel = new OllamaModel(options.ModelName, options.Endpoint ?? "http://localhost:11434");
+                    return ollamaModel;
+                
+                case "mock":
+                    return new MockModel();
+              */ 
                 // Futuros provedores podem ser adicionados aqui
                 // case "anthropic":
                 //    return new AnthropicModel(...);
@@ -51,6 +58,23 @@ namespace Agents.net.Models
             };
             
             return new ModelFactory().CreateModel("openai", options);
+        }
+        
+        /// <summary>
+        /// Cria uma instância do modelo Ollama com as configurações padrão
+        /// </summary>
+        /// <param name="modelName">Nome do modelo Ollama a ser usado (ex: "llama2", "mistral")</param>
+        /// <param name="baseUrl">URL base do servidor Ollama (padrão: http://localhost:11434)</param>
+        /// <returns>Instância do modelo Ollama</returns>
+        public static IModel CreateOllamaModel(string modelName, string baseUrl = "http://localhost:11434")
+        {
+            var options = new ModelOptions
+            {
+                ModelName = modelName,
+                Endpoint = baseUrl
+            };
+            
+            return new ModelFactory().CreateModel("ollama", options);
         }
         
         /// <summary>
