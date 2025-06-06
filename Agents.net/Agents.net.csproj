@@ -4,7 +4,6 @@
 		<PackageId>AgentDotNet</PackageId>
 		<Version>1.0.0</Version>
 		<Authors>Petrus Junior Evangelista</Authors>
-		<Company>TOTVS</Company>
 		<Description>.NET framework for building AI agents with structured reasoning and advanced workflows.</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<RepositoryUrl>https://github.com/petrusje/Agents.net</RepositoryUrl>

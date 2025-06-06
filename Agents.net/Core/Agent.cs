@@ -558,5 +558,46 @@ IMPORTANTE: Responda APENAS com JSON válido, sem texto adicional.";
     }
 
     #endregion
+    /// <summary>
+    /// Adiciona outro agente como uma ferramenta
+    /// </summary>
+    public  Agent<TContext, TResult> WithToolAsAgent(IAgent toolAgent)
+    {
+      if (toolAgent == null)
+        throw new ArgumentNullException(nameof(toolAgent));
+
+      var tool = toolAgent.AsTool(); // Usa AgentExtensions.AsTool()
+      return this.AddTool(tool);
+    }
+
+    /// <summary>
+    /// Adiciona agente como tool com configuração customizada
+    /// </summary>
+    public  Agent<TContext, TResult> WithToolAsAgent(
+         IAgent toolAgent, string toolName,
+         string toolDescription)
+    {
+      if (toolAgent == null)
+        throw new ArgumentNullException(nameof(toolAgent));
+
+      var tool = toolAgent.AsTool(toolName, toolDescription);
+      return this.AddTool(tool);
+    }
+
+    /// <summary>
+    /// Adiciona múltiplos agentes como tools
+    /// </summary>
+    public  Agent<TContext, TResult> WithToolAsAgents( params IAgent[] agents)
+    {
+      if (agents == null)
+        throw new ArgumentNullException(nameof(agents));
+
+      foreach (var toolAgent in agents)
+      {
+        if (toolAgent != null)
+          WithToolAsAgent(toolAgent);
+      }
+      return this;
+    }
   }
 }
