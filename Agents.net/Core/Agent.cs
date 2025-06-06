@@ -421,7 +421,7 @@ Com base nesta análise, forneça sua resposta final:";
 
 PROMPT ORIGINAL: {originalPrompt}
 
-Execute reasoning em {_reasoningMinSteps}-{_reasoningMaxSteps} etapas estruturadas. 
+Execute reasoning em {_reasoningMinSteps}-{_reasoningMaxSteps} etapas estruturadas.
 
 RESPONDA EXCLUSIVAMENTE EM JSON seguindo esta estrutura:
 {{
@@ -439,7 +439,7 @@ RESPONDA EXCLUSIVAMENTE EM JSON seguindo esta estrutura:
 
 ETAPAS OBRIGATÓRIAS:
 1. COMPREENSÃO: Entenda o problema
-2. ANÁLISE: Identifique elementos-chave  
+2. ANÁLISE: Identifique elementos-chave
 3. RACIOCÍNIO: Desenvolva solução lógica
 4. VALIDAÇÃO: Verifique consistência
 5. CONCLUSÃO: Apresente resultado final
