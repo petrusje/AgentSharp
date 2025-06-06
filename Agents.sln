@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agents.net", "Agents.net\Ag
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agents.console", "Agents.console\Agents.console.csproj", "{C21466B0-B7CE-4288-9DAE-2128596DE32B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agents.Tests", "Agents.Tests\Agents.Tests.csproj", "{E77C8DB7-9949-469E-A658-0692D73CEED7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,18 @@ Global
 		{C21466B0-B7CE-4288-9DAE-2128596DE32B}.Release|x64.Build.0 = Release|Any CPU
 		{C21466B0-B7CE-4288-9DAE-2128596DE32B}.Release|x86.ActiveCfg = Release|Any CPU
 		{C21466B0-B7CE-4288-9DAE-2128596DE32B}.Release|x86.Build.0 = Release|Any CPU
+		{E77C8DB7-9949-469E-A658-0692D73CEED7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E77C8DB7-9949-469E-A658-0692D73CEED7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E77C8DB7-9949-469E-A658-0692D73CEED7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E77C8DB7-9949-469E-A658-0692D73CEED7}.Debug|x64.Build.0 = Debug|Any CPU
+		{E77C8DB7-9949-469E-A658-0692D73CEED7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E77C8DB7-9949-469E-A658-0692D73CEED7}.Debug|x86.Build.0 = Debug|Any CPU
+		{E77C8DB7-9949-469E-A658-0692D73CEED7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E77C8DB7-9949-469E-A658-0692D73CEED7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E77C8DB7-9949-469E-A658-0692D73CEED7}.Release|x64.ActiveCfg = Release|Any CPU
+		{E77C8DB7-9949-469E-A658-0692D73CEED7}.Release|x64.Build.0 = Release|Any CPU
+		{E77C8DB7-9949-469E-A658-0692D73CEED7}.Release|x86.ActiveCfg = Release|Any CPU
+		{E77C8DB7-9949-469E-A658-0692D73CEED7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
