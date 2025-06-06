@@ -19,6 +19,7 @@ namespace Agents.console
       // Carregamento do arquivo .env
       Env.TraversePath().Load();
 
+      Console.OutputEncoding = System.Text.Encoding.UTF8;
       Console.ForegroundColor = ConsoleColor.Cyan;
       Console.WriteLine("╔══════════════════════════════════════════════════════════════╗");
       Console.WriteLine("║              🤖 AGENTS.NET - EXEMPLOS PRÁTICOS               ║");
