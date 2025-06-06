@@ -162,7 +162,7 @@ namespace Agents.console
 
         Console.WriteLine();
         Console.WriteLine("Pressione qualquer tecla para continuar...");
-        Console.Read();
+        Console.ReadKey(true);
         Console.Clear();
       }
     }
