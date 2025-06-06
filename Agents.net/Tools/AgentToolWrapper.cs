@@ -21,7 +21,10 @@ namespace Agents.net.Tools
         /// Executa agente com PROMPT ORIGINAL + PROMPT ESPECÍFICO
         /// Os atributos FunctionCall são injetados dinamicamente via Tool
         /// </summary>
-        public string ExecuteAgent(string promptToAgent, string context = null)
+
+        [FunctionCallParameter("promptToAgent", "Prompt específico para o agente")]
+        [FunctionCallParameter("HistoryContext", "Contexto adicional para o Agente entender sobre a tarefa (opcional)")]
+        public string ExecuteAgent(string promptToAgent, string HistoryContext = null)
         {
             if (string.IsNullOrEmpty(promptToAgent))
                 throw new ArgumentException("Prompt cannot be empty", nameof(promptToAgent));
@@ -30,24 +33,24 @@ namespace Agents.net.Tools
             {
                 // COMO VOCÊ PEDIU: Prompt original + prompt específico
                 var originalPrompt = _agent.GetSystemPrompt(); // Prompt original do agente
-                var finalPrompt = BuildCombinedPrompt(originalPrompt, promptToAgent, context);
-                
+                var finalPrompt = BuildCombinedPrompt(originalPrompt, promptToAgent, HistoryContext);
+
                 if (Logger.Instance != null)
                     Logger.Debug($"Executando agente {_agent.Name} com prompt combinado");
 
                 // Executar de forma síncrona
-                var task = ExecuteAgentAsync(finalPrompt, context);
+                var task = ExecuteAgentAsync(finalPrompt, HistoryContext);
                 return task.GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
                 var errorMsg = $"Erro ao executar agente {_agent.Name}: {ex.Message}";
-                
+
                 if (Logger.Instance != null)
                     Logger.Error($"Erro ao executar agente {_agent.Name} como tool", ex);
                 else
                     Console.WriteLine($"[ERROR] {errorMsg}");
-                
+
                 return errorMsg;
             }
         }
