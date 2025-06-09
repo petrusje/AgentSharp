@@ -10,34 +10,21 @@ namespace Agents_console
 {
   class Program
   {
-    static readonly ConsoleObj _consoleObj = new ConsoleObj();
+    static readonly ConsoleObj _consoleObj = new();
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter",
+      Justification = "Uso futuro")]
     static async Task Main(string[] args)
     {
-      // Carregamento do arquivo .env
       Env.TraversePath().Load();
 
       Console.OutputEncoding = System.Text.Encoding.UTF8;
-      _consoleObj.WithColor(ConsoleColor.Cyan)
-        .WriteLine("╔══════════════════════════════════════════════════════════════╗")
-        .WriteLine("║              🤖 AGENTS.NET - EXEMPLOS PRÁTICOS               ║")
-        .WriteLine("║                Sistema de Demonstração Interativo            ║")
-        .WriteLine("╚══════════════════════════════════════════════════════════════╝")
-        .ResetColor();
+      DisplayWelcomeMessage();
 
-      // Verificar API Key
-      var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
-      var endpoint = Environment.GetEnvironmentVariable("OPENAI_ENDPOINT") ?? "https://proxy.dta.totvs.ai/";
-
+      var (apiKey, endpoint) = GetApiKeyAndEndpoint();
       if (string.IsNullOrWhiteSpace(apiKey))
       {
-        _consoleObj.WithColor(ConsoleColor.Red)
-          .WriteLine("❌ Erro: Variável de ambiente OPENAI_API_KEY não configurada!")
-          .WriteLine("   1. Copie o arquivo env.example para .env")
-          .WriteLine("   2. Edite o arquivo .env com sua chave da OpenAI")
-          .WriteLine("   3. Execute novamente o programa")
-          .WriteLine($"   Arquivo .env deve estar em: {System.IO.Directory.GetCurrentDirectory()}")
-          .ResetColor();
+        DisplayApiKeyError();
         return;
       }
 
@@ -45,45 +32,77 @@ namespace Agents_console
 
       try
       {
-        // Configurar modelo usando variáveis de ambiente
-        var modelName = Environment.GetEnvironmentVariable("MODEL_NAME") ?? "gpt-4o-mini";
-        var temperature = double.TryParse(Environment.GetEnvironmentVariable("TEMPERATURE"), out var temp) ? temp : 0.7;
-        var maxTokens = int.TryParse(Environment.GetEnvironmentVariable("MAX_TOKENS"), out var tokens) ? tokens : 2048;
-
-        Console.WriteLine($"🔧 Debug: MODEL_NAME env var = '{Environment.GetEnvironmentVariable("MODEL_NAME")}'");
-        Console.WriteLine($"🔧 Debug: Using model name = '{modelName}'");
-
-        var modelFactory = new ModelFactory();
-        var modelOptions = new ModelOptions
-        {
-          ModelName = modelName,
-          ApiKey = apiKey,
-          Endpoint = endpoint,
-          DefaultConfiguration = new ModelConfiguration
-          {
-            Temperature = temperature,
-            MaxTokens = maxTokens
-          }
-        };
-
-        IModel modelo = modelFactory.CreateModel("openai", modelOptions);
-        _consoleObj.WithColor(ConsoleColor.Green)
-          .WriteLine("✅ Modelo OpenAI inicializado com sucesso!")
-          .WriteLine($"   Modelo: {modelName} | Temp: {temperature} | Max Tokens: {maxTokens}")
-          .ResetColor();
-
-        await ExibirMenu(modelo);
+        var modelOptions = GetModelOptions(apiKey, endpoint);
+        IModel modelo = InitializeModel(modelOptions);
+        await DisplayMenu(modelo);
       }
       catch (Exception ex)
       {
-        _consoleObj.WithColor(ConsoleColor.Red)
-          .WriteLine($"❌ Erro fatal: {ex.Message}")
-          .WriteLine($"Stack trace: {ex.StackTrace}")
-          .ResetColor();
+        DisplayFatalError(ex);
       }
     }
 
-    static async Task ExibirMenu(IModel modelo)
+    private static void DisplayWelcomeMessage()
+    {
+      _consoleObj.WithColor(ConsoleColor.Cyan)
+        .WriteLine("╔══════════════════════════════════════════════════════════════╗")
+        .WriteLine("║              🤖 AGENTS.NET - EXEMPLOS PRÁTICOS               ║")
+        .WriteLine("║                Sistema de Demonstração Interativo            ║")
+        .WriteLine("╚══════════════════════════════════════════════════════════════╝")
+        .ResetColor();
+    }
+
+    private static (string apiKey, string endpoint) GetApiKeyAndEndpoint()
+    {
+      var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+      var endpoint = Environment.GetEnvironmentVariable("OPENAI_ENDPOINT") ?? "https://proxy.dta.totvs.ai/";
+      return (apiKey, endpoint);
+    }
+
+    private static void DisplayApiKeyError()
+    {
+      _consoleObj.WithColor(ConsoleColor.Red)
+        .WriteLine("❌ Erro: Variável de ambiente OPENAI_API_KEY não configurada!")
+        .WriteLine("   1. Copie o arquivo env.example para .env")
+        .WriteLine("   2. Edite o arquivo .env com sua chave da OpenAI")
+        .WriteLine("   3. Execute novamente o programa")
+        .WriteLine($"   Arquivo .env deve estar em: {System.IO.Directory.GetCurrentDirectory()}")
+        .ResetColor();
+    }
+
+    private static ModelOptions GetModelOptions(string apiKey, string endpoint)
+    {
+      var modelName = Environment.GetEnvironmentVariable("MODEL_NAME") ?? "gpt-4o-mini";
+      var temperature = double.TryParse(Environment.GetEnvironmentVariable("TEMPERATURE"), out var temp) ? temp : 0.7;
+      var maxTokens = int.TryParse(Environment.GetEnvironmentVariable("MAX_TOKENS"), out var tokens) ? tokens : 2048;
+
+      Console.WriteLine($"🔧 Debug: Using model name = '{modelName}'");
+
+      return new ModelOptions
+      {
+        ModelName = modelName,
+        ApiKey = apiKey,
+        Endpoint = endpoint,
+        DefaultConfiguration = new ModelConfiguration
+        {
+          Temperature = temperature,
+          MaxTokens = maxTokens
+        }
+      };
+    }
+
+    private static IModel InitializeModel(ModelOptions modelOptions)
+    {
+      var modelFactory = new ModelFactory();
+      IModel modelo = modelFactory.CreateModel("openai", modelOptions);
+      _consoleObj.WithColor(ConsoleColor.Green)
+        .WriteLine("✅ Modelo OpenAI inicializado com sucesso!")
+        .WriteLine($"   Modelo: {modelOptions.ModelName} | Temp: {modelOptions.DefaultConfiguration.Temperature} | Max Tokens: {modelOptions.DefaultConfiguration.MaxTokens}")
+        .ResetColor();
+      return modelo;
+    }
+
+    static async Task DisplayMenu(IModel modelo)
     {
       while (true)
       {
@@ -180,20 +199,27 @@ namespace Agents_console
       Console.Write("Digite sua escolha (0-9): ");
     }
 
-    static async Task ExecuteExample(string nome, Func<Task> exemplo)
+    static async Task ExecuteExample(string exampleName, Func<Task> example)
     {
-      Console.WriteLine($"🚀 Executando: {nome}");
+      Console.WriteLine($"🚀 Executando: {exampleName}");
       Console.WriteLine(new string('=', 50));
       Console.WriteLine();
 
-      var inicio = DateTime.Now;
-      await exemplo();
-      var duracao = DateTime.Now - inicio;
+      var startTime = DateTime.Now;
+      await example();
+      var duration = DateTime.Now - startTime;
 
       Console.WriteLine();
       Console.WriteLine(new string('=', 50));
-      Console.WriteLine($"⏱️ Tempo de execução: {duracao.TotalSeconds:F2}s");
+      Console.WriteLine($"⏱️ Tempo de execução: {duration.TotalSeconds:F2}s");
     }
 
+    private static void DisplayFatalError(Exception ex)
+    {
+      _consoleObj.WithColor(ConsoleColor.Red)
+        .WriteLine($"❌ Erro fatal: {ex.Message}")
+        .WriteLine($"Stack trace: {ex.StackTrace}")
+        .ResetColor();
+    }
   }
 }
