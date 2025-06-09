@@ -6,7 +6,7 @@ using DotNetEnv;
 using System;
 using System.Threading.Tasks;
 
-namespace Agents.console
+namespace Agents_console
 {
   class Program
   {
