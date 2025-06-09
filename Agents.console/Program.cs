@@ -1,5 +1,6 @@
 ﻿using Agents.net.Examples;
 using Agents.net.Models;
+using Agents.net.Utils;
 
 using DotNetEnv;
 
@@ -202,7 +203,7 @@ namespace Agents_console
     static async Task ExecuteExample(string exampleName, Func<Task> example)
     {
       Console.WriteLine($"🚀 Executando: {exampleName}");
-      Console.WriteLine(new string('=', 50));
+      _consoleObj.WriteSeparator();
       Console.WriteLine();
 
       var startTime = DateTime.Now;
@@ -210,7 +211,7 @@ namespace Agents_console
       var duration = DateTime.Now - startTime;
 
       Console.WriteLine();
-      Console.WriteLine(new string('=', 50));
+      _consoleObj.WriteSeparator();
       Console.WriteLine($"⏱️ Tempo de execução: {duration.TotalSeconds:F2}s");
     }
 
