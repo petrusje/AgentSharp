@@ -243,30 +243,12 @@ namespace Agents.net.Models
     }
 
     /// <summary>
-    /// Handles the normal completion case (FinishReason.Stop).
-    /// </summary>
-    /// <param name="response">The API response</param>
-    /// <param name="modelResponse">Response object to populate</param>
-    private async Task HandleFinishReasonStop(ChatCompletion response, ModelResponse modelResponse)
-    {
-      // Normal response without tool calls
-      if (response.Content.Count > 0)
-      {
-        modelResponse.Content = response.Content[0].Text;
-      }
-      modelResponse.Usage = ConvertUsage(response.Usage);
-      Logger.Debug($"Complete response generated with {modelResponse.Usage?.TotalTokens ?? 0} tokens");
-
-      await Task.CompletedTask; // To maintain consistent async signature
-    }
-
-    /// <summary>
     /// Handles the normal completion case with structured output processing.
     /// </summary>
     /// <param name="response">The API response</param>
     /// <param name="modelResponse">Response object to populate</param>
     /// <param name="config">Model configuration with structured output settings</param>
-    private async Task HandleFinishReasonStop(ChatCompletion response, ModelResponse modelResponse, ModelConfiguration config)
+    static async Task HandleFinishReasonStop(ChatCompletion response, ModelResponse modelResponse, ModelConfiguration config)
     {
       // Set content first
       if (response.Content.Count > 0)
@@ -879,7 +861,7 @@ namespace Agents.net.Models
     /// </summary>
     /// <param name="messages">Library message objects</param>
     /// <returns>Native API message objects</returns>
-    public List<ChatMessage> ConvertToNativeMessages(List<AIMessage> messages)
+    static List<ChatMessage> ConvertToNativeMessages(List<AIMessage> messages)
     {
       return messages.Select<AIMessage, ChatMessage>(message =>
       {
@@ -911,7 +893,7 @@ namespace Agents.net.Models
     /// </summary>
     /// <param name="tools">Library tool objects</param>
     /// <returns>Native API tool objects</returns>
-    public List<ChatTool> ConvertToNativeTools(List<Tool> tools)
+    static List<ChatTool> ConvertToNativeTools(List<Tool> tools)
     {
       return tools.Select(tool =>
       {
@@ -941,7 +923,7 @@ namespace Agents.net.Models
     /// <param name="request">The model request with tools</param>
     /// <param name="config">Model configuration</param>
     /// <returns>Configured API request object</returns>
-    private ChatCompletionOptions CreateChatRequest(ModelRequest request, ModelConfiguration config)
+    static ChatCompletionOptions CreateChatRequest(ModelRequest request, ModelConfiguration config)
     {
       var chatOptions = CreateChatRequestOptions(config);
 
@@ -959,7 +941,7 @@ namespace Agents.net.Models
     /// </summary>
     /// <param name="config">Model configuration</param>
     /// <returns>API request options object</returns>
-    private ChatCompletionOptions CreateChatRequestOptions(ModelConfiguration config)
+    static ChatCompletionOptions CreateChatRequestOptions(ModelConfiguration config)
     {
       var options = new ChatCompletionOptions
       {
@@ -1031,7 +1013,7 @@ namespace Agents.net.Models
     /// </summary>
     /// <param name="usage">API usage information</param>
     /// <returns>Library usage information object</returns>
-    private UsageInfo ConvertUsage(ChatTokenUsage usage)
+    static UsageInfo ConvertUsage(ChatTokenUsage usage)
     {
       if (usage == null)
         return null;
