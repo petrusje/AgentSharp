@@ -5,6 +5,7 @@ using Agents.net.Utils;
 using DotNetEnv;
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Agents_console
@@ -13,8 +14,6 @@ namespace Agents_console
   {
     static readonly ConsoleObj _consoleObj = new();
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter",
-      Justification = "Uso futuro")]
     static async Task Main(string[] args)
     {
       Env.TraversePath().Load();
@@ -22,7 +21,7 @@ namespace Agents_console
       Console.OutputEncoding = System.Text.Encoding.UTF8;
       DisplayWelcomeMessage();
 
-      var (apiKey, endpoint) = GetApiKeyAndEndpoint();
+      var (apiKey, endpoint) = GetApiKeyAndEndpoint(args);
       if (string.IsNullOrWhiteSpace(apiKey))
       {
         DisplayApiKeyError();
@@ -53,10 +52,24 @@ namespace Agents_console
         .ResetColor();
     }
 
-    private static (string apiKey, string endpoint) GetApiKeyAndEndpoint()
+    private static (string apiKey, string endpoint) GetApiKeyAndEndpoint(string[] args)
     {
-      var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
-      var endpoint = Environment.GetEnvironmentVariable("OPENAI_ENDPOINT") ?? "https://proxy.dta.totvs.ai/";
+      const string OPENAI_API_KEY = "OPENAI_API_KEY";
+      const string OPENAI_ENDPOINT = "OPENAI_ENDPOINT";
+      const char VALUE_DELIMITER = '=';
+
+      var argKey = args.FirstOrDefault(x => x.StartsWith($"{OPENAI_API_KEY}{VALUE_DELIMITER}", StringComparison.OrdinalIgnoreCase));
+      var argEndpoint = args.FirstOrDefault(x => x.StartsWith($"{OPENAI_ENDPOINT}{VALUE_DELIMITER}", StringComparison.OrdinalIgnoreCase));
+      if (!string.IsNullOrWhiteSpace(argKey) && !string.IsNullOrWhiteSpace(argEndpoint))
+      {
+        var keyValue = argKey.Split(VALUE_DELIMITER).LastOrDefault();
+        var endpointValue = argEndpoint.Split(VALUE_DELIMITER).LastOrDefault();
+        if (!string.IsNullOrWhiteSpace(keyValue) && !string.IsNullOrWhiteSpace(endpointValue))
+          return (keyValue, endpointValue);
+      }
+
+      var apiKey = Environment.GetEnvironmentVariable(OPENAI_API_KEY);
+      var endpoint = Environment.GetEnvironmentVariable(OPENAI_ENDPOINT) ?? "https://proxy.dta.totvs.ai/";
       return (apiKey, endpoint);
     }
 
