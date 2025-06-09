@@ -10,18 +10,20 @@ namespace Agents_console
 {
   class Program
   {
+    static readonly ConsoleObj _consoleObj = new ConsoleObj();
+
     static async Task Main(string[] args)
     {
       // Carregamento do arquivo .env
       Env.TraversePath().Load();
 
       Console.OutputEncoding = System.Text.Encoding.UTF8;
-      Console.ForegroundColor = ConsoleColor.Cyan;
-      Console.WriteLine("╔══════════════════════════════════════════════════════════════╗");
-      Console.WriteLine("║              🤖 AGENTS.NET - EXEMPLOS PRÁTICOS               ║");
-      Console.WriteLine("║                Sistema de Demonstração Interativo            ║");
-      Console.WriteLine("╚══════════════════════════════════════════════════════════════╝");
-      Console.ResetColor();
+      _consoleObj.WithColor(ConsoleColor.Cyan)
+        .WriteLine("╔══════════════════════════════════════════════════════════════╗")
+        .WriteLine("║              🤖 AGENTS.NET - EXEMPLOS PRÁTICOS               ║")
+        .WriteLine("║                Sistema de Demonstração Interativo            ║")
+        .WriteLine("╚══════════════════════════════════════════════════════════════╝")
+        .ResetColor();
 
       // Verificar API Key
       var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
@@ -29,13 +31,13 @@ namespace Agents_console
 
       if (string.IsNullOrWhiteSpace(apiKey))
       {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine("❌ Erro: Configure a variável de ambiente OPENAI_API_KEY");
-        Console.WriteLine("   1. Copie o arquivo env.example para .env");
-        Console.WriteLine("   2. Edite o arquivo .env com sua chave da OpenAI");
-        Console.WriteLine("   3. Execute novamente o programa");
-        Console.WriteLine($"   Arquivo .env deve estar em: {System.IO.Directory.GetCurrentDirectory()}");
-        Console.ResetColor();
+        _consoleObj.WithColor(ConsoleColor.Red)
+          .WriteLine("❌ Erro: Variável de ambiente OPENAI_API_KEY não configurada!")
+          .WriteLine("   1. Copie o arquivo env.example para .env")
+          .WriteLine("   2. Edite o arquivo .env com sua chave da OpenAI")
+          .WriteLine("   3. Execute novamente o programa")
+          .WriteLine($"   Arquivo .env deve estar em: {System.IO.Directory.GetCurrentDirectory()}")
+          .ResetColor();
         return;
       }
 
@@ -65,19 +67,19 @@ namespace Agents_console
         };
 
         IModel modelo = modelFactory.CreateModel("openai", modelOptions);
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("✅ Modelo OpenAI inicializado com sucesso!");
-        Console.WriteLine($"   Modelo: {modelName} | Temp: {temperature} | Max Tokens: {maxTokens}");
-        Console.ResetColor();
+        _consoleObj.WithColor(ConsoleColor.Green)
+          .WriteLine("✅ Modelo OpenAI inicializado com sucesso!")
+          .WriteLine($"   Modelo: {modelName} | Temp: {temperature} | Max Tokens: {maxTokens}")
+          .ResetColor();
 
         await ExibirMenu(modelo);
       }
       catch (Exception ex)
       {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine($"❌ Erro fatal: {ex.Message}");
-        Console.WriteLine($"Stack trace: {ex.StackTrace}");
-        Console.ResetColor();
+        _consoleObj.WithColor(ConsoleColor.Red)
+          .WriteLine($"❌ Erro fatal: {ex.Message}")
+          .WriteLine($"Stack trace: {ex.StackTrace}")
+          .ResetColor();
       }
     }
 
