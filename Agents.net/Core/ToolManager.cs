@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -31,7 +31,7 @@ namespace Agents.net.Core
             _toolPacks.Add(toolPack);
 
             // Registra as ferramentas do tool pack
-            foreach (var method in toolPack.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+            foreach (var method in toolPack.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                 .Where(m => m.GetCustomAttribute<FunctionCallAttribute>() != null))
             {
                 var functionCall = method.GetCustomAttribute<FunctionCallAttribute>();
