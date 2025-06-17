@@ -550,7 +550,7 @@ IMPORTANTE: Responda APENAS com JSON válido, sem texto adicional.";
 
         if (step.NextAction.HasValue)
         {
-          output += $"➡️  Próxima ação: {step.NextAction.Value}\n";
+          output += $"➡️ Próxima ação: {step.NextAction.Value}\n";
         }
 
         output += "\n" + new string('-', 40) + "\n\n";
