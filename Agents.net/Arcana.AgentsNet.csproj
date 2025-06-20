@@ -4,22 +4,17 @@
 		<PackageId>Arcana.AgentsNet</PackageId>
 		<Version>0.0.1</Version>
 		<Authors>Petrus Junior Evangelista</Authors>
-
-		<!-- Detailed description of the purpose of the library -->
 		<Description>
 			.NET library for building AI agents,
 			with structured reasoning and advanced workflows.
 			Open source under MIT license.
 		</Description>
-
-		<!-- Clear and explicit MIT license -->
+		<!-- MIT license by SPDX identifier -->
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-
-		<!-- Link to Github repository -->
+		<!-- Repo info -->
 		<RepositoryUrl>https://github.com/petrusje/Agents.net</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-
-		<!-- Including the license file and readme in the NuGet package -->
+		<!-- Caminho relativo ao projeto -->
 		<IncludePackageReadmeFile>true</IncludePackageReadmeFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
@@ -42,8 +37,9 @@
 		<PackageReference Include="System.Text.Json" Version="8.0.5" />
 	</ItemGroup>
 
-	<!-- Opcional: Incluir LICENSE no pacote para consulta -->
+	<!-- Inclua os arquivos da raiz da solução no pacote -->
 	<ItemGroup>
-		<None Include="LICENSE" Pack="true" PackagePath="" />
+		<None Include="..\LICENSE" Pack="true" PackagePath="" />
+		<None Include="..\README.md" Pack="true" PackagePath="" />
 	</ItemGroup>
 </Project>
