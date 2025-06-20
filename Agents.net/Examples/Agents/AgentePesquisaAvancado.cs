@@ -1,17 +1,18 @@
+using Arcana.AgentsNet.Attributes;
+using Arcana.AgentsNet.Core;
+using Arcana.AgentsNet.Examples.Contexts;
+using Arcana.AgentsNet.Models;
 using System;
 using System.Linq;
-using Agents.net.Core;
-using Agents.net.Models;
-using Agents.net.Attributes;
 
-namespace Agents.net.Examples
+namespace Arcana.AgentsNet.Examples.Agents
 {
-    public class AgentePesquisaAvancado : Agent<ContextoPesquisaComplexo, string>
-    {
-        public AgentePesquisaAvancado(IModel model)
-            : base(model,
-                   name: "PesquisadorAvancado",
-                   instructions: @"
+  public class AgentePesquisaAvancado : Agent<ContextoPesquisaComplexo, string>
+  {
+    public AgentePesquisaAvancado(IModel model)
+        : base(model,
+               name: "PesquisadorAvancado",
+               instructions: @"
 🧠 Você é um pesquisador PhD sênior com expertise em metodologias científicas avançadas!
 
 METODOLOGIA DE PESQUISA SISTEMÁTICA:
@@ -30,18 +31,18 @@ PADRÕES DE QUALIDADE:
 ⚖️ Mantenha neutralidade científica
 
 Adapte seu estilo e profundidade conforme o contexto fornecido!")
-        {
-        }
+    {
+    }
 
-        [FunctionCall("Busca acadêmica especializada em bases científicas")]
-        [FunctionCallParameter("query", "Consulta de pesquisa otimizada para bases acadêmicas")]
-        [FunctionCallParameter("databases", "Bases de dados específicas para consulta")]
-        [FunctionCallParameter("filters", "Filtros de qualidade e temporalidade")]
-        private string BuscaAcademica(string query, string databases, string filters)
-        {
-            var year = DateTime.Now.Year;
-            var resultados = new[]
-            {
+    [FunctionCall("Busca acadêmica especializada em bases científicas")]
+    [FunctionCallParameter("query", "Consulta de pesquisa otimizada para bases acadêmicas")]
+    [FunctionCallParameter("databases", "Bases de dados específicas para consulta")]
+    [FunctionCallParameter("filters", "Filtros de qualidade e temporalidade")]
+    private string BuscaAcademica(string query, string databases, string filters)
+    {
+      var year = DateTime.Now.Year;
+      var resultados = new[]
+      {
                 $"📚 'Large Language Models for Portuguese: A Comprehensive Survey' (2024) - Cit: 127",
                 $"🔬 'BERTimbau vs GPT Models: Benchmark Analysis for Brazilian Portuguese' ({year}) - Cit: 89",
                 $"📊 'Portuguese Language Processing: State-of-the-Art and Challenges' (2023) - Cit: 156",
@@ -49,7 +50,7 @@ Adapte seu estilo e profundidade conforme o contexto fornecido!")
                 $"💡 'Fine-tuning Strategies for Portuguese NLP Tasks' ({year}) - Cit: 78"
             };
 
-            return $@"
+      return $@"
 🔍 BUSCA ACADÊMICA EXECUTADA
 ═════════════════════════════
 Query: {query}
@@ -70,15 +71,15 @@ Filtros: {filters}
 • Foco em eficiência computacional
 • Necessidade de datasets brasileiros
 • Gap em aplicações comerciais";
-        }
+    }
 
-        [FunctionCall("Análise de dados quantitativos para pesquisa")]
-        [FunctionCallParameter("dataType", "Tipo de dados para análise (citações, performance, etc.)")]
-        [FunctionCallParameter("metrics", "Métricas específicas para análise")]
-        private string AnaliseQuantitativa(string dataType, string metrics)
-        {
-            var random = new Random();
-            return $@"
+    [FunctionCall("Análise de dados quantitativos para pesquisa")]
+    [FunctionCallParameter("dataType", "Tipo de dados para análise (citações, performance, etc.)")]
+    [FunctionCallParameter("metrics", "Métricas específicas para análise")]
+    private string AnaliseQuantitativa(string dataType, string metrics)
+    {
+      var random = new Random();
+      return $@"
 📊 ANÁLISE QUANTITATIVA: {dataType.ToUpper()}
 ═══════════════════════════════════════
 
@@ -98,14 +99,14 @@ Filtros: {filters}
 • Foco em modelos menor escala
 • Integração com outras modalidades
 • Desenvolvimento de benchmarks específicos";
-        }
+    }
 
-        [FunctionCall("Síntese inteligente de múltiplas fontes")]
-        [FunctionCallParameter("sources", "Lista de fontes para síntese")]
-        [FunctionCallParameter("focus", "Foco temático da síntese")]
-        private string SinteseInteligente(string sources, string focus)
-        {
-            return $@"
+    [FunctionCall("Síntese inteligente de múltiplas fontes")]
+    [FunctionCallParameter("sources", "Lista de fontes para síntese")]
+    [FunctionCallParameter("focus", "Foco temático da síntese")]
+    private string SinteseInteligente(string sources, string focus)
+    {
+      return $@"
 🧠 SÍNTESE INTELIGENTE: {focus.ToUpper()}
 ═══════════════════════════════════════
 
@@ -128,6 +129,6 @@ Filtros: {filters}
 
 📋 SÍNTESE FINAL:
 {focus} demonstra avanços significativos, porém permanece um campo em desenvolvimento com oportunidades claras para contribuições originais, especialmente em contextos de recursos limitados e aplicações específicas de domínio.";
-        }
     }
+  }
 }

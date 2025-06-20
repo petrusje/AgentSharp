@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agents.net", "Agents.net\Agents.net.csproj", "{FEA6774C-931A-4D36-ACCB-0422C7E49C6C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arcana.AgentsNet", "Agents.net\Arcana.AgentsNet.csproj", "{FEA6774C-931A-4D36-ACCB-0422C7E49C6C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agents.console", "Agents.console\Agents.console.csproj", "{C21466B0-B7CE-4288-9DAE-2128596DE32B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arcana.AgentsNet.console", "Agents.console\Arcana.AgentsNet.console.csproj", "{C21466B0-B7CE-4288-9DAE-2128596DE32B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agents.Tests", "Agents.Tests\Agents.Tests.csproj", "{E77C8DB7-9949-469E-A658-0692D73CEED7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arcana.AgentsNet.Tests", "Agents.Tests\Arcana.AgentsNet.Tests.csproj", "{E77C8DB7-9949-469E-A658-0692D73CEED7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

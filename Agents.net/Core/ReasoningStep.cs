@@ -1,8 +1,7 @@
-﻿using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace Agents.net.Core
+namespace Arcana.AgentsNet.Core
 {
   public enum NextAction
   {

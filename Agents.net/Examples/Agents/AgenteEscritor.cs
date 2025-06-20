@@ -1,16 +1,15 @@
-using System;
-using Agents.net.Core;
-using Agents.net.Models;
-using Agents.net.Attributes;
+using Arcana.AgentsNet.Core;
+using Arcana.AgentsNet.Examples.Contexts;
+using Arcana.AgentsNet.Models;
 
-namespace Agents.net.Examples
+namespace Arcana.AgentsNet.Examples.Agents
 {
-    public class AgenteEscritor : Agent<ContextoPesquisa, string>
-    {
-        public AgenteEscritor(IModel model)
-            : base(model,
-                   name: "RedatorExecutivo",
-                   instructions: @"
+  public class AgenteEscritor : Agent<ContextoPesquisa, string>
+  {
+    public AgenteEscritor(IModel model)
+        : base(model,
+               name: "RedatorExecutivo",
+               instructions: @"
 Você é um redator executivo especializado em relatórios estratégicos! ✍️📋
 
 PRINCÍPIOS DE ESCRITA EXECUTIVA:
@@ -29,7 +28,7 @@ ESTRUTURA PADRÃO:
 🚀 RECOMENDAÇÕES ACIONÁVEIS
 
 Seja conciso, claro e estratégico na comunicação!")
-        {
-        }
+    {
     }
+  }
 }

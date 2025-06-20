@@ -1,11 +1,12 @@
-﻿using Agents.net.Core;
-using Agents.net.Models;
-using Agents.net.Utils;
-
+using Arcana.AgentsNet.Core;
+using Arcana.AgentsNet.Examples.Agents;
+using Arcana.AgentsNet.Examples.Contexts;
+using Arcana.AgentsNet.Models;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
-namespace Agents.net.Examples
+namespace Arcana.AgentsNet.Examples
 {
   /// <summary>
   /// Exemplos básicos demonstrando personality-driven agents,
@@ -13,18 +14,16 @@ namespace Agents.net.Examples
   /// </summary>
   public static class ExemplosBasicos
   {
-    static readonly ConsoleObj _consoleObj = new ConsoleObj();
-
     /// <summary>
     /// Demonstra um agente com personalidade distinta (jornalista mineiro)
     /// Contexto regional de Belo Horizonte
     /// </summary>
     public static async Task ExecutarJornalistaMineiro(IModel modelo)
     {
-      _consoleObj.WithColor(ConsoleColor.Yellow)
-        .WriteLine("⛰️  EXEMPLO 1: JORNALISTA MINEIRO - PERSONALITY-DRIVEN AGENT")
-        .WriteSeparator()
-        .ResetColor();
+      Console.ForegroundColor = ConsoleColor.Yellow;
+      Console.WriteLine("⛰️  EXEMPLO 1: JORNALISTA MINEIRO - PERSONALITY-DRIVEN AGENT");
+      Console.WriteLine("════════════════════════════════════════════════════════");
+      Console.ResetColor();
 
       Console.WriteLine("📄 Contexto regional de Belo Horizonte e Minas Gerais");
       Console.WriteLine("Demonstra como criar um agente com personalidade distinta\n");
@@ -57,11 +56,11 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
           .WithInstructions("Seja criativo, envolvente e mantenha o estilo jornalístico mineiro. Use emojis apropriados.")
           .WithGuardRails(" Nunca fale direto da terra do pão de açúcar, pois Minas é terra do Pão de Queijo!");
 
-      _consoleObj.WithColor(ConsoleColor.Green)
-        .WriteLine("🔥 Pergunta: 'Me conte sobre uma história interessante que poderia estar acontecendo na Praça da Liberdade agora'")
-        .ResetColor();
+      Console.ForegroundColor = ConsoleColor.Green;
+      Console.WriteLine("🔥 Pergunta: 'Me conte sobre uma história interessante que poderia estar acontecendo na Praça da Liberdade agora'");
+      Console.ResetColor();
       Console.WriteLine("\n📻 Resposta do Jornalista:");
-      _consoleObj.WriteSeparator('-');
+      Console.WriteLine(new string('-', 50));
 
       try
       {
@@ -69,20 +68,20 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
             "Me conte sobre uma história interessante que poderia estar acontecendo na Praça da Liberdade em Belo Horizonte agora"
         );
 
-        _consoleObj.WithColor(ConsoleColor.White)
-          .WriteLine(resultado.Data)
-          .ResetColor();
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine(resultado.Data);
+        Console.ResetColor();
 
-        _consoleObj.WriteSeparator('-');
+        Console.WriteLine(new string('-', 50));
         Console.WriteLine($"📊 Tokens utilizados: {resultado.Usage.TotalTokens}");
         Console.WriteLine($"⏱️  Tempo: Não disponível");
 
         // Exemplo adicional
         Console.WriteLine("\n🔄 Testando outra pergunta com busca duckduckgo...\n");
 
-        _consoleObj.WithColor(ConsoleColor.Green)
-          .WriteLine("🔥 Pergunta: 'Qual seria a última tendência gastronômica na Savassi?'")
-          .ResetColor();
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("🔥 Pergunta: 'Qual seria a última tendência gastronômica na Savassi?'");
+        Console.ResetColor();
 
         //adicionando ferramentas de busca web
         jornalista.WithTools(new SearchToolPack());
@@ -92,16 +91,18 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
         );
 
         Console.WriteLine("\n📻 Resposta do Jornalista:");
-        _consoleObj.WriteSeparator('-');
-        _consoleObj.WithColor(ConsoleColor.White)
-          .WriteLine(resultado2.Data);
+        Console.WriteLine(new string('-', 50));
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine(resultado2.Data);
         resultado2.Tools.ForEach(tool =>
             Console.WriteLine($"🔧 Ferramenta utilizada: {tool.Name}"));
         Console.ResetColor();
       }
       catch (Exception ex)
       {
-        DisplayErrorMessage(ex.Message);
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"❌ Erro: {ex.Message}");
+        Console.ResetColor();
       }
     }
 
@@ -111,10 +112,10 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
     /// </summary>
     public static async Task ExecutarReporterComFerramentas(IModel modelo)
     {
-      _consoleObj.WithColor(ConsoleColor.Yellow)
-        .WriteLine("🔍 EXEMPLO 2: REPÓRTER COM WEB SEARCH CUSTOMIZADA - AGENT WITH TOOLS")
-        .WriteSeparator()
-        .ResetColor();
+      Console.ForegroundColor = ConsoleColor.Yellow;
+      Console.WriteLine("🔍 EXEMPLO 2: REPÓRTER COM WEB SEARCH CUSTOMIZADA - AGENT WITH TOOLS");
+      Console.WriteLine("═══════════════════════════════════════════════════════════");
+      Console.ResetColor();
 
       Console.WriteLine("📄 Contexto de reportagem em Belo Horizonte");
       Console.WriteLine("Demonstra como adicionar ferramentas de busca web ao agente\n");
@@ -130,11 +131,11 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
           .WithContext(contexto)
           .WithTools(new SearchToolPack());
 
-      _consoleObj.WithColor(ConsoleColor.Green)
-        .WriteLine("🔥 Pergunta: 'Quais são as últimas notícias sobre tecnologia no Brasil?'")
-        .ResetColor();
+      Console.ForegroundColor = ConsoleColor.Green;
+      Console.WriteLine("🔥 Pergunta: 'Quais são as últimas notícias sobre tecnologia no Brasil?'");
+      Console.ResetColor();
       Console.WriteLine("\n📻 Resposta do Jornalista (com busca web):");
-      _consoleObj.WriteSeparator('-');
+      Console.WriteLine(new string('-', 50));
 
       try
       {
@@ -142,11 +143,11 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
             "Quais são as últimas notícias sobre tecnologia em Belo Horizonte e Minas Gerais?"
         );
 
-        _consoleObj.WithColor(ConsoleColor.White)
-          .WriteLine(resultado.Data)
-          .ResetColor();
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine(resultado.Data);
+        Console.ResetColor();
 
-        _consoleObj.WriteSeparator('-');
+        Console.WriteLine(new string('-', 50));
         Console.WriteLine($"📊 Tokens utilizados: {resultado.Usage.TotalTokens}");
         Console.WriteLine($"🔧 Ferramentas chamadas: {resultado.Tools.Count}");
         Console.WriteLine($"⏱️  Tempo: Não disponível");
@@ -163,14 +164,16 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
       }
       catch (Exception ex)
       {
-        DisplayErrorMessage(ex.Message);
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"❌ Erro: {ex.Message}");
+        Console.ResetColor();
       }
 
       // Exemplo adicional
       Console.WriteLine("\n🔄 Testando outra pergunta...\n");
-      _consoleObj.WithColor(ConsoleColor.Green)
-        .WriteLine("🔥 Pergunta: 'Quais são as últimas inovações em inteligência artificial no Brasil?'")
-        .ResetColor();
+      Console.ForegroundColor = ConsoleColor.Green;
+      Console.WriteLine("🔥 Pergunta: 'Quais são as últimas inovações em inteligência artificial no Brasil?'");
+      Console.ResetColor();
     }
 
     /// <summary>
@@ -179,10 +182,10 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
     /// </summary>
     public static async Task ExecutarAnalistaFinanceiroBH(IModel modelo)
     {
-      _consoleObj.WithColor(ConsoleColor.Yellow)
-        .WriteLine("📈 EXEMPLO 3: ANALISTA FINANCEIRO BH - FINANCE DATA AGENT")
-        .WriteSeparator()
-        .ResetColor();
+      Console.ForegroundColor = ConsoleColor.Yellow;
+      Console.WriteLine("📈 EXEMPLO 3: ANALISTA FINANCEIRO BH - FINANCE DATA AGENT");
+      Console.WriteLine("═════════════════════════════════════════════════════════");
+      Console.ResetColor();
 
       Console.WriteLine("📄 Análise de mercado financeiro em Minas Gerais");
       Console.WriteLine("Demonstra análise financeira com dados estruturados\n");
@@ -197,11 +200,11 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
       var analistaFinanceiro = new AnalistaFinanceiro(modelo)
           .WithContext(contexto);
 
-      _consoleObj.WithColor(ConsoleColor.Green)
-        .WriteLine("🔥 Pergunta: 'Faça uma análise das ações da Petrobras (PETR4) considerando o cenário atual'")
-        .ResetColor();
+      Console.ForegroundColor = ConsoleColor.Green;
+      Console.WriteLine("🔥 Pergunta: 'Faça uma análise das ações da Petrobras (PETR4) considerando o cenário atual'");
+      Console.ResetColor();
       Console.WriteLine("\n📊 Análise do Especialista:");
-      _consoleObj.WriteSeparator('-');
+      Console.WriteLine(new string('-', 50));
 
       try
       {
@@ -209,18 +212,20 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
             "Faça uma análise das ações da Cemig (CMIG4) considerando o cenário atual do mercado mineiro e setor elétrico"
         );
 
-        _consoleObj.WithColor(ConsoleColor.White)
-          .WriteLine(resultado.Data)
-          .ResetColor();
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine(resultado.Data);
+        Console.ResetColor();
 
-        _consoleObj.WriteSeparator('-');
+        Console.WriteLine(new string('-', 50));
         Console.WriteLine($"📊 Tokens utilizados: {resultado.Usage.TotalTokens}");
         Console.WriteLine($"🔧 Ferramentas chamadas: {resultado.Tools.Count}");
         Console.WriteLine($"⏱️  Tempo: Não disponível");
       }
       catch (Exception ex)
       {
-        DisplayErrorMessage(ex.Message);
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"❌ Erro: {ex.Message}");
+        Console.ResetColor();
       }
     }
 
@@ -230,10 +235,10 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
     /// </summary>
     public static async Task ExecutarAnalistaFinanceiroRealData(IModel modelo)
     {
-      _consoleObj.WithColor(ConsoleColor.Yellow)
-        .WriteLine("📈 EXEMPLO 4: ANALISTA FINANCEIRO COM DADOS REAIS - REAL DATA AGENT")
-        .WriteSeparator()
-        .ResetColor();
+      Console.ForegroundColor = ConsoleColor.Yellow;
+      Console.WriteLine("📈 EXEMPLO 4: ANALISTA FINANCEIRO COM DADOS REAIS - REAL DATA AGENT");
+      Console.WriteLine("═══════════════════════════════════════════════════════════════");
+      Console.ResetColor();
 
       Console.WriteLine("📄 Análise de mercado financeiro com dados reais em Minas Gerais");
       Console.WriteLine("Demonstra análise financeira com dados obtidos de APIs reais\n");
@@ -248,11 +253,11 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
       var analistaFinanceiro = new AnalistaFinanceiroRealData(modelo)
           .WithContext(contexto);
 
-      _consoleObj.WithColor(ConsoleColor.Green)
-        .WriteLine("🔥 Pergunta: 'Faça uma análise das ações da Cemig (CMIG4) considerando o cenário atual'")
-        .ResetColor();
+      Console.ForegroundColor = ConsoleColor.Green;
+      Console.WriteLine("🔥 Pergunta: 'Faça uma análise das ações da Cemig (CMIG4) considerando o cenário atual'");
+      Console.ResetColor();
       Console.WriteLine("\n📊 Análise do Especialista:");
-      _consoleObj.WriteSeparator('-');
+      Console.WriteLine(new string('-', 50));
 
       try
       {
@@ -260,26 +265,21 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
             "Faça uma análise das ações da Cemig (CMIG4) considerando o cenário atual do mercado mineiro e setor elétrico"
         );
 
-        _consoleObj.WithColor(ConsoleColor.White)
-          .WriteLine(resultado.Data)
-          .ResetColor();
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine(resultado.Data);
+        Console.ResetColor();
 
-        _consoleObj.WriteSeparator('-');
+        Console.WriteLine(new string('-', 50));
         Console.WriteLine($"📊 Tokens utilizados: {resultado.Usage.TotalTokens}");
         Console.WriteLine($"🔧 Ferramentas chamadas: {resultado.Tools.Count}");
         Console.WriteLine($"⏱️  Tempo: Não disponível");
       }
       catch (Exception ex)
       {
-        DisplayErrorMessage(ex.Message);
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"❌ Erro: {ex.Message}");
+        Console.ResetColor();
       }
-    }
-
-    private static void DisplayErrorMessage(string message)
-    {
-      _consoleObj.WithColor(ConsoleColor.Red)
-        .WriteLine($"❌ Erro: {message}")
-        .ResetColor();
     }
   }
 

@@ -1,6 +1,6 @@
-using Agents.net.Attributes;
-using Agents.net.Exceptions;
-using Agents.net.Utils;
+using Arcana.AgentsNet.Attributes;
+using Arcana.AgentsNet.Exceptions;
+using Arcana.AgentsNet.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +11,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Agents.net.Tools
+namespace Arcana.AgentsNet.Tools
 {
 
   public enum ToolKind
@@ -117,8 +117,8 @@ namespace Agents.net.Tools
 
         ParametersSchema = GenerateParametersSchema();
         IsAsync = methodInfo.ReturnType == typeof(Task) ||
-              (methodInfo.ReturnType.IsGenericType &&
-               methodInfo.ReturnType.GetGenericTypeDefinition() == typeof(Task<>));
+              methodInfo.ReturnType.IsGenericType &&
+               methodInfo.ReturnType.GetGenericTypeDefinition() == typeof(Task<>);
       }
     }
 
@@ -388,7 +388,7 @@ namespace Agents.net.Tools
     private List<string> SplitJsonPairs(string content)
     {
       var pairs = new List<string>();
-      var current = new System.Text.StringBuilder();
+      var current = new StringBuilder();
       var depth = 0;
       var inQuotes = false;
       var quoteChar = '"';
@@ -453,8 +453,8 @@ namespace Agents.net.Tools
       value = value.Trim();
 
       // If already properly quoted, return as-is
-      if ((value.StartsWith("\"") && value.EndsWith("\"")) ||
-          (value.StartsWith("'") && value.EndsWith("'")))
+      if (value.StartsWith("\"") && value.EndsWith("\"") ||
+          value.StartsWith("'") && value.EndsWith("'"))
       {
         // Convert single quotes to double quotes if needed
         if (value.StartsWith("'") && value.EndsWith("'"))

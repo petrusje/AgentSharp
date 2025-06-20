@@ -1,16 +1,17 @@
+using Arcana.AgentsNet.Attributes;
+using Arcana.AgentsNet.Core;
+using Arcana.AgentsNet.Examples.Contexts;
+using Arcana.AgentsNet.Models;
 using System;
-using Agents.net.Core;
-using Agents.net.Models;
-using Agents.net.Attributes;
 
-namespace Agents.net.Examples
+namespace Arcana.AgentsNet.Examples.Agents
 {
-    public class JornalistaComBusca : Agent<JornalistaContext, string>
-    {
-        public JornalistaComBusca(IModel model)
-            : base(model,
-                   name: "JornalistaBuscaWeb",
-                   instructions: @"
+  public class JornalistaComBusca : Agent<JornalistaContext, string>
+  {
+    public JornalistaComBusca(IModel model)
+        : base(model,
+               name: "JornalistaBuscaWeb",
+               instructions: @"
 Você é um repórter entusiasta que pesquisa notícias reais na web! 🔍📰
 
 DIRETRIZES PARA CADA REPORTAGEM:
@@ -32,17 +33,17 @@ EXEMPLOS DE ASSINATURA:
 - 'Aqui é [Seu Nome], direto do coração do Brasil!'
 
 Lembre-se: Sempre verifique fatos através de buscas web e mantenha essa energia autêntica!")
-        {
-        }
+    {
+    }
 
-        [FunctionCall("Busca informações atuais na web sobre um tópico específico")]
-        [FunctionCallParameter("consulta", "Termos de busca para encontrar informações atuais")]
-        [FunctionCallParameter("regiao", "Região ou país para focar a busca (opcional)")]
-        private string BuscarNoticias(string consulta, string regiao = "")
-        {
-            // Simulação de busca web - em produção, integraria com API real de busca
-            var resultados = new[]
-            {
+    [FunctionCall("Busca informações atuais na web sobre um tópico específico")]
+    [FunctionCallParameter("consulta", "Termos de busca para encontrar informações atuais")]
+    [FunctionCallParameter("regiao", "Região ou país para focar a busca (opcional)")]
+    private string BuscarNoticias(string consulta, string regiao = "")
+    {
+      // Simulação de busca web - em produção, integraria com API real de busca
+      var resultados = new[]
+      {
                 "🔥 BREAKING: Startup mineira de IA recebe investimento de R$ 30M em BH",
                 "📱 Nova funcionalidade desenvolvida em centro tech de Belo Horizonte",
                 "🚀 Empresa de tecnologia de BH está expandindo para interior de MG",
@@ -50,9 +51,9 @@ Lembre-se: Sempre verifique fatos através de buscas web e mantenha essa energia
                 "🏢 Centro de desenvolvimento tech será inaugurado no Savassi"
             };
 
-            var resultadoSelecionado = resultados[new Random().Next(resultados.Length)];
+      var resultadoSelecionado = resultados[new Random().Next(resultados.Length)];
 
-            return $@"
+      return $@"
 📊 RESULTADOS DA BUSCA WEB:
 Consulta: {consulta}
 Região: {(string.IsNullOrEmpty(regiao) ? Context.RegiaoFoco : regiao)}
@@ -65,6 +66,6 @@ Região: {(string.IsNullOrEmpty(regiao) ? Context.RegiaoFoco : regiao)}
 
 📅 Última atualização: {DateTime.Now:HH:mm} - {DateTime.Now:dd/MM/yyyy}
 🔍 Fonte: Agregador de notícias tecnológicas";
-        }
     }
+  }
 }

@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace Agents.net.Utils
+namespace Arcana.AgentsNet.Utils
 {
   /// <summary>
   /// Classe utilitária para manipulação de saída no console.

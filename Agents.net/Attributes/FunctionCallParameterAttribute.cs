@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace Agents.net.Attributes
+namespace Arcana.AgentsNet.Attributes
 {
   /// <summary>
   /// Attribute for describing parameters of methods marked with FunctionCallAttribute.

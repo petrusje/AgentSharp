@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
+		<PackageId>AgentsNet.Arcana</PackageId>
+		<Version>0.0.2-beta</Version>
+		<Authors>Petrus Junior Evangelista</Authors>
+		<Description>
+			.NET library for building AI agents,
+			with structured reasoning and advanced workflows.
+			Open source under MIT license.
+		</Description>
+		<!-- MIT license by SPDX identifier -->
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<!-- Repo info -->
+		<RepositoryUrl>https://github.com/petrusje/Agents.net</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<!-- Project relative path -->
+		<IncludePackageReadmeFile>true</IncludePackageReadmeFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageIcon>icon.png</PackageIcon>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
+		<WarningLevel>8</WarningLevel>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
+		<WarningLevel>8</WarningLevel>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
+		<WarningLevel>8</WarningLevel>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
+		<WarningLevel>8</WarningLevel>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="OpenAI" Version="2.1.0" />
+		<PackageReference Include="System.Text.Json" Version="8.0.5" />
+	</ItemGroup>
+
+	<!-- Include solution root files in the package -->
+	<ItemGroup>
+		<None Include="..\LICENSE" Pack="true" PackagePath="" />
+		<None Include="..\README.md" Pack="true" PackagePath="" />
+		<None Include="..\icon.png" Pack="true" PackagePath="" />
+	</ItemGroup>
+</Project>

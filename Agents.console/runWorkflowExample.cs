@@ -1,5 +1,6 @@
-using Agents.net.Core;
-using Agents.net.Models;
+using Arcana.AgentsNet.Core;
+using Arcana.AgentsNet.Core.Orchestration;
+using Arcana.AgentsNet.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -17,14 +18,8 @@ namespace Agents_console
     public string FinalText { get; set; }
   }
 
-  public class AgentWorkFlowBook : Agent<ConsoleWorkflowContext, string>, IAgent
+  public class AgentWorkFlowBook(IModel model, string name) : Agent<ConsoleWorkflowContext, string>(model, name), IAgent
   {
-
-    public AgentWorkFlowBook(IModel model, string name) : base(model, name)
-    {
-
-    }
-
     public async Task<string> ExecuteAsync(string input, object context, List<AIMessage> history, CancellationToken token)
     {
       return await base.ExecuteAsync(input, (ConsoleWorkflowContext)context, history, token);

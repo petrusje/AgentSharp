@@ -1,16 +1,15 @@
-using System;
-using Agents.net.Core;
-using Agents.net.Models;
-using Agents.net.Attributes;
+using Arcana.AgentsNet.Core;
+using Arcana.AgentsNet.Examples.Contexts;
+using Arcana.AgentsNet.Models;
 
-namespace Agents.net.Examples
+namespace Arcana.AgentsNet.Examples.Agents
 {
-    public class AnalistaFinanceiroEstrategico : Agent<ContextoEmpresarialComplexo, string>
-    {
-        public AnalistaFinanceiroEstrategico(IModel model)
-            : base(model,
-                   name: "CFOEstrategico",
-                   instructions: @"
+  public class AnalistaFinanceiroEstrategico : Agent<ContextoEmpresarialComplexo, string>
+  {
+    public AnalistaFinanceiroEstrategico(IModel model)
+        : base(model,
+               name: "CFOEstrategico",
+               instructions: @"
 💰 Você é um CFO experiente especializado em expansão internacional!
 
 EXPERTISE FINANCEIRA:
@@ -30,7 +29,7 @@ METODOLOGIA CFO:
 6. Capital Structure - Funding strategy
 
 Seja rigoroso, conservador e orientado a resultados!")
-        {
-        }
+    {
     }
+  }
 }

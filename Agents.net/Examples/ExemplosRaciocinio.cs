@@ -1,45 +1,45 @@
+using Arcana.AgentsNet.Core;
+using Arcana.AgentsNet.Examples.Agents;
+using Arcana.AgentsNet.Examples.Contexts;
+using Arcana.AgentsNet.Examples.Tools;
+using Arcana.AgentsNet.Models;
 using System;
 using System.Threading.Tasks;
-using Agents.net.Core;
-using Agents.net.Models;
-using Agents.net.Tools;
-using Agents.net.Attributes;
-using System.Runtime.CompilerServices;
 
-namespace Agents.net.Examples
+namespace Arcana.AgentsNet.Examples
 {
+  /// <summary>
+  /// Exemplos de reasoning agents para análise de problemas empresariais
+  /// Demonstra capacidades de raciocínio estruturado e resolução de problemas em BH
+  /// </summary>
+  public static class ExemplosRaciocinio
+  {
     /// <summary>
-    /// Exemplos de reasoning agents para análise de problemas empresariais
-    /// Demonstra capacidades de raciocínio estruturado e resolução de problemas em BH
+    /// Demonstra um agente que pode "pensar" e "analisar" através de cadeia de raciocínio
+    /// Contexto de resolução de problemas empresariais em Belo Horizonte
     /// </summary>
-    public static class ExemplosRaciocinio
+    public static async Task ExecutarResolvedorProblemas(IModel modelo)
     {
-        /// <summary>
-        /// Demonstra um agente que pode "pensar" e "analisar" através de cadeia de raciocínio
-        /// Contexto de resolução de problemas empresariais em Belo Horizonte
-        /// </summary>
-        public static async Task ExecutarResolvedorProblemas(IModel modelo)
-        {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("🧠 EXEMPLO 4: RESOLVEDOR DE PROBLEMAS BH - REASONING AGENT");
-            Console.WriteLine("═══════════════════════════════════════════════════════");
-            Console.ResetColor();
+      Console.ForegroundColor = ConsoleColor.Yellow;
+      Console.WriteLine("🧠 EXEMPLO 4: RESOLVEDOR DE PROBLEMAS BH - REASONING AGENT");
+      Console.WriteLine("═══════════════════════════════════════════════════════");
+      Console.ResetColor();
 
-            Console.WriteLine("📄 Análise de problemas empresariais em Belo Horizonte");
-            Console.WriteLine("Demonstra raciocínio estruturado para negócios locais\n");
+      Console.WriteLine("📄 Análise de problemas empresariais em Belo Horizonte");
+      Console.WriteLine("Demonstra raciocínio estruturado para negócios locais\n");
 
-            var contextoProblema = new ContextoResolucaoProblemas
-            {
-                TipoProblema = "Empresarial",
-                NivelComplexidade = "Alto",
-                TempoDisponivel = "30 minutos"
-            };
+      var contextoProblema = new ContextoResolucaoProblemas
+      {
+        TipoProblema = "Empresarial",
+        NivelComplexidade = "Alto",
+        TempoDisponivel = "30 minutos"
+      };
 
-            // Agente especializado em resolução de problemas com reasoning
-            var resolvedorProblemas = new ResolvedorDeProblemas(modelo)
-                .WithContext(contextoProblema)
-                .WithReasoning(true) // Habilita reasoning
-                .WithPersona(@"
+      // Agente especializado em resolução de problemas com reasoning
+      var resolvedorProblemas = new ResolvedorDeProblemas(modelo)
+          .WithContext(contextoProblema)
+          .WithReasoning(true) // Habilita reasoning
+          .WithPersona(@"
 Você é um consultor especialista em resolução de problemas complexos! 🧠💡
 
 METODOLOGIA DE RACIOCÍNIO ESTRUTURADO:
@@ -58,93 +58,93 @@ ESTRUTURA DE RESPOSTA:
 🚀 PLANO DE IMPLEMENTAÇÃO
 ⚠️  RISCOS E MITIGAÇÕES");
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("🔥 Problema: 'Uma startup de BH está perdendo 20% dos clientes mensalmente. Como resolver?'");
-            Console.ResetColor();
-            Console.WriteLine("\n🧠 Análise com Raciocínio Estruturado:");
-            Console.WriteLine(new string('-', 50));
+      Console.ForegroundColor = ConsoleColor.Green;
+      Console.WriteLine("🔥 Problema: 'Uma startup de BH está perdendo 20% dos clientes mensalmente. Como resolver?'");
+      Console.ResetColor();
+      Console.WriteLine("\n🧠 Análise com Raciocínio Estruturado:");
+      Console.WriteLine(new string('-', 50));
 
-            try
-            {
-                var resultado = await resolvedorProblemas.ExecuteAsync(
-                    @"Uma startup de tecnologia de Belo Horizonte está enfrentando uma taxa de churn de 20% ao mês. 
+      try
+      {
+        var resultado = await resolvedorProblemas.ExecuteAsync(
+            @"Uma startup de tecnologia de Belo Horizonte está enfrentando uma taxa de churn de 20% ao mês. 
                     Os clientes estão cancelando após 3-4 meses de uso. 
                     A empresa tem 800 clientes atuais e precisa de uma solução urgente.
                     Analise o problema considerando o contexto do mercado mineiro."
-                );
+        );
 
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine(resultado.Data);
-                Console.ResetColor();
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine(resultado.Data);
+        Console.ResetColor();
 
-                // Mostrar reasoning content se disponível
-                if (!string.IsNullOrEmpty(resultado.ReasoningContent))
-                {
-                    Console.WriteLine("\n🧠 PROCESSO DE RACIOCÍNIO (Reasoning Content):");
-                    Console.WriteLine(new string('=', 60));
-                    Console.ForegroundColor = ConsoleColor.Cyan;
-                    Console.WriteLine(resultado.ReasoningContent);
-                    Console.ResetColor();
-                }
-
-                Console.WriteLine(new string('-', 50));
-                Console.WriteLine($"📊 Tokens utilizados: {resultado.Usage.TotalTokens}");
-                Console.WriteLine($"🔧 Ferramentas usadas: {resultado.Tools.Count}");
-                Console.WriteLine($"🧠 Reasoning habilitado: {(!string.IsNullOrEmpty(resultado.ReasoningContent) ? "Sim" : "Não")}");
-
-                // Exemplo adicional com problema técnico
-                Console.WriteLine("\n🔄 Testando com problema técnico...\n");
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("🔥 Problema: 'Sistema de e-commerce com 5 segundos de carregamento. Como otimizar?'");
-                Console.ResetColor();
-
-                var resultado2 = await resolvedorProblemas.ExecuteAsync(
-                    @"Um sistema de e-commerce está com tempo de carregamento de 5 segundos, 
-                    causando 40% de abandono de carrinho. O sistema usa React no frontend, 
-                    Node.js no backend e PostgreSQL. Como otimizar a performance?"
-                );
-
-                Console.WriteLine("\n🧠 Solução Técnica:");
-                Console.WriteLine(new string('-', 50));
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine(resultado2.Data);
-                Console.ResetColor();
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"❌ Erro: {ex.Message}");
-                Console.ResetColor();
-            }
+        // Mostrar reasoning content se disponível
+        if (!string.IsNullOrEmpty(resultado.ReasoningContent))
+        {
+          Console.WriteLine("\n🧠 PROCESSO DE RACIOCÍNIO (Reasoning Content):");
+          Console.WriteLine(new string('=', 60));
+          Console.ForegroundColor = ConsoleColor.Cyan;
+          Console.WriteLine(resultado.ReasoningContent);
+          Console.ResetColor();
         }
 
-        /// <summary>
-        /// Demonstra um agente avaliador de soluções empresariais
-        /// </summary>
-        public static async Task ExecutarAvaliadorSolucoes(IModel modelo)
-        {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("⚖️ EXEMPLO 5: AVALIADOR DE SOLUÇÕES - REASONING AGENT");
-            Console.WriteLine("═══════════════════════════════════════════════════════");
-            Console.ResetColor();
+        Console.WriteLine(new string('-', 50));
+        Console.WriteLine($"📊 Tokens utilizados: {resultado.Usage.TotalTokens}");
+        Console.WriteLine($"🔧 Ferramentas usadas: {resultado.Tools.Count}");
+        Console.WriteLine($"🧠 Reasoning habilitado: {(!string.IsNullOrEmpty(resultado.ReasoningContent) ? "Sim" : "Não")}");
 
-            Console.WriteLine("📊 Análise e avaliação de soluções empresariais");
-            Console.WriteLine("Demonstra raciocínio para comparar e priorizar opções\n");
+        // Exemplo adicional com problema técnico
+        Console.WriteLine("\n🔄 Testando com problema técnico...\n");
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("🔥 Problema: 'Sistema de e-commerce com 5 segundos de carregamento. Como otimizar?'");
+        Console.ResetColor();
 
-            var contextoAvaliacao = new ContextoResolucaoProblemas
-            {
-                TipoProblema = "Avaliação de Soluções",
-                NivelComplexidade = "Alto",
-                TempoDisponivel = "45 minutos",
-                budgetMaximo = "R$ 1.000.000",
-                RestricaoMaisImportante = "Não posso contratar mais de 5 pessoas para o projeto"
-            };
+        var resultado2 = await resolvedorProblemas.ExecuteAsync(
+            @"Um sistema de e-commerce está com tempo de carregamento de 5 segundos, 
+                    causando 40% de abandono de carrinho. O sistema usa React no frontend, 
+                    Node.js no backend e PostgreSQL. Como otimizar a performance?"
+        );
 
-            var avaliadorSolucoes = new Agent<ContextoResolucaoProblemas, string>(modelo, "AvaliadorSolucoesEspecialista")
-                .WithContext(contextoAvaliacao)
-                .WithReasoning(true)
-                .WithTools(new PackExemplosRaciocinio()) // Inclui pack de ferramentas 
-                .WithPersona(@"
+        Console.WriteLine("\n🧠 Solução Técnica:");
+        Console.WriteLine(new string('-', 50));
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine(resultado2.Data);
+        Console.ResetColor();
+      }
+      catch (Exception ex)
+      {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"❌ Erro: {ex.Message}");
+        Console.ResetColor();
+      }
+    }
+
+    /// <summary>
+    /// Demonstra um agente avaliador de soluções empresariais
+    /// </summary>
+    public static async Task ExecutarAvaliadorSolucoes(IModel modelo)
+    {
+      Console.ForegroundColor = ConsoleColor.Yellow;
+      Console.WriteLine("⚖️ EXEMPLO 5: AVALIADOR DE SOLUÇÕES - REASONING AGENT");
+      Console.WriteLine("═══════════════════════════════════════════════════════");
+      Console.ResetColor();
+
+      Console.WriteLine("📊 Análise e avaliação de soluções empresariais");
+      Console.WriteLine("Demonstra raciocínio para comparar e priorizar opções\n");
+
+      var contextoAvaliacao = new ContextoResolucaoProblemas
+      {
+        TipoProblema = "Avaliação de Soluções",
+        NivelComplexidade = "Alto",
+        TempoDisponivel = "45 minutos",
+        budgetMaximo = "R$ 1.000.000",
+        RestricaoMaisImportante = "Não posso contratar mais de 5 pessoas para o projeto"
+      };
+
+      var avaliadorSolucoes = new Agent<ContextoResolucaoProblemas, string>(modelo, "AvaliadorSolucoesEspecialista")
+          .WithContext(contextoAvaliacao)
+          .WithReasoning(true)
+          .WithTools(new PackExemplosRaciocinio()) // Inclui pack de ferramentas 
+          .WithPersona(@"
 Você é um consultor especialista em avaliação de soluções empresariais! ⚖️📊
 
 METODOLOGIA DE AVALIAÇÃO:
@@ -161,19 +161,19 @@ ESTRUTURA DE RESPOSTA:
 🎯 RANKING DE PRIORIDADES
 🚨 RISCOS E MITIGAÇÕES
 📋 RECOMENDAÇÕES FINAIS")
-                .WithInstructions(
-                    ctx => $@" Leve em consideracao o bugget máximo de {ctx.budgetMaximo} e a restrição mais importante: {ctx.RestricaoMaisImportante}");
+          .WithInstructions(
+              ctx => $@" Leve em consideracao o bugget máximo de {ctx.budgetMaximo} e a restrição mais importante: {ctx.RestricaoMaisImportante}");
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("🔥 Problema: 'Avaliar 3 opções para migração de sistema legado'");
-            Console.ResetColor();
-            Console.WriteLine("\n⚖️ Avaliação Estruturada:");
-            Console.WriteLine(new string('-', 50));
+      Console.ForegroundColor = ConsoleColor.Green;
+      Console.WriteLine("🔥 Problema: 'Avaliar 3 opções para migração de sistema legado'");
+      Console.ResetColor();
+      Console.WriteLine("\n⚖️ Avaliação Estruturada:");
+      Console.WriteLine(new string('-', 50));
 
-            try
-            {
-                var resultado = await avaliadorSolucoes.ExecuteAsync(
-                    @"Preciso avaliar 3 opções para migração do sistema legado da empresa:
+      try
+      {
+        var resultado = await avaliadorSolucoes.ExecuteAsync(
+            @"Preciso avaliar 3 opções para migração do sistema legado da empresa:
                     
                     OPÇÃO 1: Migração completa para cloud-native (React + Node.js + AWS)
                     - Tecnologia : React, Node.js, AWS
@@ -194,48 +194,48 @@ ESTRUTURA DE RESPOSTA:
                     - Benefícios: Flexibilidade, migração por módulos
                      
                     Avalie considerando: custo, tempo, risco, benefícios de longo prazo e disponibilidade de time por tecnologia"
-                );
+        );
 
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine(resultado.Data);
-                Console.ResetColor();
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine(resultado.Data);
+        Console.ResetColor();
 
-                Console.WriteLine(new string('-', 50));
-                Console.WriteLine($"📊 Tokens utilizados: {resultado.Usage.TotalTokens}");
-                Console.WriteLine($"⚖️ Avaliação concluída com sucesso");
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"❌ Erro: {ex.Message}");
-                Console.ResetColor();
-            }
-        }
+        Console.WriteLine(new string('-', 50));
+        Console.WriteLine($"📊 Tokens utilizados: {resultado.Usage.TotalTokens}");
+        Console.WriteLine($"⚖️ Avaliação concluída com sucesso");
+      }
+      catch (Exception ex)
+      {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"❌ Erro: {ex.Message}");
+        Console.ResetColor();
+      }
+    }
 
-        /// <summary>
-        /// Demonstra um agente identificador de obstáculos
-        /// </summary>
-        public static async Task ExecutarIdentificadorObstaculos(IModel modelo)
-        {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("🛡️ EXEMPLO 6: IDENTIFICADOR DE OBSTÁCULOS - REASONING AGENT");
-            Console.WriteLine("═══════════════════════════════════════════════════════");
-            Console.ResetColor();
+    /// <summary>
+    /// Demonstra um agente identificador de obstáculos
+    /// </summary>
+    public static async Task ExecutarIdentificadorObstaculos(IModel modelo)
+    {
+      Console.ForegroundColor = ConsoleColor.Yellow;
+      Console.WriteLine("🛡️ EXEMPLO 6: IDENTIFICADOR DE OBSTÁCULOS - REASONING AGENT");
+      Console.WriteLine("═══════════════════════════════════════════════════════");
+      Console.ResetColor();
 
-            Console.WriteLine("🔍 Identificação proativa de obstáculos e riscos");
-            Console.WriteLine("Demonstra análise preventiva de problemas potenciais\n");
+      Console.WriteLine("🔍 Identificação proativa de obstáculos e riscos");
+      Console.WriteLine("Demonstra análise preventiva de problemas potenciais\n");
 
-            var contextoObstaculos = new ContextoResolucaoProblemas
-            {
-                TipoProblema = "Identificação de Riscos",
-                NivelComplexidade = "Alto",
-                TempoDisponivel = "30 minutos",
-            };
+      var contextoObstaculos = new ContextoResolucaoProblemas
+      {
+        TipoProblema = "Identificação de Riscos",
+        NivelComplexidade = "Alto",
+        TempoDisponivel = "30 minutos",
+      };
 
-            var identificadorObstaculos = new Agent<ContextoResolucaoProblemas, string>(modelo, "IdentificadorObstaculosEspecialista")
-                .WithContext(contextoObstaculos)
-                .WithReasoning(true)
-                .WithPersona(@"
+      var identificadorObstaculos = new Agent<ContextoResolucaoProblemas, string>(modelo, "IdentificadorObstaculosEspecialista")
+          .WithContext(contextoObstaculos)
+          .WithReasoning(true)
+          .WithPersona(@"
 Você é um especialista em identificação de obstáculos e gestão de riscos! 🛡️🔍
 
 METODOLOGIA DE ANÁLISE:
@@ -253,16 +253,16 @@ ESTRUTURA DE RESPOSTA:
 📋 PLANO DE CONTINGÊNCIA
 🚨 ALERTAS PRIORITÁRIOS");
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("🔥 Cenário: 'Lançamento de produto em startup com prazo apertado'");
-            Console.ResetColor();
-            Console.WriteLine("\n🛡️ Análise de Obstáculos:");
-            Console.WriteLine(new string('-', 50));
+      Console.ForegroundColor = ConsoleColor.Green;
+      Console.WriteLine("🔥 Cenário: 'Lançamento de produto em startup com prazo apertado'");
+      Console.ResetColor();
+      Console.WriteLine("\n🛡️ Análise de Obstáculos:");
+      Console.WriteLine(new string('-', 50));
 
-            try
-            {
-                var resultado = await identificadorObstaculos.ExecuteAsync(
-                    @"Nossa startup precisa lançar um MVP em 3 meses para apresentar aos investidores. 
+      try
+      {
+        var resultado = await identificadorObstaculos.ExecuteAsync(
+            @"Nossa startup precisa lançar um MVP em 3 meses para apresentar aos investidores. 
                     O produto é uma plataforma SaaS B2B de gestão de projetos.
                     
                     CONTEXTO:
@@ -273,27 +273,27 @@ ESTRUTURA DE RESPOSTA:
                     
                     Identifique todos os obstáculos potenciais e riscos que podem comprometer 
                     o lançamento, incluindo aspectos técnicos, de mercado, equipe e financeiros."
-                );
+        );
 
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine(resultado.Data);
-                Console.ResetColor();
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine(resultado.Data);
+        Console.ResetColor();
 
-                Console.WriteLine(new string('-', 50));
-                Console.WriteLine($"📊 Tokens utilizados: {resultado.Usage.TotalTokens}");
-                Console.WriteLine($"🛡️ Análise de obstáculos concluída");
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"❌ Erro: {ex.Message}");
-                Console.ResetColor();
-            }
-        }
+        Console.WriteLine(new string('-', 50));
+        Console.WriteLine($"📊 Tokens utilizados: {resultado.Usage.TotalTokens}");
+        Console.WriteLine($"🛡️ Análise de obstáculos concluída");
+      }
+      catch (Exception ex)
+      {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"❌ Erro: {ex.Message}");
+        Console.ResetColor();
+      }
     }
+  }
 
-    // Todas as classes foram movidas para seus próprios arquivos:
-    // - Contexts/ContextoResolucaoProblemas.cs
-    // - Agents/ResolvedorDeProblemas.cs
-    // - Tools/PackExemplosRaciocinio.cs
-} 
+  // Todas as classes foram movidas para seus próprios arquivos:
+  // - Contexts/ContextoResolucaoProblemas.cs
+  // - Agents/ResolvedorDeProblemas.cs
+  // - Tools/PackExemplosRaciocinio.cs
+}

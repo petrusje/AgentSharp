@@ -1,7 +1,7 @@
-using Agents.net.Attributes;
-using Agents.net.Core;
-using Agents.net.Models;
-using Agents.net.Tools;
+using Arcana.AgentsNet.Attributes;
+using Arcana.AgentsNet.Core;
+using Arcana.AgentsNet.Models;
+using Arcana.AgentsNet.Tools;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -15,34 +15,26 @@ namespace Agents_console
     public Dictionary<string, string> Database { get; set; } = new Dictionary<string, string>();
   }
 
-  public class ClimaToolPack : Toolkit
+  public class ClimaToolPack(
+      string name = "clima",
+      bool cacheResults = true,
+      int cacheTtl = 300) : Toolkit(
+          name,
+          "Pacote de ferramentas para consulta de clima",
+          addInstructions: true,
+          cacheResults: cacheResults,
+          cacheTtl: cacheTtl)
   {
-    public ClimaToolPack(
-        string name = "clima",
-        bool cacheResults = true,
-        int cacheTtl = 300)
-        : base(
-            name,
-            "Pacote de ferramentas para consulta de clima",
-            addInstructions: true,
-            cacheResults: cacheResults,
-            cacheTtl: cacheTtl)
-    {
-    }
-
     [FunctionCall("Consulta o clima atual em uma cidade brasileira")]
     [FunctionCallParameter("cidade", "Cidade brasileira para consultar o clima")]
-    private string ConsultarClima(string cidade)
+    private static string ConsultarClima(string cidade)
     {
       return $"Clima em {cidade}";
     }
   }
 
-  public class InheritedAgent : Agent<MyCtx, string>
+  public class InheritedAgent(IModel model) : Agent<MyCtx, string>(model, "InheritedAgent")
   {
-    public InheritedAgent(IModel model) : base(model, "InheritedAgent")
-    {
-    }
   }
 
   public static class RetryHelper

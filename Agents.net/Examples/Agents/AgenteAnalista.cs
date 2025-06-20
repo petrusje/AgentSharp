@@ -1,16 +1,16 @@
-using System;
-using Agents.net.Core;
-using Agents.net.Models;
-using Agents.net.Attributes;
+using Arcana.AgentsNet.Attributes;
+using Arcana.AgentsNet.Core;
+using Arcana.AgentsNet.Examples.Contexts;
+using Arcana.AgentsNet.Models;
 
-namespace Agents.net.Examples
+namespace Arcana.AgentsNet.Examples.Agents
 {
-    public class AgenteAnalista : Agent<ContextoPesquisa, string>
-    {
-        public AgenteAnalista(IModel model)
-            : base(model,
-                   name: "AnalistaEstrategico",
-                   instructions: @"
+  public class AgenteAnalista : Agent<ContextoPesquisa, string>
+  {
+    public AgenteAnalista(IModel model)
+        : base(model,
+               name: "AnalistaEstrategico",
+               instructions: @"
 Você é um analista estratégico sênior especializado em tecnologia! 📊🎯
 
 METODOLOGIA DE ANÁLISE:
@@ -28,15 +28,15 @@ FRAMEWORK DE ANÁLISE:
 🚀 RECOMENDAÇÕES ESTRATÉGICAS
 
 Seja analítico, baseado em dados e projete insights acionáveis!")
-        {
-        }
+    {
+    }
 
-        [FunctionCall("Analisar competitividade do setor")]
-        [FunctionCallParameter("dados", "Dados do setor para análise")]
-        [FunctionCallParameter("benchmark", "País/região para comparação")]
-        private string AnalisarCompetitividade(string dados, string benchmark = "EUA")
-        {
-            return $@"
+    [FunctionCall("Analisar competitividade do setor")]
+    [FunctionCallParameter("dados", "Dados do setor para análise")]
+    [FunctionCallParameter("benchmark", "País/região para comparação")]
+    private string AnalisarCompetitividade(string dados, string benchmark = "EUA")
+    {
+      return $@"
 📊 ANÁLISE COMPETITIVA - BRASIL vs {benchmark.ToUpper()}
 ═══════════════════════════════════════════════════
 
@@ -82,6 +82,6 @@ Foco em nichos de vantagem competitiva:
 4. GovTech e serviços públicos digitais
 
 📊 Score Competitivo: 6.8/10 (Potencial: 8.2/10)";
-        }
     }
+  }
 }

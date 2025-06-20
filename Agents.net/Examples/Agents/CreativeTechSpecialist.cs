@@ -1,16 +1,16 @@
-using System;
-using Agents.net.Core;
-using Agents.net.Models;
-using Agents.net.Attributes;
+using Arcana.AgentsNet.Attributes;
+using Arcana.AgentsNet.Core;
+using Arcana.AgentsNet.Examples.Contexts;
+using Arcana.AgentsNet.Models;
 
-namespace Agents.net.Examples
+namespace Arcana.AgentsNet.Examples.Agents
 {
-    public class CreativeTechSpecialist : Agent<ContextoCreativeTech, string>
-    {
-        public CreativeTechSpecialist(IModel model)
-            : base(model,
-                   name: "CreativeTechnologist",
-                   instructions: @"
+  public class CreativeTechSpecialist : Agent<ContextoCreativeTech, string>
+  {
+    public CreativeTechSpecialist(IModel model)
+        : base(model,
+               name: "CreativeTechnologist",
+               instructions: @"
 🎨 Você é um Creative Technologist premiado com expertise em UX/UI e desenvolvimento!
 
 EXPERTISE CRIATIVA + TÉCNICA:
@@ -36,15 +36,15 @@ FERRAMENTAS ESPECIALIZADAS:
 ⚙️ React, React Native, TypeScript
 
 Seja criativo, técnico e centrado no usuário!")
-        {
-        }
+    {
+    }
 
-        [FunctionCall("Pesquisa de usuário especializada")]
-        [FunctionCallParameter("targetAudience", "Público-alvo para pesquisa")]
-        [FunctionCallParameter("researchMethods", "Métodos de pesquisa (interviews, surveys, analytics)")]
-        private string UserResearchAvancada(string targetAudience, string researchMethods)
-        {
-            return $@"
+    [FunctionCall("Pesquisa de usuário especializada")]
+    [FunctionCallParameter("targetAudience", "Público-alvo para pesquisa")]
+    [FunctionCallParameter("researchMethods", "Métodos de pesquisa (interviews, surveys, analytics)")]
+    private string UserResearchAvancada(string targetAudience, string researchMethods)
+    {
+      return $@"
 👥 USER RESEARCH: {targetAudience.ToUpper()}
 ═══════════════════════════════════════
 
@@ -75,14 +75,14 @@ Seja criativo, técnico e centrado no usuário!")
 • Feedback imediato
 • Progressão visível
 • Community-driven learning";
-        }
+    }
 
-        [FunctionCall("Prototipagem interativa avançada")]
-        [FunctionCallParameter("features", "Features principais para prototipar")]
-        [FunctionCallParameter("platform", "Plataforma alvo (iOS, Android, Web)")]
-        private string PrototipagemInterativa(string features, string platform)
-        {
-            return $@"
+    [FunctionCall("Prototipagem interativa avançada")]
+    [FunctionCallParameter("features", "Features principais para prototipar")]
+    [FunctionCallParameter("platform", "Plataforma alvo (iOS, Android, Web)")]
+    private string PrototipagemInterativa(string features, string platform)
+    {
+      return $@"
 ⚡ PROTÓTIPO INTERATIVO: {platform.ToUpper()}
 ═══════════════════════════════════════
 
@@ -119,14 +119,14 @@ Seja criativo, técnico e centrado no usuário!")
 • Async storage para persistência
 • Biometric authentication
 • Real-time data sync";
-        }
+    }
 
-        [FunctionCall("Sistema de design escalável")]
-        [FunctionCallParameter("brandValues", "Valores da marca para traduzir visualmente")]
-        [FunctionCallParameter("platforms", "Plataformas que o design system deve cobrir")]
-        private string DesignSystemEscalavel(string brandValues, string platforms)
-        {
-            return $@"
+    [FunctionCall("Sistema de design escalável")]
+    [FunctionCallParameter("brandValues", "Valores da marca para traduzir visualmente")]
+    [FunctionCallParameter("platforms", "Plataformas que o design system deve cobrir")]
+    private string DesignSystemEscalavel(string brandValues, string platforms)
+    {
+      return $@"
 🎨 DESIGN SYSTEM: {Context.BriefProjeto.Cliente.ToUpper()}
 ═══════════════════════════════════════
 
@@ -163,6 +163,6 @@ Seja criativo, técnico e centrado no usuário!")
 • Props API documentação completa
 • Accessibility guidelines
 • Integration examples";
-        }
     }
+  }
 }

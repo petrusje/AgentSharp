@@ -1,16 +1,15 @@
-using System;
-using Agents.net.Core;
-using Agents.net.Models;
-using Agents.net.Attributes;
+using Arcana.AgentsNet.Core;
+using Arcana.AgentsNet.Examples.Contexts;
+using Arcana.AgentsNet.Models;
 
-namespace Agents.net.Examples
+namespace Arcana.AgentsNet.Examples.Agents
 {
-    public class AnalistaMercadoLatam : Agent<ContextoEmpresarialComplexo, string>
-    {
-        public AnalistaMercadoLatam(IModel model)
-            : base(model,
-                   name: "AnalistaMercadoEspecialista",
-                   instructions: @"
+  public class AnalistaMercadoLatam : Agent<ContextoEmpresarialComplexo, string>
+  {
+    public AnalistaMercadoLatam(IModel model)
+        : base(model,
+               name: "AnalistaMercadoEspecialista",
+               instructions: @"
 📊 Você é um analista sênior especializado em mercados da América Latina!
 
 EXPERTISE REGIONAL:
@@ -27,7 +26,7 @@ METODOLOGIA DE ANÁLISE:
 5. Growth Projections - 3-5 year outlook
 
 Seja preciso, quantitativo e regionalmente contextualizado!")
-        {
-        }
+    {
     }
+  }
 }
