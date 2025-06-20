@@ -14,31 +14,36 @@
 
 		<!-- Clear and explicit MIT license -->
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 
 		<!-- Link to Github repository -->
 		<RepositoryUrl>https://github.com/petrusje/Agents.net</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 
-		<!-- Including the license file in the NuGet package -->
+		<!-- Including the license file and readme in the NuGet package -->
 		<IncludePackageReadmeFile>true</IncludePackageReadmeFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
+
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
-	  <WarningLevel>8</WarningLevel>
+		<WarningLevel>8</WarningLevel>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
-	  <WarningLevel>8</WarningLevel>
+		<WarningLevel>8</WarningLevel>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
-	  <WarningLevel>8</WarningLevel>
+		<WarningLevel>8</WarningLevel>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
-	  <WarningLevel>8</WarningLevel>
+		<WarningLevel>8</WarningLevel>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="OpenAI" Version="2.1.0" />
 		<PackageReference Include="System.Text.Json" Version="8.0.5" />
+	</ItemGroup>
+
+	<!-- Opcional: Incluir LICENSE no pacote para consulta -->
+	<ItemGroup>
+		<None Include="LICENSE" Pack="true" PackagePath="" />
 	</ItemGroup>
 </Project>
