@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
-		<PackageId>Arcana.AgentsNet</PackageId>
+		<PackageId>AgentsNet.Arcana</PackageId>
 		<Version>0.0.1</Version>
 		<Authors>Petrus Junior Evangelista</Authors>
 		<Description>
@@ -14,9 +14,10 @@
 		<!-- Repo info -->
 		<RepositoryUrl>https://github.com/petrusje/Agents.net</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<!-- Caminho relativo ao projeto -->
+		<!-- Project relative path -->
 		<IncludePackageReadmeFile>true</IncludePackageReadmeFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageIcon>icon.png</PackageIcon>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
@@ -37,9 +38,10 @@
 		<PackageReference Include="System.Text.Json" Version="8.0.5" />
 	</ItemGroup>
 
-	<!-- Inclua os arquivos da raiz da solução no pacote -->
+	<!-- Include solution root files in the package -->
 	<ItemGroup>
 		<None Include="..\LICENSE" Pack="true" PackagePath="" />
 		<None Include="..\README.md" Pack="true" PackagePath="" />
+		<None Include="..\icon.png" Pack="true" PackagePath="" />
 	</ItemGroup>
 </Project>
