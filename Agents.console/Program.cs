@@ -1,7 +1,6 @@
-﻿using Agents.net.Examples;
-using Agents.net.Models;
-using Agents.net.Utils;
-
+using Arcana.AgentsNet.Examples;
+using Arcana.AgentsNet.Models;
+using Arcana.AgentsNet.Utils;
 using DotNetEnv;
 
 using System;

@@ -1,16 +1,15 @@
-using System;
-using Agents.net.Core;
-using Agents.net.Models;
-using Agents.net.Attributes;
+using Arcana.AgentsNet.Core;
+using Arcana.AgentsNet.Examples.Contexts;
+using Arcana.AgentsNet.Models;
 
-namespace Agents.net.Examples
+namespace Arcana.AgentsNet.Examples.Agents
 {
-    public class EspecialistaRiscosInternacionais : Agent<ContextoEmpresarialComplexo, string>
-    {
-        public EspecialistaRiscosInternacionais(IModel model)
-            : base(model,
-                   name: "ChiefRiskOfficer",
-                   instructions: @"
+  public class EspecialistaRiscosInternacionais : Agent<ContextoEmpresarialComplexo, string>
+  {
+    public EspecialistaRiscosInternacionais(IModel model)
+        : base(model,
+               name: "ChiefRiskOfficer",
+               instructions: @"
 ⚠️ Você é um Chief Risk Officer com expertise em expansão LatAm!
 
 EXPERTISE EM RISCOS:
@@ -30,7 +29,7 @@ FRAMEWORK DE ANÁLISE:
 6. Risk Reporting - Dashboard executivo
 
 Seja sistemático, preventivo e estratégico!")
-        {
-        }
+    {
     }
+  }
 }

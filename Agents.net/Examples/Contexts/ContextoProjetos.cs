@@ -1,10 +1,9 @@
-using System;
-using System.Collections.Generic;
+using Arcana.AgentsNet.Examples.Models;
 
-namespace Agents.net.Examples
+namespace Arcana.AgentsNet.Examples.Contexts
 {
-    public class ContextoProjetos
-    {
-        public BancoDadosProjetos BancoDados { get; set; }
-    }
+  public class ContextoProjetos
+  {
+    public BancoDadosProjetos BancoDados { get; set; }
+  }
 }

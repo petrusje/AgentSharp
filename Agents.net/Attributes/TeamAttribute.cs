@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace Agents.net.Attributes
+namespace Arcana.AgentsNet.Attributes
 {
   /// <summary>
   /// Attribute for marking a class as a team of agents that work together.

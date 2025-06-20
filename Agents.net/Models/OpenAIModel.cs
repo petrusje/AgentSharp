@@ -1,11 +1,9 @@
-﻿using Agents.net.Core;
-using Agents.net.Exceptions;
-using Agents.net.Tools;
-using Agents.net.Utils;
-
+using Arcana.AgentsNet.Core;
+using Arcana.AgentsNet.Exceptions;
+using Arcana.AgentsNet.Tools;
+using Arcana.AgentsNet.Utils;
 using OpenAI;
 using OpenAI.Chat;
-
 using System;
 using System.ClientModel;
 using System.Collections.Generic;
@@ -18,7 +16,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 
-namespace Agents.net.Models
+namespace Arcana.AgentsNet.Models
 {
   /// <summary>
   /// Implementation of the IModel interface for OpenAI's language models.
@@ -48,6 +46,15 @@ namespace Agents.net.Models
   /// );
   /// </code>
   /// </example>
+
+  /* Unmerged change from project 'Arcana.AgentsNet (netstandard2.0)'
+  Before:
+    public class OpenAIModel : Agents.net.Models.ModelBase
+      {
+  After:
+    public class OpenAIModel : ModelBase
+      {
+  */
   public class OpenAIModel : ModelBase
   {
     private readonly OpenAIClient _client;
@@ -243,12 +250,30 @@ namespace Agents.net.Models
     }
 
     /// <summary>
+    /// Handles the normal completion case (FinishReason.Stop).
+    /// </summary>
+    /// <param name="response">The API response</param>
+    /// <param name="modelResponse">Response object to populate</param>
+    private async Task HandleFinishReasonStop(ChatCompletion response, ModelResponse modelResponse)
+    {
+      // Normal response without tool calls
+      if (response.Content.Count > 0)
+      {
+        modelResponse.Content = response.Content[0].Text;
+      }
+      modelResponse.Usage = ConvertUsage(response.Usage);
+      Logger.Debug($"Complete response generated with {modelResponse.Usage?.TotalTokens ?? 0} tokens");
+
+      await Task.CompletedTask; // To maintain consistent async signature
+    }
+
+    /// <summary>
     /// Handles the normal completion case with structured output processing.
     /// </summary>
     /// <param name="response">The API response</param>
     /// <param name="modelResponse">Response object to populate</param>
     /// <param name="config">Model configuration with structured output settings</param>
-    static async Task HandleFinishReasonStop(ChatCompletion response, ModelResponse modelResponse, ModelConfiguration config)
+    private async Task HandleFinishReasonStop(ChatCompletion response, ModelResponse modelResponse, ModelConfiguration config)
     {
       // Set content first
       if (response.Content.Count > 0)
@@ -273,7 +298,7 @@ namespace Agents.net.Models
     /// </summary>
     /// <param name="modelResponse">The model response to process</param>
     /// <param name="config">Model configuration with structured output settings</param>
-    private static void ProcessStructuredOutput(ModelResponse modelResponse, ModelConfiguration config)
+    private void ProcessStructuredOutput(ModelResponse modelResponse, ModelConfiguration config)
     {
       try
       {
@@ -373,7 +398,7 @@ namespace Agents.net.Models
     /// 3. Executes the tool with error handling
     /// 4. Adds the result to both the response and message history
     /// </remarks>
-    private static async Task ProcessToolCall(
+    private async Task ProcessToolCall(
         ChatToolCall toolCall,
         List<Tool> tools,
         List<ChatMessage> nativeMessages,
@@ -500,7 +525,7 @@ namespace Agents.net.Models
     /// This occurs when the model's output was truncated due to reaching
     /// the max_tokens parameter or the model's context length limit.
     /// </remarks>
-    private static void HandleFinishReasonLength(ModelResponse modelResponse)
+    private void HandleFinishReasonLength(ModelResponse modelResponse)
     {
       Logger.Warning("Model output incomplete due to token limit");
 
@@ -520,7 +545,7 @@ namespace Agents.net.Models
     /// This occurs when the model's output was filtered due to safety systems
     /// detecting potentially harmful or inappropriate content.
     /// </remarks>
-    private static void HandleFinishReasonContentFilter(ModelResponse modelResponse)
+    private void HandleFinishReasonContentFilter(ModelResponse modelResponse)
     {
       Logger.Warning("Content filtered by moderation policies");
 
@@ -537,7 +562,7 @@ namespace Agents.net.Models
     /// </summary>
     /// <param name="response">The API response</param>
     /// <param name="modelResponse">Response object to update with error info</param>
-    private static void HandleFinishReasonUnknown(ChatCompletion response, ModelResponse modelResponse)
+    private void HandleFinishReasonUnknown(ChatCompletion response, ModelResponse modelResponse)
     {
       Logger.Warning($"Unknown finish reason: {response.FinishReason}");
 
@@ -635,7 +660,7 @@ namespace Agents.net.Models
     /// This method handles the enumeration of the async stream from the API,
     /// extracting text chunks and finish reason information.
     /// </remarks>
-    private static async Task ProcessStreamingUpdates(
+    private async Task ProcessStreamingUpdates(
         AsyncCollectionResult<StreamingChatCompletionUpdate> completionUpdates,
         StreamingState state,
         Action<string> handler,
@@ -675,7 +700,7 @@ namespace Agents.net.Models
     /// This method extracts text content and finish reason from each update,
     /// maintains the buffer of accumulated text, and invokes the handler.
     /// </remarks>
-    private static async Task ProcessStreamChunk(
+    private async Task ProcessStreamChunk(
         StreamingChatCompletionUpdate completionUpdate,
         StreamingState state,
         Action<string> handler)
@@ -730,7 +755,7 @@ namespace Agents.net.Models
     /// Logs information about streaming finish reasons.
     /// </summary>
     /// <param name="finishReason">The finish reason received from the API</param>
-    private static void LogStreamingFinishReason(ChatFinishReason finishReason)
+    private void LogStreamingFinishReason(ChatFinishReason finishReason)
     {
       switch (finishReason)
       {
@@ -817,7 +842,7 @@ namespace Agents.net.Models
     /// Since the OpenAI streaming API doesn't provide token counts,
     /// this method uses a simple heuristic to estimate usage based on text length.
     /// </remarks>
-    private static void EstimateTokenUsageForStreaming(ModelRequest request, ModelResponse modelResponse)
+    private void EstimateTokenUsageForStreaming(ModelRequest request, ModelResponse modelResponse)
     {
       int estimatedTokens = string.IsNullOrEmpty(modelResponse.Content) ? 0 : modelResponse.Content.Length / 4;
       int promptTokens = EstimatePromptTokens(request);
@@ -840,7 +865,7 @@ namespace Agents.net.Models
     /// Uses a simple heuristic based on character count.
     /// In practice, each token is roughly 4 characters in English.
     /// </remarks>
-    private static int EstimatePromptTokens(ModelRequest request)
+    private int EstimatePromptTokens(ModelRequest request)
     {
       int total = 0;
 
@@ -861,7 +886,7 @@ namespace Agents.net.Models
     /// </summary>
     /// <param name="messages">Library message objects</param>
     /// <returns>Native API message objects</returns>
-    static List<ChatMessage> ConvertToNativeMessages(List<AIMessage> messages)
+    public List<ChatMessage> ConvertToNativeMessages(List<AIMessage> messages)
     {
       return messages.Select<AIMessage, ChatMessage>(message =>
       {
@@ -893,7 +918,7 @@ namespace Agents.net.Models
     /// </summary>
     /// <param name="tools">Library tool objects</param>
     /// <returns>Native API tool objects</returns>
-    static List<ChatTool> ConvertToNativeTools(List<Tool> tools)
+    public List<ChatTool> ConvertToNativeTools(List<Tool> tools)
     {
       return tools.Select(tool =>
       {
@@ -923,7 +948,7 @@ namespace Agents.net.Models
     /// <param name="request">The model request with tools</param>
     /// <param name="config">Model configuration</param>
     /// <returns>Configured API request object</returns>
-    static ChatCompletionOptions CreateChatRequest(ModelRequest request, ModelConfiguration config)
+    private ChatCompletionOptions CreateChatRequest(ModelRequest request, ModelConfiguration config)
     {
       var chatOptions = CreateChatRequestOptions(config);
 
@@ -941,7 +966,7 @@ namespace Agents.net.Models
     /// </summary>
     /// <param name="config">Model configuration</param>
     /// <returns>API request options object</returns>
-    static ChatCompletionOptions CreateChatRequestOptions(ModelConfiguration config)
+    private ChatCompletionOptions CreateChatRequestOptions(ModelConfiguration config)
     {
       var options = new ChatCompletionOptions
       {
@@ -965,7 +990,7 @@ namespace Agents.net.Models
     /// </summary>
     /// <param name="options">The chat completion options to configure</param>
     /// <param name="config">Model configuration containing structured output settings</param>
-    private static void ConfigureStructuredOutput(ChatCompletionOptions options, ModelConfiguration config)
+    private void ConfigureStructuredOutput(ChatCompletionOptions options, ModelConfiguration config)
     {
       try
       {
@@ -1013,10 +1038,9 @@ namespace Agents.net.Models
     /// </summary>
     /// <param name="usage">API usage information</param>
     /// <returns>Library usage information object</returns>
-    static UsageInfo ConvertUsage(ChatTokenUsage usage)
+    private UsageInfo ConvertUsage(ChatTokenUsage usage)
     {
-      if (usage == null)
-        return null;
+      if (usage == null) return null;
 
       return new UsageInfo
       {
@@ -1040,13 +1064,13 @@ namespace Agents.net.Models
     /// For accurate pricing, these constants should be updated to match
     /// the specific model being used and current pricing.
     /// </remarks>
-    private static decimal CalculateEstimatedCost(int promptTokens, int completionTokens)
+    private decimal CalculateEstimatedCost(int promptTokens, int completionTokens)
     {
       const decimal inputCostPer1kTokens = 0.01m;
       const decimal outputCostPer1kTokens = 0.03m;
 
-      return (promptTokens / 1000.0m) * inputCostPer1kTokens +
-             (completionTokens / 1000.0m) * outputCostPer1kTokens;
+      return promptTokens / 1000.0m * inputCostPer1kTokens +
+             completionTokens / 1000.0m * outputCostPer1kTokens;
     }
 
     #endregion

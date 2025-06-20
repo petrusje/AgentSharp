@@ -1,16 +1,17 @@
+using Arcana.AgentsNet.Attributes;
+using Arcana.AgentsNet.Core;
+using Arcana.AgentsNet.Examples.Contexts;
+using Arcana.AgentsNet.Models;
 using System;
-using Agents.net.Core;
-using Agents.net.Models;
-using Agents.net.Attributes;
 
-namespace Agents.net.Examples
+namespace Arcana.AgentsNet.Examples.Agents
 {
-    public class AnalistaFinanceiro : Agent<AnaliseFinanceiraContext, string>
-    {
-        public AnalistaFinanceiro(IModel model)
-            : base(model,
-                   name: "AnalistaFinanceiroEspecialista",
-                   instructions: @"
+  public class AnalistaFinanceiro : Agent<AnaliseFinanceiraContext, string>
+  {
+    public AnalistaFinanceiro(IModel model)
+        : base(model,
+               name: "AnalistaFinanceiroEspecialista",
+               instructions: @"
 Você é um analista financeiro experiente especializado no mercado brasileiro! 📊💼
 
 DIRETRIZES PARA ANÁLISES:
@@ -36,20 +37,20 @@ ESTRUTURA RECOMENDADA:
 📉 Análise Técnica
 🏭 Contexto Setorial
 💡 Perspectivas")
-        {
-        }
+    {
+    }
 
-        [FunctionCall("Obter dados financeiros atualizados de uma ação mineira")]
-        [FunctionCallParameter("ticker", "Código da ação (ex: CMIG4, VALE3, USIM5)")]
-        [FunctionCallParameter("periodo", "Período da análise (ex: 1M, 3M, 6M, 1A)")]
-        private string ObterDadosFinanceiros(string ticker, string periodo = "3M")
-        {
-            // Simulação de dados financeiros - em produção, integraria com API real
-            var preco = new Random().Next(15, 45) + Math.Round(new Random().NextDouble(), 2);
-            var variacao = Math.Round((new Random().NextDouble() - 0.5) * 10, 2);
-            var volume = new Random().Next(10000000, 100000000);
+    [FunctionCall("Obter dados financeiros atualizados de uma ação mineira")]
+    [FunctionCallParameter("ticker", "Código da ação (ex: CMIG4, VALE3, USIM5)")]
+    [FunctionCallParameter("periodo", "Período da análise (ex: 1M, 3M, 6M, 1A)")]
+    private string ObterDadosFinanceiros(string ticker, string periodo = "3M")
+    {
+      // Simulação de dados financeiros - em produção, integraria com API real
+      var preco = new Random().Next(15, 45) + Math.Round(new Random().NextDouble(), 2);
+      var variacao = Math.Round((new Random().NextDouble() - 0.5) * 10, 2);
+      var volume = new Random().Next(10000000, 100000000);
 
-            return $@"
+      return $@"
 📊 DADOS FINANCEIROS - {ticker.ToUpper()}
 ═════════════════════════════════════
 
@@ -72,13 +73,13 @@ ESTRUTURA RECOMENDADA:
 
 📅 Período analisado: {periodo}
 🕐 Última atualização: {DateTime.Now:HH:mm} - {DateTime.Now:dd/MM/yyyy}";
-        }
+    }
 
-        [FunctionCall("Analisar contexto macroeconômico de Minas Gerais")]
-        [FunctionCallParameter("setor", "Setor específico para análise contextual")]
-        private string AnalisarContextoMacro(string setor)
-        {
-            return $@"
+    [FunctionCall("Analisar contexto macroeconômico de Minas Gerais")]
+    [FunctionCallParameter("setor", "Setor específico para análise contextual")]
+    private string AnalisarContextoMacro(string setor)
+    {
+      return $@"
 ⛰️ CONTEXTO MACROECONÔMICO MINAS GERAIS
 ══════════════════════════════════════
 
@@ -102,6 +103,6 @@ ESTRUTURA RECOMENDADA:
 
 📈 OUTLOOK: Otimista para economia mineira
 🕐 Análise válida para: {Context.PeriodoAnalise}";
-        }
     }
+  }
 }

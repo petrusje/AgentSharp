@@ -1,11 +1,11 @@
-namespace Agents.net.Examples
+namespace Arcana.AgentsNet.Examples.StructuredOutputs
 {
-    public enum NivelSenioridade
-    {
-        Junior,
-        Pleno,
-        Senior,
-        Especialista,
-        Lideranca
-    }
+  public enum NivelSenioridade
+  {
+    Junior,
+    Pleno,
+    Senior,
+    Especialista,
+    Lideranca
+  }
 }

@@ -1,16 +1,16 @@
-using System;
-using Agents.net.Core;
-using Agents.net.Models;
-using Agents.net.Attributes;
+using Arcana.AgentsNet.Attributes;
+using Arcana.AgentsNet.Core;
+using Arcana.AgentsNet.Examples.Contexts;
+using Arcana.AgentsNet.Models;
 
-namespace Agents.net.Examples
+namespace Arcana.AgentsNet.Examples.Agents
 {
-    public class AgentePesquisador : Agent<ContextoPesquisa, string>
-    {
-        public AgentePesquisador(IModel model)
-            : base(model,
-                   name: "PesquisadorEspecialista",
-                   instructions: @"
+  public class AgentePesquisador : Agent<ContextoPesquisa, string>
+  {
+    public AgentePesquisador(IModel model)
+        : base(model,
+               name: "PesquisadorEspecialista",
+               instructions: @"
 Você é um pesquisador especialista em tecnologia e inovação! 🔍📊
 
 METODOLOGIA DE PESQUISA:
@@ -28,15 +28,15 @@ ESTRUTURA DA PESQUISA:
 📊 DADOS E ESTATÍSTICAS
 
 Use sempre as ferramentas de busca para obter informações atualizadas!")
-        {
-        }
+    {
+    }
 
-        [FunctionCall("Buscar informações sobre startups e empresas de IA")]
-        [FunctionCallParameter("setor", "Setor específico de IA para pesquisar")]
-        [FunctionCallParameter("regiao", "Região/estado para focar a busca")]
-        private string PesquisarEcossistemaIA(string setor, string regiao = "Brasil")
-        {
-            return $@"
+    [FunctionCall("Buscar informações sobre startups e empresas de IA")]
+    [FunctionCallParameter("setor", "Setor específico de IA para pesquisar")]
+    [FunctionCallParameter("regiao", "Região/estado para focar a busca")]
+    private string PesquisarEcossistemaIA(string setor, string regiao = "Brasil")
+    {
+      return $@"
 🏢 ECOSSISTEMA DE IA - {setor.ToUpper()} - {regiao}
 ═══════════════════════════════════════════
 
@@ -69,13 +69,13 @@ Use sempre as ferramentas de busca para obter informações atualizadas!")
 • Parceria com Reino Unido
 • Acordo bilateral EUA-Brasil
 • Participação na Global Partnership AI";
-        }
+    }
 
-        [FunctionCall("Pesquisar políticas públicas e regulamentação")]
-        [FunctionCallParameter("tema", "Área específica de política pública")]
-        private string PesquisarPoliticasPublicas(string tema)
-        {
-            return $@"
+    [FunctionCall("Pesquisar políticas públicas e regulamentação")]
+    [FunctionCallParameter("tema", "Área específica de política pública")]
+    private string PesquisarPoliticasPublicas(string tema)
+    {
+      return $@"
 🏛️ POLÍTICAS PÚBLICAS: {tema.ToUpper()}
 ══════════════════════════════════
 
@@ -108,6 +108,6 @@ Use sempre as ferramentas de busca para obter informações atualizadas!")
 • Responsabilidade algorítmica
 • Propriedade intelectual para IA
 • Princípios de transparência";
-        }
     }
+  }
 }

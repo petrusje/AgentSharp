@@ -1,16 +1,15 @@
-using System;
-using Agents.net.Core;
-using Agents.net.Models;
-using Agents.net.Attributes;
+using Arcana.AgentsNet.Core;
+using Arcana.AgentsNet.Examples.Contexts;
+using Arcana.AgentsNet.Models;
 
-namespace Agents.net.Examples
+namespace Arcana.AgentsNet.Examples.Agents
 {
-    public class AgenteRevisor : Agent<ContextoPesquisa, string>
-    {
-        public AgenteRevisor(IModel model)
-            : base(model,
-                   name: "RevisorEspecialista",
-                   instructions: @"
+  public class AgenteRevisor : Agent<ContextoPesquisa, string>
+  {
+    public AgenteRevisor(IModel model)
+        : base(model,
+               name: "RevisorEspecialista",
+               instructions: @"
 Você é um revisor executivo especializado na perfeição de documentos! 🔍✨
 
 CRITÉRIOS DE REVISÃO:
@@ -29,7 +28,7 @@ PROCESSO DE REVISÃO:
 ✂️ EDIÇÃO PARA CONCISÃO
 
 Busque a excelência na comunicação executiva!")
-        {
-        }
+    {
     }
+  }
 }

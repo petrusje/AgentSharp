@@ -1,6 +1,6 @@
-using Agents.net.Models;
+using Arcana.AgentsNet.Models;
 
-namespace Agents.Tests.Models
+namespace Arcana.AgentsNet.Tests.Models
 {
   public class ModelConfigurationTests
   {

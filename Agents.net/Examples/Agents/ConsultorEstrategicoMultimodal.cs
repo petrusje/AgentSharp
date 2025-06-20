@@ -1,17 +1,18 @@
+using Arcana.AgentsNet.Attributes;
+using Arcana.AgentsNet.Core;
+using Arcana.AgentsNet.Examples.Contexts;
+using Arcana.AgentsNet.Models;
 using System;
 using System.Linq;
-using Agents.net.Core;
-using Agents.net.Models;
-using Agents.net.Attributes;
 
-namespace Agents.net.Examples
+namespace Arcana.AgentsNet.Examples.Agents
 {
-    public class ConsultorEstrategicoMultimodal : Agent<ContextoEmpresarialComplexo, string>
-    {
-        public ConsultorEstrategicoMultimodal(IModel model)
-            : base(model,
-                   name: "ConsultorEstrategicoSenior",
-                   instructions: @"
+  public class ConsultorEstrategicoMultimodal : Agent<ContextoEmpresarialComplexo, string>
+  {
+    public ConsultorEstrategicoMultimodal(IModel model)
+        : base(model,
+               name: "ConsultorEstrategicoSenior",
+               instructions: @"
 💼 Você é um consultor estratégico sênior com 20+ anos de experiência em expansão internacional!
 
 METODOLOGIA CONSULTIVA EXECUTIVA:
@@ -39,19 +40,19 @@ DELIVERABLES EXECUTIVOS:
 📈 Success Metrics
 
 Seja analítico, baseado em dados e estrategicamente orientado!")
-        {
-        }
+    {
+    }
 
-        [FunctionCall("Análise de mercado internacional especializada")]
-        [FunctionCallParameter("markets", "Mercados-alvo para análise")]
-        [FunctionCallParameter("sector", "Setor específico para análise")]
-        [FunctionCallParameter("timeframe", "Horizonte temporal da análise")]
-        private string AnaliseMarketIntelligence(string markets, string sector, string timeframe)
-        {
-            var random = new Random();
-            var marketSizes = markets.Split(',').Select(m => $"{m.Trim()}: USD {random.Next(50, 500)}B").ToArray();
+    [FunctionCall("Análise de mercado internacional especializada")]
+    [FunctionCallParameter("markets", "Mercados-alvo para análise")]
+    [FunctionCallParameter("sector", "Setor específico para análise")]
+    [FunctionCallParameter("timeframe", "Horizonte temporal da análise")]
+    private string AnaliseMarketIntelligence(string markets, string sector, string timeframe)
+    {
+      var random = new Random();
+      var marketSizes = markets.Split(',').Select(m => $"{m.Trim()}: USD {random.Next(50, 500)}B").ToArray();
 
-            return $@"
+      return $@"
 🌎 MARKET INTELLIGENCE: {sector.ToUpper()}
 ═══════════════════════════════════════
 
@@ -81,18 +82,18 @@ Seja analítico, baseado em dados e estrategicamente orientado!")
 • Local partnership requirements
 • Customer acquisition costs rising
 • Currency volatility risks";
-        }
+    }
 
-        [FunctionCall("Modelagem financeira avançada para expansão")]
-        [FunctionCallParameter("investment", "Valor do investimento disponível")]
-        [FunctionCallParameter("markets", "Mercados para modelagem")]
-        [FunctionCallParameter("scenarios", "Cenários para análise (otimista, realista, pessimista)")]
-        private string ModelagemFinanceiraAvancada(string investment, string markets, string scenarios)
-        {
-            var random = new Random();
-            var totalInvestment = decimal.Parse(investment.Replace("R$", "").Replace(".", "").Replace(",", "").Trim()) / 1_000_000m;
+    [FunctionCall("Modelagem financeira avançada para expansão")]
+    [FunctionCallParameter("investment", "Valor do investimento disponível")]
+    [FunctionCallParameter("markets", "Mercados para modelagem")]
+    [FunctionCallParameter("scenarios", "Cenários para análise (otimista, realista, pessimista)")]
+    private string ModelagemFinanceiraAvancada(string investment, string markets, string scenarios)
+    {
+      var random = new Random();
+      var totalInvestment = decimal.Parse(investment.Replace("R$", "").Replace(".", "").Replace(",", "").Trim()) / 1_000_000m;
 
-            return $@"
+      return $@"
 💰 MODELAGEM FINANCEIRA: EXPANSÃO LatAm
 ═══════════════════════════════════════
 
@@ -127,14 +128,14 @@ Seja analítico, baseado em dados e estrategicamente orientado!")
 • Regulatory compliance costs: Subestimados
 • Revenue per user: Benchmark Brasil + 15%
 • Churn rate: Estimado em 3-5% monthly";
-        }
+    }
 
-        [FunctionCall("Análise de riscos estratégicos e mitigação")]
-        [FunctionCallParameter("riskLevel", "Nível de risco aceitável")]
-        [FunctionCallParameter("markets", "Mercados para análise de risco")]
-        private string AnaliseRiscosEstrategicos(string riskLevel, string markets)
-        {
-            return $@"
+    [FunctionCall("Análise de riscos estratégicos e mitigação")]
+    [FunctionCallParameter("riskLevel", "Nível de risco aceitável")]
+    [FunctionCallParameter("markets", "Mercados para análise de risco")]
+    private string AnaliseRiscosEstrategicos(string riskLevel, string markets)
+    {
+      return $@"
 ⚠️ MATRIZ DE RISCOS: EXPANSÃO LatAm
 ═══════════════════════════════════
 
@@ -166,14 +167,14 @@ Seja analítico, baseado em dados e estrategicamente orientado!")
 
 ⚖️ RISCO RESIDUAL ESTIMADO:
 Alinhado com apetite '{riskLevel}' do cliente";
-        }
+    }
 
-        [FunctionCall("Roadmap de implementação estratégica")]
-        [FunctionCallParameter("timeframe", "Horizonte temporal total")]
-        [FunctionCallParameter("firstMarket", "Primeiro mercado para entrada")]
-        private string RoadmapImplementacao(string timeframe, string firstMarket)
-        {
-            return $@"
+    [FunctionCall("Roadmap de implementação estratégica")]
+    [FunctionCallParameter("timeframe", "Horizonte temporal total")]
+    [FunctionCallParameter("firstMarket", "Primeiro mercado para entrada")]
+    private string RoadmapImplementacao(string timeframe, string firstMarket)
+    {
+      return $@"
 🗺️ ROADMAP DE IMPLEMENTAÇÃO: {timeframe}
 ════════════════════════════════════
 
@@ -210,6 +211,6 @@ Alinhado com apetite '{riskLevel}' do cliente";
 • Segundo mercado entry: Mês 9
 • Break-even primeiro mercado: Mês 18
 • 100k usuários regional: Mês 24";
-        }
     }
+  }
 }

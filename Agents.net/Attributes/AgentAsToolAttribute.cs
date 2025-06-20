@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace Agents.net.Attributes
+namespace Arcana.AgentsNet.Attributes
 {
   /// <summary>
   /// Attribute for marking a class as an agent that can be used as a tool by the AI model.

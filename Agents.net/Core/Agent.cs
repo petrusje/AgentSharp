@@ -1,16 +1,14 @@
-﻿using Agents.net.Core.Memory; // Added for IMemoryStore
-using Agents.net.Models;
-using Agents.net.Tools;
-using Agents.net.Utils;
-
+using Arcana.AgentsNet.Core.Memory;
+using Arcana.AgentsNet.Models;
+using Arcana.AgentsNet.Tools;
+using Arcana.AgentsNet.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text.Json; // Added for JsonSerializer
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Agents.net.Core
+namespace Arcana.AgentsNet.Core
 {
 
   /// <summary>
@@ -243,7 +241,7 @@ namespace Agents.net.Core
 
     public virtual async Task<AgentResult<TResult>> ExecuteAsync(
         string prompt,
-        TContext contextVar = default(TContext),
+        TContext contextVar = default,
         List<AIMessage> messageHistory = null,
         CancellationToken cancellationToken = default)
     {
@@ -329,7 +327,7 @@ Com base nesta análise, forneça sua resposta final:";
     public async Task<AgentResult<TResult>> ExecuteStreamingAsync(
         string prompt,
         Action<string> handler,
-        TContext contextVar = default(TContext),
+        TContext contextVar = default,
         List<AIMessage> messageHistory = null,
         CancellationToken cancellationToken = default)
     {
@@ -446,19 +444,15 @@ ETAPAS OBRIGATÓRIAS:
 4. VALIDAÇÃO: Verifique consistência
 5. CONCLUSÃO: Apresente resultado final
 
-<next_action>
-Continue, Validate, FinalAnswer, Reset
-</next_action>
-
 IMPORTANTE: Responda APENAS com JSON válido, sem texto adicional.";
 
       try
       {
         var reasoningMessages = new List<AIMessage>
-          {
-            AIMessage.System("Você é um especialista em reasoning step-by-step. Analise problemas de forma estruturada e responda EXCLUSIVAMENTE em JSON seguindo o schema fornecido."),
-            AIMessage.User(reasoningPrompt)
-          };
+                {
+                    AIMessage.System("Você é um especialista em reasoning step-by-step. Analise problemas de forma estruturada e responda EXCLUSIVAMENTE em JSON seguindo o schema fornecido."),
+                    AIMessage.User(reasoningPrompt)
+                };
 
         var reasoningRequest = new ModelRequest
         {
@@ -475,8 +469,7 @@ IMPORTANTE: Responda APENAS com JSON válido, sem texto adicional.";
         {
           try
           {
-            string cleanedResponse = RemoveCodeDelimiters(reasoningResponse.Content);
-            var reasoningData = JsonSerializer.Deserialize<ReasoningSteps>(cleanedResponse);
+            var reasoningData = JsonSerializer.Deserialize<ReasoningSteps>(reasoningResponse.Content);
 
             // Adicionar steps à memória
             foreach (var step in reasoningData.Steps)
@@ -502,25 +495,6 @@ IMPORTANTE: Responda APENAS com JSON válido, sem texto adicional.";
       {
         _logger.Log(LogLevel.Warning, $"Erro durante processamento de reasoning: {ex.Message}");
         return new ReasoningResult("", new List<ReasoningStep>());
-      }
-    }
-
-    static string RemoveCodeDelimiters(string response)
-    {
-      try
-      {
-        const string pattern = @"```(csharp|html|json|sql|xml)([\s\S]*?)```";
-        var regex = new Regex(pattern);
-        if (regex.IsMatch(response))
-        {
-          string cleanedResponse = regex.Replace(response, "$2").Trim();
-          return cleanedResponse;
-        }
-        return response.Trim();
-      }
-      catch (Exception)
-      {
-        return response;
       }
     }
 
@@ -550,7 +524,7 @@ IMPORTANTE: Responda APENAS com JSON válido, sem texto adicional.";
 
         if (step.NextAction.HasValue)
         {
-          output += $"➡️ Próxima ação: {step.NextAction.Value}\n";
+          output += $"➡️  Próxima ação: {step.NextAction.Value}\n";
         }
 
         output += "\n" + new string('-', 40) + "\n\n";
@@ -584,46 +558,5 @@ IMPORTANTE: Responda APENAS com JSON válido, sem texto adicional.";
     }
 
     #endregion
-    /// <summary>
-    /// Adiciona outro agente como uma ferramenta
-    /// </summary>
-    public Agent<TContext, TResult> WithToolAsAgent(IAgent toolAgent)
-    {
-      if (toolAgent == null)
-        throw new ArgumentNullException(nameof(toolAgent));
-
-      var tool = toolAgent.AsTool(); // Usa AgentExtensions.AsTool()
-      return this.AddTool(tool);
-    }
-
-    /// <summary>
-    /// Adiciona agente como tool com configuração customizada
-    /// </summary>
-    public Agent<TContext, TResult> WithToolAsAgent(
-         IAgent toolAgent, string toolName,
-         string toolDescription)
-    {
-      if (toolAgent == null)
-        throw new ArgumentNullException(nameof(toolAgent));
-
-      var tool = toolAgent.AsTool(toolName, toolDescription);
-      return this.AddTool(tool);
-    }
-
-    /// <summary>
-    /// Adiciona múltiplos agentes como tools
-    /// </summary>
-    public Agent<TContext, TResult> WithToolAsAgents(params IAgent[] agents)
-    {
-      if (agents == null)
-        throw new ArgumentNullException(nameof(agents));
-
-      foreach (var toolAgent in agents)
-      {
-        if (toolAgent != null)
-          WithToolAsAgent(toolAgent);
-      }
-      return this;
-    }
   }
 }

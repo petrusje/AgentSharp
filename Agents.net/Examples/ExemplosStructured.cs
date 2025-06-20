@@ -1,15 +1,13 @@
-﻿// NOTA: Todas as classes deste arquivo foram movidas para seus próprios arquivos na pasta StructuredOutputs.
+// NOTA: Todas as classes deste arquivo foram movidas para seus próprios arquivos na pasta StructuredOutputs.
 // As definições originais são mantidas temporariamente para compatibilidade com o código existente.
+using Arcana.AgentsNet.Core;
+using Arcana.AgentsNet.Examples.StructuredOutputs;
+using Arcana.AgentsNet.Models;
+using Arcana.AgentsNet.Utils;
 using System;
 using System.Threading.Tasks;
-using System.Text.Json.Serialization;
-using System.Text.Json;
-using System.Collections.Generic;
-using Agents.net.Core;
-using Agents.net.Models;
-using Agents.net.Utils;
 
-namespace Agents.net.Examples
+namespace Arcana.AgentsNet.Examples
 {
   /// <summary>
   /// Exemplos de Structured Outputs - funcionalidade avançada do Agents.net

@@ -1,6 +1,6 @@
-using Agents.net.Utils;
+using Arcana.AgentsNet.Utils;
 
-namespace Agents.Tests.Utils
+namespace Arcana.AgentsNet.Tests.Utils
 {
   public class RetryHelperTests
   {

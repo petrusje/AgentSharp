@@ -1,16 +1,17 @@
+using Arcana.AgentsNet.Attributes;
+using Arcana.AgentsNet.Core;
+using Arcana.AgentsNet.Examples.Contexts;
+using Arcana.AgentsNet.Models;
 using System;
-using Agents.net.Core;
-using Agents.net.Models;
-using Agents.net.Attributes;
 
-namespace Agents.net.Examples
+namespace Arcana.AgentsNet.Examples.Agents
 {
-    public class ResolvedorDeProblemas : Agent<ContextoResolucaoProblemas, string>
-    {
-        public ResolvedorDeProblemas(IModel model)
-            : base(model,
-                   name: "ResolvedorProblemasEspecialista",
-                   instructions: @"
+  public class ResolvedorDeProblemas : Agent<ContextoResolucaoProblemas, string>
+  {
+    public ResolvedorDeProblemas(IModel model)
+        : base(model,
+               name: "ResolvedorProblemasEspecialista",
+               instructions: @"
 Você é um consultor especialista em resolução de problemas complexos! 🧠💡
 
 METODOLOGIA DE RACIOCÍNIO ESTRUTURADO:
@@ -31,15 +32,15 @@ ESTRUTURA DE RESPOSTA:
 ⚠️  RISCOS E MITIGAÇÕES
 
 Use sempre as ferramentas de raciocínio para mostrar seu processo mental!")
-        {
-        }
+    {
+    }
 
-        [FunctionCall("Analisar um problema de forma estruturada usando cadeia de raciocínio")]
-        [FunctionCallParameter("problema", "Descrição detalhada do problema a ser analisado")]
-        [FunctionCallParameter("contexto", "Contexto adicional ou restrições do problema")]
-        private string AnalisarProblema(string problema, string contexto = "")
-        {
-            return $@"
+    [FunctionCall("Analisar um problema de forma estruturada usando cadeia de raciocínio")]
+    [FunctionCallParameter("problema", "Descrição detalhada do problema a ser analisado")]
+    [FunctionCallParameter("contexto", "Contexto adicional ou restrições do problema")]
+    private string AnalisarProblema(string problema, string contexto = "")
+    {
+      return $@"
 🧠 ANÁLISE ESTRUTURADA DO PROBLEMA
 ═══════════════════════════════════
 
@@ -73,14 +74,14 @@ Use sempre as ferramentas de raciocínio para mostrar seu processo mental!")
 
 ⏰ Tempo de análise: {Context.TempoDisponivel}
 📅 Análise realizada em: {DateTime.Now:HH:mm} - {DateTime.Now:dd/MM/yyyy}";
-        }
+    }
 
-        [FunctionCall("Formular soluções baseadas na análise do problema")]
-        [FunctionCallParameter("analise", "Análise prévia do problema")]
-        [FunctionCallParameter("prioridade", "Nível de prioridade da solução (alta, média, baixa)")]
-        private string FormularSolucoes(string analise, string prioridade = "alta")
-        {
-            return $@"
+    [FunctionCall("Formular soluções baseadas na análise do problema")]
+    [FunctionCallParameter("analise", "Análise prévia do problema")]
+    [FunctionCallParameter("prioridade", "Nível de prioridade da solução (alta, média, baixa)")]
+    private string FormularSolucoes(string analise, string prioridade = "alta")
+    {
+      return $@"
 💡 SOLUÇÕES PRIORIZADAS
 ═══════════════════════
 
@@ -120,16 +121,16 @@ Use sempre as ferramentas de raciocínio para mostrar seu processo mental!")
 • Competição acirrada no mercado
 
 🔄 Prioridade definida: {prioridade.ToUpper()}";
-        }
+    }
 
-        [FunctionCall("Avaliar viabilidade e impacto das soluções propostas")]
-        [FunctionCallParameter("solucoes", "Lista de soluções para avaliação")]
-        [FunctionCallParameter("criterios", "Critérios de avaliação (custo, tempo, impacto, etc.)")]
-        private string AvaliarSolucoes(string solucoes, string criterios = "custo,tempo,impacto")
-        {
-            var criteriosArray = criterios.Split(',');
+    [FunctionCall("Avaliar viabilidade e impacto das soluções propostas")]
+    [FunctionCallParameter("solucoes", "Lista de soluções para avaliação")]
+    [FunctionCallParameter("criterios", "Critérios de avaliação (custo, tempo, impacto, etc.)")]
+    private string AvaliarSolucoes(string solucoes, string criterios = "custo,tempo,impacto")
+    {
+      var criteriosArray = criterios.Split(',');
 
-            return $@"
+      return $@"
 📊 MATRIZ DE AVALIAÇÃO DE SOLUÇÕES
 ═════════════════════════════════
 
@@ -177,6 +178,6 @@ Use sempre as ferramentas de raciocínio para mostrar seu processo mental!")
 4. Kick-off do projeto de onboarding
 
 📅 Avaliação realizada: {DateTime.Now:dd/MM/yyyy HH:mm}";
-        }
     }
+  }
 }

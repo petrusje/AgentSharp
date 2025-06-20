@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Agents.net\Agents.net.csproj" />
+    <ProjectReference Include="..\Agents.net\Arcana.AgentsNet.csproj" />
   </ItemGroup>
 
 </Project>
