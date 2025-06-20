@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
 		<PackageId>AgentsNet.Arcana</PackageId>
-		<Version>0.0.1</Version>
+		<Version>0.0.2-beta</Version>
 		<Authors>Petrus Junior Evangelista</Authors>
 		<Description>
 			.NET library for building AI agents,
