@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentSharp", "AgentSharp\Ag
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentSharp.console", "AgentSharp.console\AgentSharp.console.csproj", "{C21466B0-B7CE-4288-9DAE-2128596DE32B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentSharp.Tests", "Agents.Tests\AgentSharp.Tests.csproj", "{E77C8DB7-9949-469E-A658-0692D73CEED7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentSharp.Tests", "AgentSharp.Tests\AgentSharp.Tests.csproj", "{E77C8DB7-9949-469E-A658-0692D73CEED7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
