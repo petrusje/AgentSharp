@@ -23,12 +23,12 @@ namespace AgentSharp.Core
     {
       _toolPacks.Add(toolPack);
 
-      if(toolPack is ToolKit)
+      if(toolPack is Toolkit)
       {
         // Registra as ferramentas do kit
-        foreach (var tool in (toolPack as ToolKit).Tools)
+        foreach (var tool in (toolPack as Toolkit).Tools)
         {
-          RegisterTool(tool);
+          RegisterTool(tool.Value);
         }
       }
 

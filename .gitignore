@@ -7,3 +7,6 @@ obj/
 .vs/
 .vscode/
 AdvancedExamples/
+.DS_Store
+specs/
+
