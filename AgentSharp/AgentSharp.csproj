@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
 		<PackageId>AgentSharp</PackageId>
-		<Version>1.0.1</Version>
+		<Version>1.0.2</Version>
 		<Authors>Petrus Junior Evangelista</Authors>
 		<Description>
 			.NET library for building AI agents,
