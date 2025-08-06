@@ -1,26 +1,26 @@
 # 📚 API Reference
 
-> Documentação completa da API do Agents.net
+> Documentação completa da API do AgentSharp
 
 ## 🧩 Namespaces
 
-### Agents.net.Core
+### AgentSharp.Core
 - [Agent](core/agent.md)
 - [Workflow](core/workflow.md)
 - [Tool](core/tool.md)
 - [Model](core/model.md)
 
-### Agents.net.Models
+### AgentSharp.Models
 - [ModelResponse](models/model-response.md)
 - [ModelRequest](models/model-request.md)
 - [AIMessage](models/ai-message.md)
 
-### Agents.net.Tools
+### AgentSharp.Tools
 - [ToolPack](tools/tool-pack.md)
 - [SearchTools](tools/search-tools.md)
 - [ReasoningTools](tools/reasoning-tools.md)
 
-### Agents.net.Utils
+### AgentSharp.Utils
 - [Logger](utils/logger.md)
 - [StateManager](utils/state-manager.md)
 - [Metrics](utils/metrics.md)

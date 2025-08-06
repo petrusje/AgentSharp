@@ -1,0 +1,172 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using AgentSharp.Core;
+using AgentSharp.Models;
+
+namespace AgentSharp.Examples
+{
+    /// <summary>
+    /// Exemplo de uso do OllamaModel para inferência local
+    /// </summary>
+    public class OllamaModelExample
+    {
+        public static async Task RunExample()
+        {
+            try
+            {
+                Console.WriteLine("=== Exemplo OllamaModel ===");
+
+                // Criar instância do modelo Ollama
+                // Certifique-se de que o Ollama está rodando e o modelo está disponível
+                var model = new OllamaModel("llama2"); // ou outro modelo que você tenha instalado
+
+                // Verificar se o modelo está disponível
+                var isAvailable = await model.IsModelAvailableAsync();
+                if (!isAvailable)
+                {
+                    Console.WriteLine($"Modelo 'llama2' não está disponível. Modelos disponíveis:");
+                    var availableModels = await model.ListAvailableModelsAsync();
+                    foreach (var modelName in availableModels)
+                    {
+                        Console.WriteLine($"  - {modelName}");
+                    }
+                    return;
+                }
+
+                Console.WriteLine("Modelo disponível! Iniciando exemplo...\n");
+
+                // Exemplo 1: Resposta simples
+                await SimpleResponseExample(model);
+
+                // Exemplo 2: Resposta com streaming
+                await StreamingResponseExample(model);
+
+                // Exemplo 3: Configuração personalizada
+                await CustomConfigurationExample(model);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro no exemplo: {ex.Message}");
+            }
+        }
+
+        private static async Task SimpleResponseExample(OllamaModel model)
+        {
+            Console.WriteLine("--- Exemplo 1: Resposta Simples ---");
+
+            var request = new ModelRequest
+            {
+                Messages = new List<AIMessage>
+                {
+                    AIMessage.User("Explique o que é inteligência artificial em poucas palavras.")
+                }
+            };
+
+            var response = await model.GenerateResponseAsync(request);
+            
+            Console.WriteLine($"Pergunta: {request.Messages[0].Content}");
+            Console.WriteLine($"Resposta: {response.Content}");
+            Console.WriteLine($"Tokens usados: {response.Usage.PromptTokens + response.Usage.CompletionTokens}");
+            Console.WriteLine();
+        }
+
+        private static async Task StreamingResponseExample(OllamaModel model)
+        {
+            Console.WriteLine("--- Exemplo 2: Resposta com Streaming ---");
+
+            var request = new ModelRequest
+            {
+                Messages = new List<AIMessage>
+                {
+                    AIMessage.User("Conte uma história curta sobre um robô amigável.")
+                }
+            };
+
+            Console.WriteLine($"Pergunta: {request.Messages[0].Content}");
+            Console.Write("Resposta (streaming): ");
+
+            var response = await model.GenerateStreamingResponseAsync(
+                request,
+                null,
+                chunk => Console.Write(chunk) // Handler para exibir chunks em tempo real
+            );
+
+            Console.WriteLine($"\n\nResposta completa gerada com {response.Usage.CompletionTokens} tokens.");
+            Console.WriteLine();
+        }
+
+        private static async Task CustomConfigurationExample(OllamaModel model)
+        {
+            Console.WriteLine("--- Exemplo 3: Configuração Personalizada ---");
+
+            var config = new ModelConfiguration
+            {
+                Temperature = 0.7,
+                MaxTokens = 100,
+                TopP = 0.9
+                // Note: AdditionalProperties não está disponível na ModelConfiguration atual
+                // Para implementações futuras, seria necessário extender a classe
+            };
+
+            var request = new ModelRequest
+            {
+                Messages = new List<AIMessage>
+                {
+                    AIMessage.System("Você é um assistente útil e conciso."),
+                    AIMessage.User("Qual é a importância da programação hoje?")
+                }
+            };
+
+            var response = await model.GenerateResponseAsync(request, config);
+            
+            Console.WriteLine($"Pergunta: {request.Messages[1].Content}");
+            Console.WriteLine($"Resposta (com config personalizada): {response.Content}");
+            Console.WriteLine($"Configuração usada: Temp={config.Temperature}, MaxTokens={config.MaxTokens}");
+            Console.WriteLine();
+        }
+
+        /// <summary>
+        /// Exemplo de como usar o OllamaModel com diferentes modelos
+        /// </summary>
+        public static async Task MultiModelExample()
+        {
+            Console.WriteLine("=== Exemplo Multi-Modelo ===");
+
+            var modelNames = new[] { "llama2", "codellama", "mistral" };
+
+            foreach (var modelName in modelNames)
+            {
+                try
+                {
+                    var model = new OllamaModel(modelName);
+                    var isAvailable = await model.IsModelAvailableAsync();
+
+                    if (isAvailable)
+                    {
+                        Console.WriteLine($"\nTestando modelo: {modelName}");
+                        
+                        var request = new ModelRequest
+                        {
+                            Messages = new List<AIMessage>
+                            {
+                                AIMessage.User("Olá! Como você está?")
+                            }
+                        };
+
+                        var response = await model.GenerateResponseAsync(request);
+                        Console.WriteLine($"Resposta de {modelName}: {response.Content.Substring(0, Math.Min(100, response.Content.Length))}...");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Modelo {modelName} não está disponível");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erro com modelo {modelName}: {ex.Message}");
+                }
+            }
+        }
+    }
+}

@@ -1,6 +1,6 @@
 # 🚀 Guia de Início Rápido
 
-> Comece a usar o Agents.net em minutos
+> Comece a usar o AgentSharp em minutos
 
 ## 📋 Pré-requisitos
 
@@ -16,9 +16,9 @@ dotnet new console -n MeuProjeto
 cd MeuProjeto
 ```
 
-2. **Adicionar o pacote Agents.net**
+2. **Adicionar o pacote AgentSharp**
 ```bash
-dotnet add package Agents.net
+dotnet add package AgentSharp
 ```
 
 3. **Configurar variáveis de ambiente**
@@ -33,9 +33,9 @@ $env:OPENAI_API_KEY="sua-chave-aqui"
 ## 🔥 Primeiro Agente
 
 ```csharp
-using Agents.net;
-using Agents.net.Core;
-using Agents.net.Models;
+using AgentSharp;
+using AgentSharp.Core;
+using AgentSharp.Models;
 
 // Criar modelo
 var modelOptions = new ModelOptions

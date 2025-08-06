@@ -1,6 +1,6 @@
 # 📚 Conceitos Fundamentais
 
-> Entenda os conceitos fundamentais do Agents.net
+> Entenda os conceitos fundamentais do AgentSharp
 
 ## 📋 Sumário
 

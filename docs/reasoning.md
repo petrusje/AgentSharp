@@ -4,7 +4,7 @@
 
 ## 📖 Visão Geral
 
-O sistema de raciocínio estruturado do Agents.net permite que agentes decomponham problemas complexos em etapas lógicas, analisem cada componente e sintetizem uma solução coerente.
+O sistema de raciocínio estruturado do AgentSharp permite que agentes decomponham problemas complexos em etapas lógicas, analisem cada componente e sintetizem uma solução coerente.
 
 ## 🎯 Componentes Principais
 

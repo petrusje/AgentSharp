@@ -1,6 +1,6 @@
 # 🚀 Guias Avançados
 
-> Técnicas avançadas para maximizar o potencial do Agents.net
+> Técnicas avançadas para maximizar o potencial do AgentSharp
 
 ## 📋 Sumário
 

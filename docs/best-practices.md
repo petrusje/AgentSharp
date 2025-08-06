@@ -1,6 +1,6 @@
 # 🎯 Melhores Práticas
 
-> Guia de melhores práticas para o desenvolvimento com Agents.net
+> Guia de melhores práticas para o desenvolvimento com AgentSharp
 
 ## 📋 Sumário
 

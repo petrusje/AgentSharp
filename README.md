@@ -1,4 +1,4 @@
-# 🤖 Agents.net
+# 🤖 AgentSharp
 
 > Framework .NET para construção de agentes de IA com raciocínio estruturado e workflows avançados
 
@@ -18,7 +18,7 @@
 
 ```csharp
 // 1. Instalar via NuGet
-dotnet add package Agents.net
+dotnet add package AgentSharp
 
 // 2. Criar um agente com raciocínio
 var agent = new Agent<Context, string>(model, "AnalistaEspecialista")

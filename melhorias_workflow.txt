@@ -1,4 +1,4 @@
-LISTA DE MELHORIAS PARA WORKFLOW - AGENTS.NET
+LISTA DE MELHORIAS PARA WORKFLOW - AgentSharp
 =====================================================
 
 === CRÍTICAS (Resolver Imediatamente) ===
@@ -6,7 +6,7 @@ LISTA DE MELHORIAS PARA WORKFLOW - AGENTS.NET
 1. Corrigir Lógica Quebrada no SequentialWorkflow
    - Problema: Cast incorreto de TResult para TContext na linha 67-75
    - Ação: Remover cast incorreto, manter contexto original
-   - Arquivo: Agents.net/Core/Orchestration/SequentialWorkflow.cs
+   - Arquivo: AgentSharp/Core/Orchestration/SequentialWorkflow.cs
 
 2. Implementar Gerenciamento de Estado Thread-Safe
    - Problema: _context e _isExecuting não são thread-safe
@@ -101,12 +101,12 @@ Robustez: +80% (validação, retry, timeout)
 
 === ARQUIVOS PRINCIPAIS A MODIFICAR ===
 
-- Agents.net/Core/Orchestration/SequentialWorkflow.cs
-- Agents.net/Core/Agent.cs
-- Agents.net/Core/ExecutionEngine.cs
-- Agents.net/Core/PrompManager.cs
-- Agents.net/Core/Orchestration/Workflow.cs
-- Agents.net/Core/Memory/InMemoryStore.cs
+- AgentSharp/Core/Orchestration/SequentialWorkflow.cs
+- AgentSharp/Core/Agent.cs
+- AgentSharp/Core/ExecutionEngine.cs
+- AgentSharp/Core/PrompManager.cs
+- AgentSharp/Core/Orchestration/Workflow.cs
+- AgentSharp/Core/Memory/InMemoryStore.cs
 
 === NOTAS IMPORTANTES ===
 

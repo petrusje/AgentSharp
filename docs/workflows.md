@@ -4,7 +4,7 @@
 
 ## 📖 Visão Geral
 
-O sistema de workflows do Agents.net oferece uma arquitetura robusta para orquestrar múltiplos agentes em uma sequência lógica de operações. Com suporte a gerenciamento de estado, sessões persistentes e métricas detalhadas.
+O sistema de workflows do AgentSharp oferece uma arquitetura robusta para orquestrar múltiplos agentes em uma sequência lógica de operações. Com suporte a gerenciamento de estado, sessões persistentes e métricas detalhadas.
 
 ## 🏗️ Arquitetura
 

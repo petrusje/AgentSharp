@@ -1,6 +1,6 @@
 # 📚 Exemplos Práticos
 
-> Casos de uso reais do Agents.net em ação
+> Casos de uso reais do AgentSharp em ação
 
 ## 🎯 Exemplos Básicos
 
