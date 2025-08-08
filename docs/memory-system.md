@@ -12,12 +12,12 @@ O AgentSharp possui um sistema de memória sofisticado e hierárquico que permit
 ├─────────────────────────────────────┤
 │         IMemoryManager              │ ← Camada Inteligente (Alto Nível)
 │    • Context management             │   • Classificação automática por IA
-│    • LLM integration               │   • Enriquecimento de mensagens
-│    • Smart classification          │   • Extração automática de memórias
+│    • LLM integration                │   • Enriquecimento de mensagens
+│    • Smart classification           │   • Extração automática de memórias
 ├─────────────────────────────────────┤
 │            IStorage                 │ ← Camada de Persistência (Médio Nível)
 │    • SqliteStorage                  │   • Armazenamento permanente
-│    • InMemoryStorage               │   • Múltiplos providers
+│    • InMemoryStorage                │   • Múltiplos providers
 ├─────────────────────────────────────┤
 │            IMemory                  │ ← Cache Simples (Baixo Nível)
 │    • Basic CRUD                     │   • ExecutionEngine logging
@@ -308,192 +308,11 @@ public class CustomMemoryClassifier : IMemoryClassifier
 }
 ```
 
-## Funcionalidades Avançadas
+## Limitações Atuais
 
-### Sistema de Deduplicação Inteligente
-
-Previne memórias duplicadas usando similaridade semântica:
-
-```csharp
-// Sistema automaticamente detecta e previne duplicações
-await memoryManager.AddMemoryAsync("João prefere café forte", context);
-await memoryManager.AddMemoryAsync("João gosta de café forte", context); // Similar detectada
-// Resultado: Apenas uma memória é salva
-```
-
-**Características:**
-- **Normalização de conteúdo**: Remove pontuação e padroniza formato
-- **Similaridade semântica**: Calcula similaridade usando algoritmo de Jaccard
-- **Threshold configurável**: 75% de similaridade por padrão
-- **Fallback seguro**: Em caso de erro, permite adicionar para não bloquear
-
-### Busca Híbrida Inteligente
-
-Sistema que combina múltiplas estratégias:
-
-```csharp
-// Busca inteligente com sinônimos e palavras-chave
-var memories = await memoryManager.GetRelevantMemoriesAsync("estudar hoje", context);
-// Encontra memórias sobre "trabalhar pela manhã" automaticamente
-```
-
-**Estratégias utilizadas:**
-1. **Busca textual direta**: Palavras exatas no conteúdo
-2. **Busca por palavras-chave**: Extração de termos importantes
-3. **Sinônimos semânticos**: "estudar" ↔ "trabalhar" ↔ "manhã"
-4. **Scoring inteligente**: Relevância + recência + importância
-
-### Mapeamento de Sinônimos
-
-Sistema que entende relacionamentos semânticos:
-
-```csharp
-// Configuração de sinônimos
-var synonymMap = new Dictionary<string, List<string>>
-{
-    { "estudar", new[] { "trabalhar", "manhã", "morning" } },
-    { "café", new[] { "coffee", "forte", "bebida" } },
-    { "trabalhar", new[] { "estudar", "manhã", "cedo" } }
-};
-```
-
-### Queries SQL Otimizadas
-
-Sistema de busca com scoring:
-
-```sql
-SELECT *, 
-       (RelevanceScore * 0.7 + 
-        CASE WHEN datetime(UpdatedAt) > datetime('now', '-1 day') THEN 0.3 ELSE 0.1 END) as SearchScore
-FROM UserMemory 
-WHERE UserId = ? AND IsActive = 1 AND (
-    LOWER(Content) LIKE '%estudar%' OR 
-    LOWER(Content) LIKE '%trabalhar%' OR 
-    LOWER(Content) LIKE '%manhã%'
-)
-ORDER BY SearchScore DESC, RelevanceScore DESC, UpdatedAt DESC;
-```
-
-## 🧠 Sistema de Busca Semântica (Embeddings Vetoriais)
-
-### VectorSqliteStorage
-
-Storage avançado com suporte a embeddings:
-
-```csharp
-// Configuração com serviço de embeddings
-var embeddingService = new OpenAIEmbeddingService(apiKey, endpoint);
-var vectorStorage = new VectorSqliteStorage("Data Source=vector.db", embeddingService);
-await vectorStorage.InitializeAsync();
-
-var agent = new Agent<Context, string>(model, storage: vectorStorage)
-    .WithPersona("Assistente com busca semântica avançada");
-```
-
-### OpenAIEmbeddingService
-
-Serviço robusto com fallback inteligente:
-
-```csharp
-// Configuração do serviço
-var embeddingService = new OpenAIEmbeddingService(
-    apiKey: "sk-...", 
-    endpoint: "https://api.openai.com",
-    model: "text-embedding-ada-002"
-);
-
-// Funcionalidades:
-// ✅ Embeddings via OpenAI API
-// ✅ Fallback inteligente se API falhar  
-// ✅ Cálculo de similaridade cosseno
-// ✅ Cache e otimizações
-// ✅ Embeddings em lote
-```
-
-### Busca por Similaridade
-
-Sistema que entende contexto semântico:
-
-```csharp
-// Busca semântica - entende relacionamentos conceituais
-var query = "Como fazer uma bebida energizante matinal?";
-var memories = await vectorStorage.SearchMemoriesAsync(query, context, 5);
-
-// Resultado: Encontra memórias sobre "café forte pela manhã"
-// mesmo sem palavras exatas em comum!
-```
-
-### Comparação: Textual vs Semântica
-
-```csharp
-// Exemplo prático das diferenças:
-
-// BUSCA TEXTUAL
-// Query: "bebida energizante matinal"  
-// Memórias: "gosto de café forte pela manhã"
-// Resultado: Não encontra (palavras diferentes)
-
-// BUSCA SEMÂNTICA  
-// Query: "bebida energizante matinal"
-// Memórias: "gosto de café forte pela manhã"  
-// Resultado: Encontra (conceitos relacionados)
-```
-
-## Implementação Técnica
-
-### Arquitetura de Storage
-
-```
-┌─────────────────────────────────────┐
-│           Agent                     │ 
-├─────────────────────────────────────┤
-│         MemoryManager               │ ← Deduplicação + Busca Híbrida
-│    • Duplicate detection            │   • Sinônimos semânticos  
-│    • Hybrid search                 │   • Keyword extraction
-│    • Semantic mapping              │   • Relevance scoring
-├─────────────────────────────────────┤
-│       VectorSqliteStorage           │ ← Busca Semântica (Novo!)
-│    • Embedding vectors              │   • Cosine similarity
-│    • Semantic search               │   • Vector indexes  
-│    • Fallback to textual           │   • OpenAI integration
-├─────────────────────────────────────┤
-│         SqliteStorage               │ ← Busca Textual Otimizada
-│    • Optimized queries             │   • Multi-word search
-│    • Relevance scoring             │   • Recency weighting
-│    • Indexed searches              │   • Performance optimization
-└─────────────────────────────────────┘
-```
-
-### Exemplo de Uso Completo
-
-```csharp
-public async Task ExemploSistemaMelhorado()
-{
-    // 1. Setup com embeddings
-    var embeddingService = new OpenAIEmbeddingService(apiKey, endpoint);
-    var storage = new VectorSqliteStorage("memory.db", embeddingService);
-    await storage.InitializeAsync();
-
-    // 2. Agent configurado
-    var agent = new Agent<Context, string>(model, storage: storage)
-        .WithPersona("Assistente com memória semântica avançada")
-        .WithContext(new Context { UserId = "user123", SessionId = "session456" });
-
-    // 3. Primeira conversa
-    await agent.ExecuteAsync("Sou desenvolvedor Python e adoro machine learning");
-
-    // 4. Segunda conversa - busca semântica em ação
-    var result = await agent.ExecuteAsync("Preciso de ajuda com redes neurais");
-    // ✅ Encontra automaticamente memórias sobre "Python" e "machine learning"
-    // ✅ Faz conexão semântica: redes neurais ↔ machine learning
-    
-    // 5. Terceira conversa - sinônimos funcionando  
-    var result2 = await agent.ExecuteAsync("Que linguagem usar para data science?");
-    // ✅ Conecta "data science" com "machine learning" e "Python"
-    // ✅ Sugere Python baseado no histórico do usuário
-}
-```
-
+- **Embeddings**: Implementação postergada - busca apenas textual
+- **Consolidação**: Algoritmo simples de detecção de duplicatas
+- **Analytics**: Métricas básicas de uso
 
 ## Modo Anônimo 🎭
 
