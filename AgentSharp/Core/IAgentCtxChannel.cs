@@ -1,4 +1,5 @@
 using System;
+using AgentSharp.Core.Memory.Interfaces;
 
 namespace AgentSharp.Core
 {
@@ -14,5 +15,17 @@ namespace AgentSharp.Core
     /// <returns>Valor da propriedade como object</returns>
     /// <exception cref="ArgumentException">Lançada quando a propriedade não é encontrada</exception>
     object GetProperty(string propertyName);
+
+    /// <summary>
+    /// Obtém o MemoryManager do agente
+    /// </summary>
+    /// <returns>IMemoryManager atual</returns>
+    IMemoryManager GetMemoryManager();
+
+    /// <summary>
+    /// Obtém o resumo da memória atual
+    /// </summary>
+    /// <returns>Resumo da memória como string</returns>
+    string GetMemorySummary();
   }
 }

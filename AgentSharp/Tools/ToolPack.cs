@@ -38,7 +38,7 @@ namespace AgentSharp.Tools
     /// <summary>
     /// Reference to the agent context channel that provides access to the agent properties.
     /// </summary>
-    private IAgentCtxChannel _context;
+    protected IAgentCtxChannel _context;
 
     /// <summary>
     /// Initializes a new instance of the ToolPack class with default properties.

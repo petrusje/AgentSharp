@@ -169,6 +169,33 @@ namespace Agents_console
           case "9":
             await ExecuteExample("Workflow Multi-etapa", () => ExemplosWorkflow.ExecutarWorkflowCompleto(modelo));
             break;
+          case "10":
+            await ExecuteExample("Assistente Pessoal com Memória", () => ExemplosMemoria.ExecutarAssistentePessoal(modelo));
+            break;
+          case "11":
+            await ExecuteExample("Consultor Técnico com Conhecimento Acumulado", () => ExemplosMemoria.ExecutarConsultorTecnico(modelo));
+            break;
+          case "12":
+            await ExecuteExample("LLM Gerenciando Suas Próprias Memórias", () => ExemplosMemoria.ExecutarDemonstracaoMemoryTools(modelo));
+            break;
+          case "13":
+            await ExecuteExample("Comparação Storage Providers", () => ExemplosMemoria.ExecutarComparacaoStorage(modelo));
+            break;
+          case "14":
+            await ExecuteExample("Assistente Médico Customizado", () => ExemplosMemoria.ExecutarAssistenteMedicoCustomizado(modelo));
+            break;
+          case "15":
+            await ExecuteExample("Consultor Jurídico Especializado", () => ExemplosMemoria.ExecutarConsultorJuridico(modelo));
+            break;
+          case "16":
+            await ExecuteExample("Modo Anônimo - IDs Automáticos", () => ExemplosMemoria.ExecutarModoAnonimo(modelo));
+            break;
+          case "17":
+            await ExecuteExample("Assistente com Busca Semântica", () => VectorMemoryExample.ExecutarAssistenteComEmbeddings(modelo));
+            break;
+          case "18":
+            await ExecuteExample("Comparação Busca Textual vs Semântica", () => VectorMemoryExample.CompararBuscaTextualVsSemantica(modelo));
+            break;
           case "0":
             Console.WriteLine("👋 Obrigado por usar AgentSharp!");
             return false; // Sair do loop
@@ -207,9 +234,24 @@ namespace Agents_console
       Console.WriteLine("🔄 EXEMPLOS WORKFLOW:");
       Console.WriteLine("  9. 📈 Workflow Multi-etapa");
       Console.WriteLine();
+      Console.WriteLine("🧠 EXEMPLOS SISTEMA DE MEMÓRIA:");
+      Console.WriteLine("  10. 🤖 Assistente Pessoal com Memória");
+      Console.WriteLine("  11. 🔧 Consultor Técnico com Conhecimento");
+      Console.WriteLine("  12. 🛠️ LLM Gerenciando Memórias");
+      Console.WriteLine("  13. 📊 Comparação Storage Providers");
+      Console.WriteLine();
+      Console.WriteLine("🏥 EXEMPLOS CONFIGURAÇÃO CUSTOMIZADA:");
+      Console.WriteLine("  14. 🏥 Assistente Médico Customizado");
+      Console.WriteLine("  15. ⚖️ Consultor Jurídico Especializado");
+      Console.WriteLine("  16. 🎭 Modo Anônimo - IDs Automáticos");
+      Console.WriteLine();
+      Console.WriteLine("🧠 EXEMPLOS BUSCA SEMÂNTICA:");
+      Console.WriteLine("  17. 🔍 Assistente com Busca Semântica");
+      Console.WriteLine("  18. 📊 Comparação Busca Textual vs Semântica");
+      Console.WriteLine();
       Console.WriteLine("  0. ❌ Sair");
       Console.WriteLine();
-      Console.Write("Digite sua escolha (0-9): ");
+      Console.Write("Digite sua escolha (0-18): ");
     }
 
     static async Task ExecuteExample(string exampleName, Func<Task> example)

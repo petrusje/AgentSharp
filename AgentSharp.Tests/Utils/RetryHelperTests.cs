@@ -1,10 +1,14 @@
 using AgentSharp.Utils;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Threading.Tasks;
 
 namespace AgentSharp.Tests.Utils
 {
+  [TestClass]
   public class RetryHelperTests
   {
-    [Fact]
+    [TestMethod]
     public async Task ExecuteWithRetryAsync_SuccessfulOperation_ReturnsResult()
     {
       // Arrange
@@ -14,7 +18,7 @@ namespace AgentSharp.Tests.Utils
       var result = await RetryHelper.ExecuteWithRetryAsync(operation);
 
       // Assert
-      Assert.Equal(42, result);
+      Assert.AreEqual(42, result);
     }
 
     //[Fact]

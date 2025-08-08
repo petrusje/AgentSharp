@@ -13,6 +13,7 @@ namespace AgentSharp.Core
   {
     private readonly Dictionary<string, Tool> _tools = new Dictionary<string, Tool>();
     private readonly List<ToolPack> _toolPacks = new List<ToolPack>();
+    private IAgentCtxChannel _agentContext;
 
     public void RegisterTool(Tool tool)
     {
@@ -22,6 +23,13 @@ namespace AgentSharp.Core
     public void RegisterToolPack(ToolPack toolPack)
     {
       _toolPacks.Add(toolPack);
+
+      // Registrar o contexto do agente no ToolPack se disponível
+      if (_agentContext != null)
+      {
+        toolPack.RegisterContext(_agentContext);
+        _ = toolPack.InitializeAsync(); // Inicializar o ToolPack assincronamente
+      }
 
       if(toolPack is Toolkit)
       {
@@ -47,6 +55,19 @@ namespace AgentSharp.Core
 
     public void RegisterAgentMethods(IAgent agent)
     {
+      // Armazenar referência do agente como contexto se ele implementar IAgentCtxChannel
+      if (agent is IAgentCtxChannel agentContext)
+      {
+        _agentContext = agentContext;
+        
+        // Registrar contexto em todos os ToolPacks já registrados
+        foreach (var toolPack in _toolPacks)
+        {
+          toolPack.RegisterContext(_agentContext);
+          _ = toolPack.InitializeAsync();
+        }
+      }
+
       // Registra os métodos do agente como ferramentas
       foreach (var method in agent.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
           .Where(m => m.GetCustomAttribute<FunctionCallAttribute>() != null))

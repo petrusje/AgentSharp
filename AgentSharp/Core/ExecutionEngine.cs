@@ -334,7 +334,7 @@ namespace AgentSharp.Core
       foreach (var msg in messages)
       {
         // Evitar duplicatas verificando se já existe na memória
-        var existingItems = await _memory.SearchAsync(msg.Content, 1);
+        var existingItems = await _memory.GetItemsAsync(msg.Content, 1);
         if (existingItems.Any())
           continue;
 

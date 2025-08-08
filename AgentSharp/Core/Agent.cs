@@ -1,4 +1,7 @@
+using AgentSharp.Core.Memory.Interfaces;
 using AgentSharp.Core.Memory;
+using AgentSharp.Core.Memory.Models;
+using AgentSharp.Core.Memory.Services;
 using AgentSharp.Models;
 using AgentSharp.Tools;
 using AgentSharp.Utils;
@@ -24,9 +27,21 @@ namespace AgentSharp.Core
     private readonly ExecutionEngine<TContext, TResult> _executionEngine;
     private readonly IModel _model;
     private readonly ILogger _logger;
+   // Configuração do modelo (parâmetros, temperatura, etc.)
     private ModelConfiguration _modelConfig;
 
-    private readonly IMemory _memory;
+    /// Configurações específicas de memória
+    /// Como Quantidade máxima de memórias (sessão e usuário), max execuções, relevância mínima, auto summary, numero minimo para cria resumo.
+    private MemoryConfiguration _memoryConfig;
+
+    // Configuração de memória (prompts customizados para salvar e recuperar, etc.)
+    private MemoryDomainConfiguration _memoryDomainConfig;
+
+    // Gestão avançada de memória
+    private IMemoryManager _memoryManager;
+
+    // Serviço de armazenamento (pode ser InMemory, Sqlite, etc.)
+    private readonly IStorage _storage;
 
     // Estado do agente
     private AgentContext<TContext> _agentContext;
@@ -37,6 +52,35 @@ namespace AgentSharp.Core
     private int _reasoningMinSteps = 1;
     private int _reasoningMaxSteps = 10;
 
+    // Resumo inteligente gerado pela LLM (delegado ao MemoryManager)
+    // private string _memorySummary; // Removido, agora gerenciado pelo MemoryManager
+
+    // Controle de modo de memória
+    public enum MemoryMode
+    {
+        SummaryOnly,
+        FullHistory,
+        SummaryAndRecent
+    }
+
+    private MemoryMode _memoryMode = MemoryMode.SummaryAndRecent;
+    private int _recentMessagesCount = 5;
+
+    // Configuração de modo anônimo
+    private bool _enableAnonymousMode = false;
+    private string _generatedUserId = null;
+    private string _generatedSessionId = null;
+
+    // Formato de contexto
+    public enum ContextFormat
+    {
+        SystemMessage,
+        FunctionCall,
+        RequestField
+    }
+    private ContextFormat _contextFormat = ContextFormat.SystemMessage;
+    private string _memorySummary = "";
+
     // Construtor principal
     public Agent(
         IModel model,
@@ -44,17 +88,35 @@ namespace AgentSharp.Core
         string instructions = null,
         ModelConfiguration modelConfig = null,
         ILogger logger = null,
-        IMemory memory = null)
+        IMemoryManager memoryManager = null,
+        IStorage storage = null)
     {
       Name = name ?? GetType().Name;
       _model = model ?? throw new ArgumentNullException(nameof(model));
       _logger = logger ?? new ConsoleLogger();
       _modelConfig = modelConfig ?? new ModelConfiguration();
-      _memory = memory ?? new InMemoryStore();
+
+      // Configurar sistema de memória
+      _storage = storage ?? new InMemoryStorage();
+      
+      // Se o storage for VectorSqliteStorage, usar o embedding service dele
+      IEmbeddingService embeddingService = new MockEmbeddingService();
+      if (storage is VectorSqliteStorage vectorStorage)
+      {
+          // TODO: Extrair o embedding service do VectorSqliteStorage se necessário
+          embeddingService = new MockEmbeddingService();
+      }
+      
+      _memoryManager = memoryManager ?? new MemoryManager(
+          _storage,
+          _model,
+          _logger,
+          embeddingService,
+          _memoryDomainConfig);
 
       _promptManager = new PromptManager<TContext>();
       _toolManager = new ToolManager();
-      _executionEngine = new ExecutionEngine<TContext, TResult>(_model, _modelConfig, _logger, _memory);
+      _executionEngine = new ExecutionEngine<TContext, TResult>(_model, _modelConfig, _logger, new InMemoryStore());
 
       // Adicionar instruções iniciais se fornecidas
       if (!string.IsNullOrEmpty(instructions))
@@ -67,6 +129,15 @@ namespace AgentSharp.Core
     private void registerTools()
     {
       _toolManager.RegisterAgentMethods(this);
+
+      // Registrar SmartMemoryToolPack por padrão
+      _toolManager.RegisterToolPack(new SmartMemoryToolPack());
+
+      // Disponibilizar MemoryManager para tools
+      if (_memoryManager != null)
+      {
+          // TODO: Adicionar mecanismo para passar MemoryManager para tools
+      }
     }
 
     #region Métodos de Configuração Fluente
@@ -107,6 +178,20 @@ namespace AgentSharp.Core
       return this;
     }
 
+      public Agent<TContext, TResult> WithMemoryConfiguration(MemoryConfiguration config)
+      {
+          _memoryConfig = config;
+
+          // Recriar MemoryManager com nova configuração
+          _memoryManager = new MemoryManager(
+              _storage,
+              _model,
+              _logger,
+              new MockEmbeddingService(),
+              _memoryDomainConfig); // <- Passar configuração
+
+          return this;
+      }
     public Agent<TContext, TResult> AddSystemPrompt(string prompt)
     {
       _promptManager.AddSystemPrompt(_ => prompt);
@@ -200,6 +285,37 @@ namespace AgentSharp.Core
       _reasoningMaxSteps = maxSteps;
       return this;
     }
+
+    public Agent<TContext, TResult> WithMemoryManager(IMemoryManager memoryManager)
+    {
+        // Substituir o memory manager atual
+        return this; // TODO: Implementar substituição se necessário
+    }
+
+    public Agent<TContext, TResult> WithStorage(IStorage storage)
+    {
+        // Substituir o storage atual
+        return this; // TODO: Implementar substituição se necessário
+    }
+
+    public Agent<TContext, TResult> WithMemoryMode(MemoryMode mode, int recentMessagesCount = 5)
+    {
+        _memoryMode = mode;
+        _recentMessagesCount = recentMessagesCount;
+        return this;
+    }
+
+    public Agent<TContext, TResult> WithContextFormat(ContextFormat format)
+    {
+        _contextFormat = format;
+        return this;
+    }
+
+    public Agent<TContext, TResult> WithAnonymousMode(bool enableAnonymousMode = true)
+    {
+        _enableAnonymousMode = enableAnonymousMode;
+        return this;
+    }
     #endregion
 
     #region Acesso a Context
@@ -277,21 +393,30 @@ Com base nesta análise, forneça sua resposta final:";
           }
         }
 
-        // Criar sistema de mensagens usando PromptManager
+        // === DELEGADO: Gerar resumo automático do histórico via MemoryManager ===
+        string userId = GetUserIdFromContext();
+        string sessionId = GetSessionIdFromContext();
+        _memoryManager.UserId = userId;
+        _memoryManager.SessionId = sessionId;
+
+        // Carregar contexto de memória
+        var memoryContext = await _memoryManager.LoadContextAsync(userId, sessionId);
+
+        // Construir mensagens base
         var systemPrompt = _promptManager.BuildSystemPrompt(Context);
-        var messages = new List<AIMessage>();
-
+        var baseMessages = new List<AIMessage>();
         if (!string.IsNullOrEmpty(systemPrompt))
-          messages.Add(AIMessage.System(systemPrompt));
+          baseMessages.Add(AIMessage.System(systemPrompt));
+        baseMessages.Add(AIMessage.User(finalPrompt));
 
-        messages.AddRange(_agentContext.MessageHistory);
-        messages.Add(AIMessage.User(finalPrompt));
+        // Enriquecer mensagens com memórias relevantes
+        var enhancedMessages = await _memoryManager.EnhanceMessagesAsync(baseMessages, memoryContext);
 
         // Criar requisição usando ToolManager
         var request = new ModelRequest
         {
-          Messages = messages,
-          Tools = _toolManager.GetTools()
+            Messages = enhancedMessages,
+            Tools = _toolManager.GetTools()
         };
 
         // Usar ExecutionEngine para executar
@@ -300,11 +425,17 @@ Com base nesta análise, forneça sua resposta final:";
             _modelConfig,
             cancellationToken);
 
-        // Atualizar histórico
+        // Processar interação para extrair memórias automaticamente
+        var userMessage = AIMessage.User(finalPrompt);
+        var assistantMessage = AIMessage.Assistant(executionResult.RawResponse.Content);
+        await _memoryManager.ProcessInteractionAsync(userMessage, assistantMessage, memoryContext);
+
+        // Atualizar histórico local
         if (!string.IsNullOrEmpty(executionResult.RawResponse.Content))
-          _agentContext.MessageHistory.Add(AIMessage.Assistant(executionResult.RawResponse.Content));
+          _agentContext.MessageHistory.Add(assistantMessage);
 
         // Criar resultado do agente
+        var sessionInfo = CreateSessionInfo();
         var agentResult = new AgentResult<TResult>(
             executionResult.Data,
             _agentContext.MessageHistory,
@@ -312,7 +443,8 @@ Com base nesta análise, forneça sua resposta final:";
             executionResult.RawResponse.Usage,
             executionResult.ToolResults,
             reasoningContent,
-            reasoningSteps
+            reasoningSteps,
+            sessionInfo
         );
 
         return agentResult;
@@ -369,12 +501,16 @@ Com base nesta análise, forneça sua resposta final:";
           _agentContext.MessageHistory.Add(AIMessage.Assistant(executionResult.RawResponse.Content));
 
         // Criar resultado do agente
+        var sessionInfo = CreateSessionInfo();
         var agentResult = new AgentResult<TResult>(
             executionResult.Data,
             _agentContext.MessageHistory,
             _agentContext.MessageHistory.Count,
             executionResult.RawResponse.Usage,
-            executionResult.ToolResults
+            executionResult.ToolResults,
+            null, // reasoningContent
+            null, // reasoningSteps
+            sessionInfo
         );
 
         return agentResult;
@@ -414,7 +550,6 @@ Com base nesta análise, forneça sua resposta final:";
     private async Task<ReasoningResult> ProcessReasoningAsync(string originalPrompt, List<AIMessage> messageHistory, CancellationToken cancellationToken)
     {
       var reasoningModel = _reasoningModel ?? _model;
-      var reasoningMemory = new ReasoningMemory(_reasoningMaxSteps);
 
       // Prompt estruturado para reasoning (com JSON schema)
       var reasoningPrompt = $@"Analise este problema step-by-step usando raciocínio estruturado.
@@ -470,12 +605,6 @@ IMPORTANTE: Responda APENAS com JSON válido, sem texto adicional.";
           try
           {
             var reasoningData = JsonSerializer.Deserialize<ReasoningSteps>(reasoningResponse.Content);
-
-            // Adicionar steps à memória
-            foreach (var step in reasoningData.Steps)
-            {
-              reasoningMemory.AddStep(step);
-            }
 
             // Retornar reasoning formatado com steps estruturados
             var formattedContent = FormatReasoningOutput(reasoningData.Steps);
@@ -557,6 +686,198 @@ IMPORTANTE: Responda APENAS com JSON válido, sem texto adicional.";
       return _agentContext?.MessageHistory ?? new List<AIMessage>();
     }
 
+    /// <summary>
+    /// Retorna o resumo inteligente da memória gerado pela LLM
+    /// </summary>
+    public string GetMemorySummary()
+    {
+      return _memorySummary;
+    }
+
+    /// <summary>
+    /// Obtém o MemoryManager atual (para compatibilidade com tools)
+    /// </summary>
+    public IMemoryManager GetMemoryManager()
+    {
+        // Ensure MemoryManager has current context information
+        if (_memoryManager != null)
+        {
+            string userId = GetUserIdFromContext();
+            string sessionId = GetSessionIdFromContext();
+            _memoryManager.UserId = userId;
+            _memoryManager.SessionId = sessionId;
+        }
+        return _memoryManager;
+    }
+
     #endregion
+
+    #region Private Helper Methods
+
+    private string GetUserIdFromContext()
+    {
+        // Tentar obter userId do contexto
+        if (_agentContext != null && _agentContext.ContextVar != null)
+        {
+            var contextType = typeof(TContext);
+            var userIdProperty = contextType.GetProperty("UserId");
+            if (userIdProperty != null)
+            {
+                var userId = userIdProperty.GetValue(_agentContext.ContextVar)?.ToString();
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    return userId;
+                }
+            }
+        }
+
+        // Se modo anônimo está habilitado e não há userId, gerar um automaticamente
+        if (_enableAnonymousMode)
+        {
+            if (string.IsNullOrEmpty(_generatedUserId))
+            {
+                _generatedUserId = GenerateAnonymousUserId();
+            }
+            SetUserIdInContext(_generatedUserId);
+            return _generatedUserId;
+        }
+
+        // Fallback: usar um userId padrão
+        return "default_user";
+    }
+
+    private string GetSessionIdFromContext()
+    {
+        // Tentar obter sessionId do contexto
+        if (_agentContext != null && _agentContext.ContextVar != null)
+        {
+            var contextType = typeof(TContext);
+            var sessionIdProperty = contextType.GetProperty("SessionId");
+            if (sessionIdProperty != null)
+            {
+                var sessionId = sessionIdProperty.GetValue(_agentContext.ContextVar)?.ToString();
+                if (!string.IsNullOrEmpty(sessionId))
+                {
+                    return sessionId;
+                }
+            }
+        }
+
+        // Se modo anônimo está habilitado e não há sessionId, gerar um automaticamente
+        if (_enableAnonymousMode)
+        {
+            if (string.IsNullOrEmpty(_generatedSessionId))
+            {
+                _generatedSessionId = GenerateAnonymousSessionId();
+            }
+            SetSessionIdInContext(_generatedSessionId);
+            return _generatedSessionId;
+        }
+
+        // Fallback: usar um sessionId padrão baseado no nome do agente
+        return $"{Name}_session_{DateTime.Now:yyyyMMdd}";
+    }
+
+    private string GenerateAnonymousUserId()
+    {
+        // Gerar userId anônimo: "anonymous_" + 8 caracteres aleatórios
+        return $"anonymous_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+    }
+
+    private string GenerateAnonymousSessionId()
+    {
+        // Gerar sessionId único
+        return Guid.NewGuid().ToString();
+    }
+
+    private void SetUserIdInContext(string userId)
+    {
+        if (_agentContext != null && _agentContext.ContextVar != null)
+        {
+            var contextType = typeof(TContext);
+            var userIdProperty = contextType.GetProperty("UserId");
+            if (userIdProperty != null && userIdProperty.CanWrite)
+            {
+                userIdProperty.SetValue(_agentContext.ContextVar, userId);
+            }
+        }
+    }
+
+    private void SetSessionIdInContext(string sessionId)
+    {
+        if (_agentContext != null && _agentContext.ContextVar != null)
+        {
+            var contextType = typeof(TContext);
+            var sessionIdProperty = contextType.GetProperty("SessionId");
+            if (sessionIdProperty != null && sessionIdProperty.CanWrite)
+            {
+                sessionIdProperty.SetValue(_agentContext.ContextVar, sessionId);
+            }
+        }
+    }
+
+    private SessionInfo CreateSessionInfo()
+    {
+        string userId = GetUserIdFromContext();
+        string sessionId = GetSessionIdFromContext();
+
+        bool wasGenerated = _enableAnonymousMode &&
+            (userId.StartsWith("anonymous_") || sessionId.Length == 36); // GUID length
+
+        return new SessionInfo
+        {
+            UserId = userId,
+            SessionId = sessionId,
+            WasGenerated = wasGenerated
+        };
+    }
+
+    #endregion
+
+    /// <summary>
+    /// Gera um resumo inteligente do histórico de mensagens usando a LLM
+    /// </summary>
+    private async Task<string> GenerateMemorySummaryAsync(List<AIMessage> messageHistory, CancellationToken cancellationToken)
+    {
+        if (messageHistory == null || messageHistory.Count == 0)
+            return "";
+        var historyLines = new List<string>();
+        foreach (var m in messageHistory)
+        {
+            historyLines.Add($"[{m.Role}] {m.Content}");
+        }
+        var summaryPrompt = $@"Resuma o histórico de mensagens abaixo em até 5 frases, destacando os pontos principais, decisões e contexto relevante. Seja objetivo e claro.\n\nHISTÓRICO:\n{string.Join("\n", historyLines)}";
+        var summaryRequest = new ModelRequest
+        {
+            Messages = new List<AIMessage>
+            {
+                AIMessage.System("Você é um agente especialista em sumarização de contexto. Responda apenas com o resumo solicitado."),
+                AIMessage.User(summaryPrompt)
+            }
+        };
+        var summaryResponse = await _model.GenerateResponseAsync(summaryRequest, _modelConfig, cancellationToken);
+        _memorySummary = summaryResponse?.Content ?? "";
+        return _memorySummary;
+    }
+   internal Agent<TContext, TResult> SetMemoryDomainConfiguration(MemoryDomainConfiguration config)
+    {
+        _memoryDomainConfig = config;
+        
+        // Recriar MemoryManager com nova configuração de domínio
+        _memoryManager = new MemoryManager(
+            _storage,
+            _model,
+            _logger,
+            new MockEmbeddingService(),
+            _memoryDomainConfig);
+            
+        return this;
+    }
+
+    internal MemoryDomainConfiguration GetMemoryDomainConfiguration()
+    {
+        return _memoryDomainConfig;
+    }
+
   }
 }

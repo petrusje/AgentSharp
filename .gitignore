@@ -6,7 +6,9 @@ bin/
 obj/
 .vs/
 .vscode/
+.claude/                 
 AdvancedExamples/
 .DS_Store
-specs/
+specs/     
+refs/
 

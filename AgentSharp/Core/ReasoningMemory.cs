@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AgentSharp.Core
+namespace AgentSharp.Core.Reasoning
 {
   /// <summary>
   /// Memória para armazenar passos de raciocínio durante a execução

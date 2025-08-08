@@ -1,25 +1,27 @@
 using AgentSharp.Models;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace AgentSharp.Tests.Models
 {
+  [TestClass]
   public class ModelConfigurationTests
   {
-    [Fact]
+    [TestMethod]
     public void Constructor_SetsDefaultValues()
     {
       // Arrange & Act
       var config = new ModelConfiguration();
 
       // Assert
-      Assert.Equal(0.7, config.Temperature);
-      Assert.Equal(2048, config.MaxTokens);
-      Assert.Equal(0.0, config.FrequencyPenalty);
-      Assert.Equal(0.0, config.PresencePenalty);
-      Assert.Equal(1.0, config.TopP);
-      Assert.Equal(60, config.TimeoutSeconds);
+      Assert.AreEqual(0.7, config.Temperature);
+      Assert.AreEqual(2048, config.MaxTokens);
+      Assert.AreEqual(0.0, config.FrequencyPenalty);
+      Assert.AreEqual(0.0, config.PresencePenalty);
+      Assert.AreEqual(1.0, config.TopP);
+      Assert.AreEqual(60, config.TimeoutSeconds);
     }
 
-    [Fact]
+    [TestMethod]
     public void Merge_WithNullParameter_ReturnsSameInstance()
     {
       // Arrange
@@ -29,11 +31,11 @@ namespace AgentSharp.Tests.Models
       var result = config.Merge(null);
 
       // Assert
-      Assert.Equal(config.Temperature, result.Temperature);
-      Assert.Equal(config.MaxTokens, result.MaxTokens);
+      Assert.AreEqual(config.Temperature, result.Temperature);
+      Assert.AreEqual(config.MaxTokens, result.MaxTokens);
     }
 
-    [Fact]
+    [TestMethod]
     public void Merge_WithValidParameter_ReturnsCorrectlyMergedInstance()
     {
       // Arrange
@@ -53,9 +55,9 @@ namespace AgentSharp.Tests.Models
       var result = config1.Merge(config2);
 
       // Assert
-      Assert.Equal(config2.Temperature, result.Temperature);
-      Assert.Equal(config1.MaxTokens, result.MaxTokens);
-      Assert.Equal(config2.TopP, result.TopP);
+      Assert.AreEqual(config2.Temperature, result.Temperature);
+      Assert.AreEqual(config1.MaxTokens, result.MaxTokens);
+      Assert.AreEqual(config2.TopP, result.TopP);
     }
   }
 }

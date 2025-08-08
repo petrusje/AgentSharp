@@ -51,6 +51,11 @@ namespace AgentSharp.Core
     public List<ReasoningStep> ReasoningSteps { get; }
 
     /// <summary>
+    /// Gets session information including user and session identifiers.
+    /// </summary>
+    public SessionInfo SessionInfo { get; }
+
+    /// <summary>
     /// Initializes a new instance of the AgentResult class with the specified parameters.
     /// </summary>
     /// <param name="data">The data returned by the agent</param>
@@ -60,7 +65,8 @@ namespace AgentSharp.Core
     /// <param name="tools">The list of tool results from the execution</param>
     /// <param name="reasoningContent">The step-by-step reasoning content</param>
     /// <param name="reasoningSteps">The structured reasoning steps</param>
-    public AgentResult(T data, List<AIMessage> messages, int messageCount, UsageInfo usage, List<ToolResult> tools = null, string reasoningContent = null, List<ReasoningStep> reasoningSteps = null)
+    /// <param name="sessionInfo">Session information including user and session identifiers</param>
+    public AgentResult(T data, List<AIMessage> messages, int messageCount, UsageInfo usage, List<ToolResult> tools = null, string reasoningContent = null, List<ReasoningStep> reasoningSteps = null, SessionInfo sessionInfo = null)
     {
       Data = data;
       Messages = messages;
@@ -69,6 +75,7 @@ namespace AgentSharp.Core
       Tools = tools ?? new List<ToolResult>();
       ReasoningContent = reasoningContent;
       ReasoningSteps = reasoningSteps ?? new List<ReasoningStep>();
+      SessionInfo = sessionInfo;
     }
 
     /// <summary>
