@@ -10,7 +10,7 @@ namespace AgentSharp.Tests.Memory
     [TestClass]
     public class InMemoryStorageTests
     {
-        private InMemoryStorage _storage;
+    private InMemoryStorage? _storage;
 
         [TestInitialize]
         public void Setup()
@@ -28,6 +28,7 @@ namespace AgentSharp.Tests.Memory
         public void IsConnected_ShouldReturnTrue()
         {
             // Assert
+            Assert.IsTrue(_storage!.IsConnected);
             Assert.IsTrue(_storage.IsConnected);
         }
 
@@ -43,10 +44,9 @@ namespace AgentSharp.Tests.Memory
                 Description = "A test session",
                 IsActive = true
             };
-
             // Act
-            var sessionId = await _storage.Sessions.CreateSessionAsync(session);
-            var retrievedSession = await _storage.Sessions.GetSessionAsync(sessionId);
+            var sessionId = await _storage!.Sessions.CreateSessionAsync(session);
+            var retrievedSession = await _storage!.Sessions.GetSessionAsync(sessionId);
 
             // Assert
             Assert.AreEqual(session.Id, sessionId);
@@ -65,12 +65,12 @@ namespace AgentSharp.Tests.Memory
             var session2 = new AgentSession { Id = "session2", UserId = userId };
             var session3 = new AgentSession { Id = "session3", UserId = "other_user" };
 
-            await _storage.Sessions.CreateSessionAsync(session1);
-            await _storage.Sessions.CreateSessionAsync(session2);
-            await _storage.Sessions.CreateSessionAsync(session3);
+            await _storage!.Sessions.CreateSessionAsync(session1);
+            await _storage!.Sessions.CreateSessionAsync(session2);
+            await _storage!.Sessions.CreateSessionAsync(session3);
 
             // Act
-            var userSessions = await _storage.Sessions.GetUserSessionsAsync(userId);
+            var userSessions = await _storage!.Sessions.GetUserSessionsAsync(userId);
 
             // Assert
             Assert.AreEqual(2, userSessions.Count);
@@ -89,10 +89,9 @@ namespace AgentSharp.Tests.Memory
                 IsActive = true,
                 RelevanceScore = 0.8
             };
-
             // Act
-            var memoryId = await _storage.Memories.AddMemoryAsync(memory);
-            var retrievedMemory = await _storage.Memories.GetMemoryAsync(memoryId);
+            var memoryId = await _storage!.Memories.AddMemoryAsync(memory);
+            var retrievedMemory = await _storage!.Memories.GetMemoryAsync(memoryId);
 
             // Assert
             Assert.AreEqual(memory.Id, memoryId);
@@ -108,19 +107,19 @@ namespace AgentSharp.Tests.Memory
             var userId = "test_user";
             var memory1 = new UserMemory { UserId = userId, Content = "Usuário gosta de café forte", IsActive = true };
             var memory2 = new UserMemory { UserId = userId, Content = "Prefere trabalhar pela manhã", IsActive = true };
+            // (Removido duplicidade: já está acima)
 
-            await _storage.Memories.AddMemoryAsync(memory1);
-            await _storage.Memories.AddMemoryAsync(memory2);
+            await _storage!.Memories.AddMemoryAsync(memory1);
+            await _storage!.Memories.AddMemoryAsync(memory2);
 
             // Act
             var context = new MemoryContext { UserId = userId };
-            var searchResults = await _storage.SearchMemoriesAsync("café", context);
+            var searchResults = await _storage!.SearchMemoriesAsync("café", context);
 
             // Assert
             Assert.AreEqual(1, searchResults.Count);
             Assert.IsTrue(searchResults[0].Content.Contains("café"));
-        }
-
+    }
         [TestMethod]
         public async Task GetOrCreateSession_ShouldCreateNewSession()
         {
@@ -129,7 +128,7 @@ namespace AgentSharp.Tests.Memory
             string userId = "test_user";
 
             // Act
-            var session = await _storage.GetOrCreateSessionAsync(sessionId, userId);
+            var session = await _storage!.GetOrCreateSessionAsync(sessionId, userId);
 
             // Assert
             Assert.IsNotNull(session);
@@ -145,16 +144,16 @@ namespace AgentSharp.Tests.Memory
             string userId = "test_user";
 
             var originalSession = new AgentSession { Id = sessionId, UserId = userId, Title = "Original" };
-            await _storage.Sessions.CreateSessionAsync(originalSession);
+            await _storage!.Sessions.CreateSessionAsync(originalSession);
 
             // Act
-            var session = await _storage.GetOrCreateSessionAsync(sessionId, userId);
+            var session = await _storage!.GetOrCreateSessionAsync(sessionId, userId);
 
             // Assert
             Assert.IsNotNull(session);
             Assert.AreEqual(sessionId, session.Id);
             Assert.AreEqual("Original", ((AgentSession)session).Title);
-        }
+    }
 
         [TestMethod]
         public async Task ClearAllAsync_ShouldRemoveAllData()
@@ -163,20 +162,19 @@ namespace AgentSharp.Tests.Memory
             var session = new AgentSession { Id = "test_session", UserId = "test_user" };
             var memory = new UserMemory { UserId = "test_user", Content = "Test memory", IsActive = true };
 
-            await _storage.Sessions.CreateSessionAsync(session);
-            await _storage.Memories.AddMemoryAsync(memory);
+            await _storage!.Sessions.CreateSessionAsync(session);
+            await _storage!.Memories.AddMemoryAsync(memory);
 
             // Act
-            await _storage.ClearAllAsync();
+            await _storage!.ClearAllAsync();
 
             // Assert
-            var retrievedSession = await _storage.Sessions.GetSessionAsync("test_session");
-            var retrievedMemory = await _storage.Memories.GetMemoryAsync(memory.Id);
+            var retrievedSession = await _storage!.Sessions.GetSessionAsync("test_session");
+            var retrievedMemory = await _storage!.Memories.GetMemoryAsync(memory.Id);
 
             Assert.IsNull(retrievedSession);
             Assert.IsNull(retrievedMemory);
         }
-
         [TestMethod]
         public async Task Embeddings_ShouldWorkBasically()
         {
@@ -185,8 +183,8 @@ namespace AgentSharp.Tests.Memory
             var embedding = new System.Collections.Generic.List<float> { 0.1f, 0.2f, 0.3f };
 
             // Act
-            var id = await _storage.Embeddings.StoreEmbeddingAsync(content, embedding);
-            var searchResults = await _storage.Embeddings.SearchSimilarAsync(embedding, 10, 0.5);
+            var id = await _storage!.Embeddings.StoreEmbeddingAsync(content, embedding);
+            var searchResults = await _storage!.Embeddings.SearchSimilarAsync(embedding, 10, 0.5);
 
             // Assert
             Assert.IsNotNull(id);
@@ -203,11 +201,11 @@ namespace AgentSharp.Tests.Memory
             var embedding2 = new System.Collections.Generic.List<float> { 0.1f, 0.8f, 0.1f };
             var queryEmbedding = new System.Collections.Generic.List<float> { 0.9f, 0.05f, 0.05f };
 
-            await _storage.Embeddings.StoreEmbeddingAsync(content1, embedding1);
-            await _storage.Embeddings.StoreEmbeddingAsync(content2, embedding2);
+            await _storage!.Embeddings.StoreEmbeddingAsync(content1, embedding1);
+            await _storage!.Embeddings.StoreEmbeddingAsync(content2, embedding2);
 
             // Act
-            var results = await _storage.Embeddings.SearchSimilarAsync(queryEmbedding, 5, 0.5);
+            var results = await _storage!.Embeddings.SearchSimilarAsync(queryEmbedding, 5, 0.5);
 
             // Assert
             Assert.IsTrue(results.Count > 0);

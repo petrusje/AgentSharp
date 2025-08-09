@@ -10,8 +10,8 @@ namespace AgentSharp.Tests.Core
     [TestClass]
     public class AnonymousModeTests
     {
-        private MockModel _mockModel;
-        private ConsoleLogger _logger;
+    private MockModel? _mockModel;
+    private ConsoleLogger? _logger;
 
         [TestInitialize]
         public void Setup()
@@ -47,7 +47,7 @@ namespace AgentSharp.Tests.Core
             // Arrange
             var storage = new InMemoryStorage();
             var context = new TestContextWithIds { UserId = "user123", SessionId = "session456" };
-            
+
             var agent = new Agent<TestContextWithIds, string>(_mockModel, "AnonymousAgent", storage: storage)
                 .WithAnonymousMode(true)
                 .WithContext(context);
@@ -125,7 +125,7 @@ namespace AgentSharp.Tests.Core
             // Arrange
             var storage = new InMemoryStorage();
             var context = new TestContextWithIds { UserId = "provided_user" }; // SessionId missing
-            
+
             var agent = new Agent<TestContextWithIds, string>(_mockModel, "PartialAgent", storage: storage)
                 .WithAnonymousMode(true)
                 .WithContext(context);
@@ -146,7 +146,7 @@ namespace AgentSharp.Tests.Core
     // Helper class for tests
     public class TestContextWithIds
     {
-        public string UserId { get; set; }
-        public string SessionId { get; set; }
+    public required string UserId { get; set; }
+    public string? SessionId { get; set; }
     }
 }

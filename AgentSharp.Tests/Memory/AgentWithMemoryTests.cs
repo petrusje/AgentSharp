@@ -11,8 +11,8 @@ namespace AgentSharp.Tests.Memory
     [TestClass]
     public class AgentWithMemoryTests
     {
-        private MockModel _mockModel;
-        private ConsoleLogger _logger;
+    private MockModel? _mockModel;
+    private ConsoleLogger? _logger;
 
         [TestInitialize]
         public void Setup()
@@ -96,7 +96,7 @@ namespace AgentSharp.Tests.Memory
         }
 
         [TestMethod]
-        public async Task Agent_MemoryManager_ShouldBeAccessible()
+    public void Agent_MemoryManager_ShouldBeAccessible()
         {
             // Arrange
             var storage = new InMemoryStorage();
@@ -115,7 +115,7 @@ namespace AgentSharp.Tests.Memory
         }
 
         [TestMethod]
-        public async Task Agent_WithMemoryTools_ShouldRegisterSmartMemoryToolPack()
+    public void Agent_WithMemoryTools_ShouldRegisterSmartMemoryToolPack()
         {
             // Arrange
             var storage = new InMemoryStorage();
@@ -133,7 +133,7 @@ namespace AgentSharp.Tests.Memory
         }
 
         [TestMethod]
-        public async Task Agent_GetMemorySummary_ShouldReturnSummary()
+    public void Agent_GetMemorySummary_ShouldReturnSummary()
         {
             // Arrange
             var storage = new InMemoryStorage();
@@ -180,7 +180,7 @@ namespace AgentSharp.Tests.Memory
     // Helper class for tests
     public class TestContext
     {
-        public string UserId { get; set; }
-        public string SessionId { get; set; }
+        public required string UserId { get; set; }
+        public required string SessionId { get; set; }
     }
 }

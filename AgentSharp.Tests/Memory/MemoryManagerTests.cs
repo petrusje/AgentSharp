@@ -14,10 +14,10 @@ namespace AgentSharp.Tests.Memory
     [TestClass]
     public class MemoryManagerTests
     {
-        private IModel _mockModel;
-        private ILogger _logger;
-        private IStorage _storage;
-        private IMemoryManager _memoryManager;
+        private IModel? _mockModel;
+        private ILogger? _logger;
+        private IStorage? _storage;
+        private IMemoryManager? _memoryManager;
 
         [TestInitialize]
         public void Setup()
@@ -36,7 +36,7 @@ namespace AgentSharp.Tests.Memory
             string sessionId = "test_session";
 
             // Act
-            var context = await _memoryManager.LoadContextAsync(userId, sessionId);
+            var context = await _memoryManager!.LoadContextAsync(userId, sessionId);
 
             // Assert
             Assert.IsNotNull(context);
@@ -50,7 +50,7 @@ namespace AgentSharp.Tests.Memory
         public async Task AddMemoryAsync_ShouldStoreMemory()
         {
             // Arrange
-            _memoryManager.UserId = "test_user";
+            _memoryManager!.UserId = "test_user";
             _memoryManager.SessionId = "test_session";
             string memoryContent = "Usuário prefere café sem açúcar";
 
@@ -59,7 +59,7 @@ namespace AgentSharp.Tests.Memory
 
             // Assert
             Assert.IsTrue(result.Contains("sucesso") || result.Contains("adicionada"));
-            
+
             var memories = await _memoryManager.GetExistingMemoriesAsync();
             Assert.IsTrue(memories.Count > 0);
         }
@@ -68,9 +68,9 @@ namespace AgentSharp.Tests.Memory
         public async Task GetExistingMemoriesAsync_ShouldReturnStoredMemories()
         {
             // Arrange
-            _memoryManager.UserId = "test_user";
+            _memoryManager!.UserId = "test_user";
             _memoryManager.SessionId = "test_session";
-            
+
             await _memoryManager.AddMemoryAsync("Primeiro fato");
             await _memoryManager.AddMemoryAsync("Segunda preferência");
 
@@ -85,11 +85,11 @@ namespace AgentSharp.Tests.Memory
         public async Task EnhanceMessagesAsync_ShouldAddRelevantMemories()
         {
             // Arrange
-            _memoryManager.UserId = "test_user";
+            _memoryManager!.UserId = "test_user";
             _memoryManager.SessionId = "test_session";
-            
+
             await _memoryManager.AddMemoryAsync("Usuário gosta de café forte");
-            
+
             var context = await _memoryManager.LoadContextAsync("test_user", "test_session");
             var messages = new List<AIMessage>
             {
@@ -109,7 +109,7 @@ namespace AgentSharp.Tests.Memory
         public async Task ProcessInteractionAsync_ShouldExtractMemories()
         {
             // Arrange
-            var context = await _memoryManager.LoadContextAsync("test_user", "test_session");
+            var context = await _memoryManager!.LoadContextAsync("test_user", "test_session");
             var userMessage = AIMessage.User("Meu nome é João e prefiro trabalhar pela manhã");
             var assistantMessage = AIMessage.Assistant("Ótimo João! Vou lembrar que você prefere trabalhar pela manhã");
 
@@ -128,9 +128,9 @@ namespace AgentSharp.Tests.Memory
         public async Task UpdateMemoryAsync_ShouldModifyExistingMemory()
         {
             // Arrange
-            _memoryManager.UserId = "test_user";
+            _memoryManager!.UserId = "test_user";
             await _memoryManager.AddMemoryAsync("Conteúdo original");
-            
+
             var memories = await _memoryManager.GetExistingMemoriesAsync();
             var memoryId = memories[0].Id;
             string newContent = "Conteúdo atualizado";
@@ -140,7 +140,7 @@ namespace AgentSharp.Tests.Memory
 
             // Assert
             Assert.IsTrue(result.Contains("sucesso") || result.Contains("atualizada"));
-            
+
             var updatedMemories = await _memoryManager.GetExistingMemoriesAsync();
             Assert.IsTrue(updatedMemories.Exists(m => m.Content.Contains("atualizado")));
         }
@@ -149,9 +149,9 @@ namespace AgentSharp.Tests.Memory
         public async Task DeleteMemoryAsync_ShouldRemoveMemory()
         {
             // Arrange
-            _memoryManager.UserId = "test_user";
+            _memoryManager!.UserId = "test_user";
             await _memoryManager.AddMemoryAsync("Memória para deletar");
-            
+
             var memories = await _memoryManager.GetExistingMemoriesAsync();
             var memoryId = memories[0].Id;
 
@@ -166,7 +166,7 @@ namespace AgentSharp.Tests.Memory
         public async Task ClearMemoryAsync_ShouldRemoveAllMemories()
         {
             // Arrange
-            _memoryManager.UserId = "test_user";
+            _memoryManager!.UserId = "test_user";
             await _memoryManager.AddMemoryAsync("Primeira memória");
             await _memoryManager.AddMemoryAsync("Segunda memória");
 
@@ -183,7 +183,7 @@ namespace AgentSharp.Tests.Memory
         public async Task RunAsync_ShouldProcessMessageWithMemory()
         {
             // Arrange
-            _memoryManager.UserId = "test_user";
+            _memoryManager!.UserId = "test_user";
             _memoryManager.SessionId = "test_session";
             string message = "Olá, como você está?";
 
