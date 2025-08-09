@@ -142,65 +142,69 @@ namespace Agents_console
       {
         switch (choice)
         {
+          // NÍVEL 1: FUNDAMENTOS
           case "1":
-            await ExecuteExample("Jornalista com Personalidade", () => ExemplosBasicos.ExecutarJornalistaMineiro(modelo));
+            await ExecuteExample("🎯 FUNDAMENTOS: Agente Simples", () => ExemplosBasicos.ExecutarAgenteSimples(modelo));
             break;
           case "2":
-            await ExecuteExample("Jornalista com Busca Web", () => ExemplosBasicos.ExecutarReporterComFerramentas(modelo));
+            await ExecuteExample("🎭 FUNDAMENTOS: Agente com Personalidade", () => ExemplosBasicos.ExecutarJornalistaMineiro(modelo));
             break;
           case "3":
-            await ExecuteExample("Analista Financeiro", () => ExemplosBasicos.ExecutarAnalistaFinanceiroRealData(modelo));
+            await ExecuteExample("🔧 FUNDAMENTOS: Agente com Tools", () => ExemplosBasicos.ExecutarReporterComFerramentas(modelo));
             break;
+          // NÍVEL 2: INTERMEDIÁRIO
           case "4":
-            await ExecuteExample("Resolvedor de Problemas", () => ExemplosRaciocinio.ExecutarResolvedorProblemas(modelo));
+            await ExecuteExample("🧠 INTERMEDIÁRIO: Agente com Raciocínio", () => ExemplosRaciocinio.ExecutarResolvedorProblemas(modelo));
             break;
           case "5":
-            await ExecuteExample("Avaliador de Soluções", () => ExemplosRaciocinio.ExecutarAvaliadorSolucoes(modelo));
+            await ExecuteExample("📊 INTERMEDIÁRIO: Outputs Estruturados", () => ExemplosStructured.ExecutarAnaliseDocumento(modelo));
             break;
           case "6":
-            await ExecuteExample("Identificador de Obstáculos", () => ExemplosRaciocinio.ExecutarIdentificadorObstaculos(modelo));
+            await ExecuteExample("💾 INTERMEDIÁRIO: Agente com Memória", () => ExemplosMemoria.ExecutarAssistentePessoal(modelo));
             break;
+          // NÍVEL 3: AVANÇADO
           case "7":
-            await ExecuteExample("Análise de Documentos Empresariais", () => ExemplosStructured.ExecutarAnaliseDocumento(modelo));
+            await ExecuteExample("🔄 AVANÇADO: Workflows Multi-agente", () => ExemplosWorkflow.ExecutarWorkflowCompleto(modelo));
             break;
           case "8":
-            await ExecuteExample("Análise de Currículos", () => ExemplosStructured.ExecutarAnaliseCurriculo(modelo));
+            await ExecuteExample("🔍 AVANÇADO: Busca Semântica", () => VectorMemoryExample.ExecutarAssistenteComEmbeddings(modelo));
             break;
           case "9":
-            await ExecuteExample("Workflow Multi-etapa", () => ExemplosWorkflow.ExecutarWorkflowCompleto(modelo));
+            await ExecuteExample("🏢 AVANÇADO: Sistema Empresarial Completo", () => ExemplosBasicos.ExecutarAnalistaFinanceiroRealData(modelo));
             break;
+          // EXEMPLOS ESPECIALIZADOS (10-18)
           case "10":
-            await ExecuteExample("Assistente Pessoal com Memória", () => ExemplosMemoria.ExecutarAssistentePessoal(modelo));
+            await ExecuteExample("🤖 ESPECIALIZADO: Assistente Pessoal com Memória", () => ExemplosMemoria.ExecutarAssistentePessoal(modelo));
             break;
           case "11":
-            await ExecuteExample("Consultor Técnico com Conhecimento Acumulado", () => ExemplosMemoria.ExecutarConsultorTecnico(modelo));
+            await ExecuteExample("🔧 ESPECIALIZADO: Consultor Técnico com Conhecimento", () => ExemplosMemoria.ExecutarConsultorTecnico(modelo));
             break;
           case "12":
-            await ExecuteExample("LLM Gerenciando Suas Próprias Memórias", () => ExemplosMemoria.ExecutarDemonstracaoMemoryTools(modelo));
+            await ExecuteExample("🛠️ ESPECIALIZADO: LLM Gerenciando Memórias", () => ExemplosMemoria.ExecutarDemonstracaoMemoryTools(modelo));
             break;
           case "13":
-            await ExecuteExample("Comparação Storage Providers", () => ExemplosMemoria.ExecutarComparacaoStorage(modelo));
+            await ExecuteExample("📊 ESPECIALIZADO: Comparação Storage Providers", () => ExemplosMemoria.ExecutarComparacaoStorage(modelo));
             break;
           case "14":
-            await ExecuteExample("Assistente Médico Customizado", () => ExemplosMemoria.ExecutarAssistenteMedicoCustomizado(modelo));
+            await ExecuteExample("🏥 ESPECIALIZADO: Assistente Médico Customizado", () => ExemplosMemoria.ExecutarAssistenteMedicoCustomizado(modelo));
             break;
           case "15":
-            await ExecuteExample("Consultor Jurídico Especializado", () => ExemplosMemoria.ExecutarConsultorJuridico(modelo));
+            await ExecuteExample("⚖️ ESPECIALIZADO: Consultor Jurídico Especializado", () => ExemplosMemoria.ExecutarConsultorJuridico(modelo));
             break;
           case "16":
-            await ExecuteExample("Modo Anônimo - IDs Automáticos", () => ExemplosMemoria.ExecutarModoAnonimo(modelo));
+            await ExecuteExample("🎭 ESPECIALIZADO: Modo Anônimo - IDs Automáticos", () => ExemplosMemoria.ExecutarModoAnonimo(modelo));
             break;
           case "17":
-            await ExecuteExample("Assistente com Busca Semântica", () => VectorMemoryExample.ExecutarAssistenteComEmbeddings(modelo));
+            await ExecuteExample("🔍 ESPECIALIZADO: Busca Semântica Avançada", () => VectorMemoryExample.ExecutarAssistenteComEmbeddings(modelo));
             break;
           case "18":
-            await ExecuteExample("Comparação Busca Textual vs Semântica", () => VectorMemoryExample.CompararBuscaTextualVsSemantica(modelo));
+            await ExecuteExample("📊 ESPECIALIZADO: Comparação Busca Textual vs Semântica", () => VectorMemoryExample.CompararBuscaTextualVsSemantica(modelo));
             break;
           case "0":
             Console.WriteLine("👋 Obrigado por usar AgentSharp!");
-            return false; // Sair do loop
+            return false;
           default:
-            Console.WriteLine("❌ Opção inválida. Tente novamente.");
+            Console.WriteLine("❌ Opção inválida. Tente novamente (0-18).");
             break;
         }
       }
@@ -215,38 +219,40 @@ namespace Agents_console
 
     private static void DisplayMenuOptions()
     {
-      Console.WriteLine("📋 MENU PRINCIPAL - Escolha uma demonstração:");
+      Console.WriteLine("📋 MENU PRINCIPAL - Aprenda AgentSharp do Básico ao Avançado:");
       Console.WriteLine();
-      Console.WriteLine("🔤 EXEMPLOS BÁSICOS:");
-      Console.WriteLine("  1. 📰 Jornalista com Personalidade");
-      Console.WriteLine("  2. 🔍 Jornalista com Busca Web");
-      Console.WriteLine("  3. 💰 Analista Financeiro");
+      Console.ForegroundColor = ConsoleColor.Green;
+      Console.WriteLine("🌱 NÍVEL 1: FUNDAMENTOS - Conceitos Básicos");
+      Console.ResetColor();
+      Console.WriteLine("  1. 🎯 Agente Simples - Primeira Interação");
+      Console.WriteLine("  2. 🎭 Agente com Personalidade - Customização Básica");
+      Console.WriteLine("  3. 🔧 Agente com Tools - Ferramentas Integradas");
       Console.WriteLine();
-      Console.WriteLine("🧠 EXEMPLOS DE RACIOCÍNIO:");
-      Console.WriteLine("  4. 🔬 Resolvedor de Problemas");
-      Console.WriteLine("  5. ⚖️ Avaliador de Soluções");
-      Console.WriteLine("  6. 🛡️ Identificador de Obstáculos");
+      Console.ForegroundColor = ConsoleColor.Yellow;
+      Console.WriteLine("🚀 NÍVEL 2: INTERMEDIÁRIO - Recursos Avançados");
+      Console.ResetColor();
+      Console.WriteLine("  4. 🧠 Agente com Raciocínio - Reasoning Chains");
+      Console.WriteLine("  5. 📊 Outputs Estruturados - Dados Tipados");
+      Console.WriteLine("  6. 💾 Agente com Memória - Persistência de Estado");
       Console.WriteLine();
-      Console.WriteLine("📊 EXEMPLOS STRUCTURED OUTPUTS:");
-      Console.WriteLine("  7. 📄 Análise de Documentos Empresariais");
-      Console.WriteLine("  8. 👤 Análise de Currículos");
+      Console.ForegroundColor = ConsoleColor.Cyan;
+      Console.WriteLine("⚡ NÍVEL 3: AVANÇADO - Casos Complexos");
+      Console.ResetColor();
+      Console.WriteLine("  7. 🔄 Workflows Multi-agente - Orquestração");
+      Console.WriteLine("  8. 🔍 Busca Semântica - Embeddings e Vetores");
+      Console.WriteLine("  9. 🏢 Sistema Empresarial - Caso Real Completo");
       Console.WriteLine();
-      Console.WriteLine("🔄 EXEMPLOS WORKFLOW:");
-      Console.WriteLine("  9. 📈 Workflow Multi-etapa");
-      Console.WriteLine();
-      Console.WriteLine("🧠 EXEMPLOS SISTEMA DE MEMÓRIA:");
+      Console.ForegroundColor = ConsoleColor.Magenta;
+      Console.WriteLine("🎓 EXEMPLOS ESPECIALIZADOS - Casos Específicos");
+      Console.ResetColor();
       Console.WriteLine("  10. 🤖 Assistente Pessoal com Memória");
       Console.WriteLine("  11. 🔧 Consultor Técnico com Conhecimento");
       Console.WriteLine("  12. 🛠️ LLM Gerenciando Memórias");
       Console.WriteLine("  13. 📊 Comparação Storage Providers");
-      Console.WriteLine();
-      Console.WriteLine("🏥 EXEMPLOS CONFIGURAÇÃO CUSTOMIZADA:");
       Console.WriteLine("  14. 🏥 Assistente Médico Customizado");
       Console.WriteLine("  15. ⚖️ Consultor Jurídico Especializado");
       Console.WriteLine("  16. 🎭 Modo Anônimo - IDs Automáticos");
-      Console.WriteLine();
-      Console.WriteLine("🧠 EXEMPLOS BUSCA SEMÂNTICA:");
-      Console.WriteLine("  17. 🔍 Assistente com Busca Semântica");
+      Console.WriteLine("  17. 🔍 Assistente com Busca Semântica Avançada");
       Console.WriteLine("  18. 📊 Comparação Busca Textual vs Semântica");
       Console.WriteLine();
       Console.WriteLine("  0. ❌ Sair");

@@ -9,24 +9,95 @@ using System.Threading.Tasks;
 namespace AgentSharp.Examples
 {
   /// <summary>
-  /// Exemplos básicos demonstrando personality-driven agents,
-  /// agents com ferramentas e análise financeira no contexto de Belo Horizonte
+  /// Exemplos básicos demonstrando conceitos fundamentais do AgentSharp:
+  /// 1. Agente Simples - primeira interação com LLM
+  /// 2. Agente com Personalidade - customização de behavior
+  /// 3. Agente com Tools - integração com ferramentas
+  /// 4. Sistema Empresarial - caso real avançado
   /// </summary>
   public static class ExemplosBasicos
   {
     /// <summary>
-    /// Demonstra um agente com personalidade distinta (jornalista mineiro)
-    /// Contexto regional de Belo Horizonte
+    /// NÍVEL 1 - FUNDAMENTOS: Demonstra a criação de um agente básico
+    /// Este é o exemplo mais simples possível com AgentSharp
+    /// Aprenda: criação de agente, execução básica, estrutura de resposta
+    /// </summary>
+    public static async Task ExecutarAgenteSimples(IModel modelo)
+    {
+      Console.ForegroundColor = ConsoleColor.Green;
+      Console.WriteLine("🎯 NÍVEL 1 - AGENTE SIMPLES: Primeira Interação com LLM");
+      Console.WriteLine("════════════════════════════════════════════════════");
+      Console.ResetColor();
+
+      Console.WriteLine("📚 CONCEITOS DEMONSTRADOS:");
+      Console.WriteLine("   • Criação básica de agente");
+      Console.WriteLine("   • Execução de prompt simples");
+      Console.WriteLine("   • Estrutura de resposta AgentResult");
+      Console.WriteLine("   • Contagem de tokens\n");
+
+      // Este é o código mais simples possível para criar um agente
+      var agenteSimples = new Agent<object, string>(modelo, "MeuPrimeiroAgente");
+
+      Console.ForegroundColor = ConsoleColor.Cyan;
+      Console.WriteLine("💻 CÓDIGO USADO:");
+      Console.WriteLine("   var agenteSimples = new Agent<object, string>(modelo, \"MeuPrimeiroAgente\");");
+      Console.WriteLine("   var resultado = await agenteSimples.ExecuteAsync(pergunta);");
+      Console.ResetColor();
+
+      Console.ForegroundColor = ConsoleColor.Yellow;
+      Console.WriteLine("\n🔥 PERGUNTA: 'O que é .NET Framework e para que serve?'");
+      Console.ResetColor();
+      Console.WriteLine("\n🤖 Resposta do Agente:");
+      Console.WriteLine(new string('-', 50));
+
+      try
+      {
+        var resultado = await agenteSimples.ExecuteAsync(
+            "O que é .NET Framework e para que serve? Explique de forma clara e objetiva."
+        );
+
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine(resultado.Data);
+        Console.ResetColor();
+
+        Console.WriteLine(new string('-', 50));
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("📊 INFORMAÇÕES TÉCNICAS:");
+        Console.WriteLine($"   ✅ Status: Sucesso");
+        Console.WriteLine($"   🎯 Agente: {agenteSimples.Name}");
+        Console.WriteLine($"   📊 Tokens Totais: {resultado.Usage.TotalTokens}");
+        Console.WriteLine($"   📥 Input: {resultado.Usage.PromptTokens}");
+        Console.WriteLine($"   📤 Output: {resultado.Usage.CompletionTokens}");
+        Console.WriteLine($"   ⏱️  Resposta recebida com sucesso!");
+        Console.ResetColor();
+
+        Console.WriteLine("\n💡 PRÓXIMO PASSO: Experimente o Exemplo 2 para aprender sobre personalização!");
+      }
+      catch (Exception ex)
+      {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"❌ Erro: {ex.Message}");
+        Console.ResetColor();
+      }
+    }
+    /// <summary>
+    /// NÍVEL 1 - FUNDAMENTOS: Demonstra personalização avançada de agentes
+    /// Aprenda: persona customizada, context objects, guard rails, instruções
+    /// Este exemplo mostra como criar agentes com comportamento específico
     /// </summary>
     public static async Task ExecutarJornalistaMineiro(IModel modelo)
     {
-      Console.ForegroundColor = ConsoleColor.Yellow;
-      Console.WriteLine("⛰️  EXEMPLO 1: JORNALISTA MINEIRO - PERSONALITY-DRIVEN AGENT");
-      Console.WriteLine("════════════════════════════════════════════════════════");
+      Console.ForegroundColor = ConsoleColor.Green;
+      Console.WriteLine("🎭 NÍVEL 1 - AGENTE COM PERSONALIDADE: Customização Avançada");
+      Console.WriteLine("═══════════════════════════════════════════════════════════");
       Console.ResetColor();
 
-      Console.WriteLine("📄 Contexto regional de Belo Horizonte e Minas Gerais");
-      Console.WriteLine("Demonstra como criar um agente com personalidade distinta\n");
+      Console.WriteLine("📚 CONCEITOS DEMONSTRADOS:");
+      Console.WriteLine("   • Context Objects - dados tipados (JornalistaMineiroContext)");
+      Console.WriteLine("   • Persona dinâmica - usa ctx.seuNome na personalidade");
+      Console.WriteLine("   • Instructions dinâmicas - ctx.IdiomaPreferido nas instruções");
+      Console.WriteLine("   • Guard Rails - restrições de comportamento");
+      Console.WriteLine("   • Context binding - como o contexto alimenta o comportamento\n");
 
       var contexto = new JornalistaMineiroContext
       {
@@ -35,6 +106,19 @@ namespace AgentSharp.Examples
         UltimaAtualizacao = DateTime.Now,
         seuNome = "Mauricio Mauro"
       };
+
+      Console.ForegroundColor = ConsoleColor.Cyan;
+      Console.WriteLine("💻 CÓDIGO USADO:");
+      Console.WriteLine("   var contexto = new JornalistaMineiroContext {");
+      Console.WriteLine("       RegiaoFoco = \"Belo Horizonte\",");
+      Console.WriteLine("       seuNome = \"Mauricio Mauro\",");
+      Console.WriteLine("       IdiomaPreferido = \"pt-BR\"");
+      Console.WriteLine("   };");
+      Console.WriteLine("   var jornalista = new Agent<JornalistaMineiroContext, string>(modelo)");
+      Console.WriteLine("       .WithPersona(ctx => \"...\")  // Usa {ctx.seuNome}");
+      Console.WriteLine("       .WithContext(contexto)        // ⭐ Dados tipados injetados!");
+      Console.WriteLine("       .WithInstructions(ctx => $\"Use {ctx.IdiomaPreferido}\") // ⭐ Context dinâmico!");
+      Console.ResetColor();
 
       // Agente com personalidade de jornalista mineiro de BH
       var jornalista = new Agent<JornalistaMineiroContext, string>(modelo, "JornalistaMineiro")
@@ -53,7 +137,7 @@ Lembre-se de verificar todos os fatos enquanto mantém essa hospitalidade mineir
 Seja criativo mas responsável no jornalismo!
 Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Gerais.")
           .WithContext(contexto)
-          .WithInstructions("Seja criativo, envolvente e mantenha o estilo jornalístico mineiro. Use emojis apropriados.")
+          .WithInstructions(ctx => $"Seja criativo, envolvente e mantenha o estilo jornalístico mineiro. Use emojis apropriados. Apresente-se dizendo seu nome: {ctx.seuNome}. responda sempre no IdiomaPreferido: {ctx.IdiomaPreferido}")
           .WithGuardRails(" Nunca fale direto da terra do pão de açúcar, pois Minas é terra do Pão de Queijo!");
 
       Console.ForegroundColor = ConsoleColor.Green;
@@ -73,8 +157,14 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
         Console.ResetColor();
 
         Console.WriteLine(new string('-', 50));
-        Console.WriteLine($"📊 Tokens utilizados: {resultado.Usage.TotalTokens}");
-        Console.WriteLine($"⏱️  Tempo: Não disponível");
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("📊 ESTATÍSTICAS TÉCNICAS:");
+        Console.WriteLine($"   • Tokens utilizados: {resultado.Usage.TotalTokens}");
+        Console.WriteLine($"   • Context.RegiaoFoco: {contexto.RegiaoFoco}");
+        Console.WriteLine($"   • Context.seuNome: {contexto.seuNome}");
+        Console.WriteLine($"   • Context.IdiomaPreferido: {contexto.IdiomaPreferido}");
+        Console.WriteLine($"   • Persona: Jornalista Mineiro (dinâmica com contexto)");
+        Console.ResetColor();
 
         // Exemplo adicional
         Console.WriteLine("\n🔄 Testando outra pergunta com busca duckduckgo...\n");
@@ -87,7 +177,7 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
         jornalista.WithTools(new SearchToolPack());
 
         var resultado2 = await jornalista.ExecuteAsync(
-            "Qual seria a última tendência gastronômica no bairro Savassi em Belo Horizonte? Pesquise na web por informações atuais."
+            "Qual seria a última tendência gastronômica no bairro Savassi em Belo Horizonte? Pesquise na web por informações atuais, use na resposta."
         );
 
         Console.WriteLine("\n📻 Resposta do Jornalista:");
@@ -97,6 +187,33 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
         resultado2.Tools.ForEach(tool =>
             Console.WriteLine($"🔧 Ferramenta utilizada: {tool.Name}"));
         Console.ResetColor();
+
+        Console.WriteLine("\n🔄 Demonstrando mudança de contexto...");
+        
+        // Mudar o contexto para demonstrar como afeta o comportamento
+        contexto.seuNome = "Ana Silva";
+        contexto.IdiomaPreferido = "en-US";
+        contexto.RegiaoFoco = "São Paulo";
+        
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("\n⚡ CONTEXTO ALTERADO:");
+        Console.WriteLine($"   Nome: {contexto.seuNome}");
+        Console.WriteLine($"   Idioma: {contexto.IdiomaPreferido}");
+        Console.WriteLine($"   Região: {contexto.RegiaoFoco}");
+        Console.ResetColor();
+        
+        var resultado3 = await jornalista.ExecuteAsync(
+            "Tell me about a current technology trend in São Paulo"
+        );
+        
+        Console.WriteLine("\n📻 Resposta com Novo Contexto:");
+        Console.WriteLine(new string('-', 50));
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine(resultado3.Data);
+        Console.ResetColor();
+        
+        Console.WriteLine("\n🎯 OBSERVE: O agente agora se apresenta como Ana Silva e responde em inglês!");
+        Console.WriteLine("💡 PRÓXIMO PASSO: Veja o Exemplo 3 para entender como adicionar ferramentas!");
       }
       catch (Exception ex)
       {
@@ -235,13 +352,17 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
     /// </summary>
     public static async Task ExecutarAnalistaFinanceiroRealData(IModel modelo)
     {
-      Console.ForegroundColor = ConsoleColor.Yellow;
-      Console.WriteLine("📈 EXEMPLO 4: ANALISTA FINANCEIRO COM DADOS REAIS - REAL DATA AGENT");
+      Console.ForegroundColor = ConsoleColor.Cyan;
+      Console.WriteLine("🏢 NÍVEL 3 - SISTEMA EMPRESARIAL: Caso Real Completo");
       Console.WriteLine("═══════════════════════════════════════════════════════════════");
       Console.ResetColor();
 
-      Console.WriteLine("📄 Análise de mercado financeiro com dados reais em Minas Gerais");
-      Console.WriteLine("Demonstra análise financeira com dados obtidos de APIs reais\n");
+      Console.WriteLine("📚 CONCEITOS DEMONSTRADOS:");
+      Console.WriteLine("   • Agente especializado em domínio específico");
+      Console.WriteLine("   • Contexto empresarial complexo");
+      Console.WriteLine("   • Análise de dados financeiros");
+      Console.WriteLine("   • Integração com sistemas reais");
+      Console.WriteLine("   • Relatórios executivos\n");
 
       var contexto = new AnaliseFinanceiraContext
       {

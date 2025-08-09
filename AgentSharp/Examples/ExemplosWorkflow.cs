@@ -20,13 +20,18 @@ namespace AgentSharp.Examples
     /// </summary>
     public static async Task ExecutarWorkflowCompleto(IModel modelo)
     {
-      Console.ForegroundColor = ConsoleColor.Yellow;
-      Console.WriteLine("🔄 EXEMPLO 6: WORKFLOW DE PESQUISA - MULTI-STEP WORKFLOW");
-      Console.WriteLine("═══════════════════════════════════════════════════════");
+      Console.ForegroundColor = ConsoleColor.Cyan;
+      Console.WriteLine("🔄 NÍVEL 3 - WORKFLOWS MULTI-AGENTE: Orquestração");
+      Console.WriteLine("════════════════════════════════════════════════════");
       Console.ResetColor();
 
-      Console.WriteLine("📄 Demonstra sistema avançado de workflow do AgentSharp");
-      Console.WriteLine("Workflow: Pesquisa → Análise → Relatório → Revisão\n");
+      Console.WriteLine("📚 CONCEITOS DEMONSTRADOS:");
+      Console.WriteLine("   • AdvancedWorkflow - orquestração multi-agente");
+      Console.WriteLine("   • RegisterStep() - definição de etapas");
+      Console.WriteLine("   • Context chaining - passagem de dados entre etapas");
+      Console.WriteLine("   • Session management - controle de sessão");
+      Console.WriteLine("   • Metrics e telemetria");
+      Console.WriteLine("   • Debug mode para desenvolvimento\n");
 
       try
       {
@@ -103,7 +108,7 @@ Foque em: clareza, objetividade, insights acionáveis para {ctx.PublicoAlvo}",
         Console.ForegroundColor = ConsoleColor.White;
         Console.WriteLine("\n📋 RELATÓRIO FINAL:");
         Console.WriteLine(new string('═', 60));
-        Console.WriteLine(resultadoFinal.RelatorioRevisado);
+        Console.WriteLine(resultadoFinal.RelatorioRevisado ?? "Relatório não disponível");
         Console.WriteLine(new string('═', 60));
         Console.ResetColor();
 

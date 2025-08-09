@@ -19,10 +19,17 @@ namespace AgentSharp.Examples
         /// </summary>
         public static async Task ExecutarAssistenteComEmbeddings(IModel modelo)
         {
-            _console.WithColor(ConsoleColor.Yellow)
-                .WriteLine("🧠 EXEMPLO: Assistente com Busca Semântica usando Embeddings")
-                .WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            _console.WithColor(ConsoleColor.Cyan)
+                .WriteLine("🔍 NÍVEL 3 - BUSCA SEMÂNTICA: Embeddings e Vetores")
+                .WriteLine("═══════════════════════════════════════════════════════")
                 .ResetColor();
+
+            Console.WriteLine("📚 CONCEITOS DEMONSTRADOS:");
+            Console.WriteLine("   • OpenAIEmbeddingService - geração de embeddings");
+            Console.WriteLine("   • VectorSqliteStorage - armazenamento vetorial");
+            Console.WriteLine("   • Semantic search - busca por significado");
+            Console.WriteLine("   • Similarity scoring - pontuação de similaridade");
+            Console.WriteLine("   • Knowledge base - base de conhecimento vetorial\n");
 
             // Configurar serviço de embedding
             var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");

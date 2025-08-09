@@ -21,9 +21,16 @@ namespace AgentSharp.Examples
         public static async Task ExecutarAssistentePessoal(IModel modelo)
         {
             _console.WithColor(ConsoleColor.Yellow)
-                .WriteLine("🧠 EXEMPLO: Assistente Pessoal com Memória")
-                .WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                .WriteLine("💾 NÍVEL 2 - AGENTE COM MEMÓRIA: Persistência de Estado")
+                .WriteLine("════════════════════════════════════════════════════════")
                 .ResetColor();
+
+            Console.WriteLine("📚 CONCEITOS DEMONSTRADOS:");
+            Console.WriteLine("   • SqliteStorage - armazenamento persistente");
+            Console.WriteLine("   • Session management - controle de sessões");
+            Console.WriteLine("   • Context persistence - persistência de contexto");
+            Console.WriteLine("   • Memory retrieval - recuperação de memórias");
+            Console.WriteLine("   • Personalized interactions - interações personalizadas\n");
 
             // Configurar storage persistente
             var storage = new SqliteStorage("Data Source=exemplo_assistente.db");

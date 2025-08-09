@@ -22,11 +22,16 @@ namespace AgentSharp.Examples
     public static async Task ExecutarAnaliseDocumento(IModel modelo)
     {
       Console.ForegroundColor = ConsoleColor.Yellow;
-      Console.WriteLine("📋 EXEMPLO 5: ANÁLISE DE DOCUMENTOS - STRUCTURED OUTPUTS");
-      Console.WriteLine("═══════════════════════════════════════════════════════");
+      Console.WriteLine("📊 NÍVEL 2 - OUTPUTS ESTRUTURADOS: Dados Tipados");
+      Console.WriteLine("═══════════════════════════════════════════════════");
       Console.ResetColor();
 
-      Console.WriteLine("Demonstra structured outputs tipados para análise de documentos\n");
+      Console.WriteLine("📚 CONCEITOS DEMONSTRADOS:");
+      Console.WriteLine("   • ModelConfiguration.WithStructuredExtraction<T>()");
+      Console.WriteLine("   • Tipos de dados customizados (DTOs)");
+      Console.WriteLine("   • Parsing automático de JSON para objetos");
+      Console.WriteLine("   • Validação e tipagem forte");
+      Console.WriteLine("   • Extração estruturada de informações\n");
 
       // Configuração para structured output
       var config = new ModelConfiguration()

@@ -1,6 +1,5 @@
 using AgentSharp.Core;
 using AgentSharp.Models;
-using AgentSharp.Tests.Mocks;
 using System;
 using Xunit;
 
@@ -42,7 +41,7 @@ namespace AgentSharp.Tests.Core
         public void WithMemoryDomainConfiguration_ThrowsOnNullAgent()
         {
             // Arrange
-            Agent<TestContext, string> nullAgent = null;
+            Agent<TestContext, string>? nullAgent = null;
             var config = new MemoryDomainConfiguration();
 
             // Act & Assert
@@ -53,7 +52,7 @@ namespace AgentSharp.Tests.Core
         public void WithMemoryDomainConfiguration_ThrowsOnNullConfig()
         {
             // Arrange
-            MemoryDomainConfiguration nullConfig = null;
+            MemoryDomainConfiguration? nullConfig = null;
 
             // Act & Assert
             Assert.Throws<ArgumentNullException>(() => _agent.WithMemoryDomainConfiguration(nullConfig));
@@ -198,8 +197,8 @@ namespace AgentSharp.Tests.Core
 
         public class TestContext
         {
-            public string UserId { get; set; }
-            public string SessionId { get; set; }
+            public string? UserId { get; set; }
+            public string? SessionId { get; set; }
         }
     }
 }

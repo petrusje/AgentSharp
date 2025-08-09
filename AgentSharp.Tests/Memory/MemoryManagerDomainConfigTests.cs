@@ -3,7 +3,6 @@ using AgentSharp.Core.Memory.Interfaces;
 using AgentSharp.Core.Memory.Models;
 using AgentSharp.Core.Memory.Services;
 using AgentSharp.Models;
-using AgentSharp.Tests.Mocks;
 using AgentSharp.Utils;
 using System;
 using System.Threading.Tasks;
@@ -13,15 +12,15 @@ namespace AgentSharp.Tests.Memory
 {
     public class MemoryManagerDomainConfigTests
     {
-        private readonly MockModel _mockModel;
-        private readonly InMemoryStorage _storage;
-        private readonly MockLogger _logger;
+    private readonly MockModel _mockModel;
+    private readonly InMemoryStorage _storage;
+    private readonly ConsoleLogger _logger;
 
         public MemoryManagerDomainConfigTests()
         {
             _mockModel = new MockModel();
             _storage = new InMemoryStorage();
-            _logger = new MockLogger();
+            _logger = new ConsoleLogger();
         }
 
         [Fact]
@@ -55,7 +54,7 @@ namespace AgentSharp.Tests.Memory
         public void Constructor_ThrowsOnNullStorage()
         {
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => 
+            Assert.Throws<ArgumentNullException>(() =>
                 new MemoryManager(null, _mockModel, _logger));
         }
 
@@ -63,7 +62,7 @@ namespace AgentSharp.Tests.Memory
         public void Constructor_ThrowsOnNullModel()
         {
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => 
+            Assert.Throws<ArgumentNullException>(() =>
                 new MemoryManager(_storage, null, _logger));
         }
 

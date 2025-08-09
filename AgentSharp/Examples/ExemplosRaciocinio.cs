@@ -21,12 +21,16 @@ namespace AgentSharp.Examples
     public static async Task ExecutarResolvedorProblemas(IModel modelo)
     {
       Console.ForegroundColor = ConsoleColor.Yellow;
-      Console.WriteLine("🧠 EXEMPLO 4: RESOLVEDOR DE PROBLEMAS BH - REASONING AGENT");
-      Console.WriteLine("═══════════════════════════════════════════════════════");
+      Console.WriteLine("🧠 NÍVEL 2 - AGENTE COM RACIOCÍNIO: Reasoning Chains");
+      Console.WriteLine("══════════════════════════════════════════════════════");
       Console.ResetColor();
 
-      Console.WriteLine("📄 Análise de problemas empresariais em Belo Horizonte");
-      Console.WriteLine("Demonstra raciocínio estruturado para negócios locais\n");
+      Console.WriteLine("📚 CONCEITOS DEMONSTRADOS:");
+      Console.WriteLine("   • WithReasoning(true) - ativa modo de raciocínio");
+      Console.WriteLine("   • Reasoning Content - acesso ao processo mental");
+      Console.WriteLine("   • Structured Thinking - pensamento estruturado");
+      Console.WriteLine("   • Problem Decomposition - quebra de problemas");
+      Console.WriteLine("   • Context-aware Analysis - análise contextual\n");
 
       var contextoProblema = new ContextoResolucaoProblemas
       {
