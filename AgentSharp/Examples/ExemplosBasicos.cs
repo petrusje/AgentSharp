@@ -93,11 +93,11 @@ namespace AgentSharp.Examples
       Console.ResetColor();
 
       Console.WriteLine("📚 CONCEITOS DEMONSTRADOS:");
-      Console.WriteLine("   • Context Objects - dados tipados (JornalistaMineiroContext)");
-      Console.WriteLine("   • Persona dinâmica - usa ctx.seuNome na personalidade");
-      Console.WriteLine("   • Instructions dinâmicas - ctx.IdiomaPreferido nas instruções");
-      Console.WriteLine("   • Guard Rails - restrições de comportamento");
-      Console.WriteLine("   • Context binding - como o contexto alimenta o comportamento\n");
+      Console.WriteLine("   • Context Objects (dados tipados)");
+      Console.WriteLine("   • Persona personalizada (WithPersona)");
+      Console.WriteLine("   • Instruções específicas (WithInstructions)");
+      Console.WriteLine("   • Guard Rails (restrições de comportamento)");
+      Console.WriteLine("   • Integração de tools dinâmica\n");
 
       var contexto = new JornalistaMineiroContext
       {
@@ -109,15 +109,12 @@ namespace AgentSharp.Examples
 
       Console.ForegroundColor = ConsoleColor.Cyan;
       Console.WriteLine("💻 CÓDIGO USADO:");
-      Console.WriteLine("   var contexto = new JornalistaMineiroContext {");
-      Console.WriteLine("       RegiaoFoco = \"Belo Horizonte\",");
-      Console.WriteLine("       seuNome = \"Mauricio Mauro\",");
-      Console.WriteLine("       IdiomaPreferido = \"pt-BR\"");
-      Console.WriteLine("   };");
+      Console.WriteLine("   var contexto = new JornalistaMineiroContext { ... };");
       Console.WriteLine("   var jornalista = new Agent<JornalistaMineiroContext, string>(modelo)");
-      Console.WriteLine("       .WithPersona(ctx => \"...\")  // Usa {ctx.seuNome}");
-      Console.WriteLine("       .WithContext(contexto)        // ⭐ Dados tipados injetados!");
-      Console.WriteLine("       .WithInstructions(ctx => $\"Use {ctx.IdiomaPreferido}\") // ⭐ Context dinâmico!");
+      Console.WriteLine("       .WithPersona(ctx => \"...\")  // Personalidade");
+      Console.WriteLine("       .WithContext(contexto)        // Dados tipados");
+      Console.WriteLine("       .WithInstructions(\"...\")    // Instruções");
+      Console.WriteLine("       .WithGuardRails(\"...\")      // Restrições");
       Console.ResetColor();
 
       // Agente com personalidade de jornalista mineiro de BH
@@ -157,14 +154,9 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
         Console.ResetColor();
 
         Console.WriteLine(new string('-', 50));
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("📊 ESTATÍSTICAS TÉCNICAS:");
-        Console.WriteLine($"   • Tokens utilizados: {resultado.Usage.TotalTokens}");
-        Console.WriteLine($"   • Context.RegiaoFoco: {contexto.RegiaoFoco}");
-        Console.WriteLine($"   • Context.seuNome: {contexto.seuNome}");
-        Console.WriteLine($"   • Context.IdiomaPreferido: {contexto.IdiomaPreferido}");
-        Console.WriteLine($"   • Persona: Jornalista Mineiro (dinâmica com contexto)");
-        Console.ResetColor();
+        Console.WriteLine($"📊 Tokens utilizados: {resultado.Usage.TotalTokens}");
+        Console.WriteLine($"🎯 Context usado: {contexto.RegiaoFoco}");
+        Console.WriteLine($"👤 Persona: Jornalista Mineiro");
 
         // Exemplo adicional
         Console.WriteLine("\n🔄 Testando outra pergunta com busca duckduckgo...\n");
@@ -188,32 +180,7 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
             Console.WriteLine($"🔧 Ferramenta utilizada: {tool.Name}"));
         Console.ResetColor();
 
-        Console.WriteLine("\n🔄 Demonstrando mudança de contexto...");
-        
-        // Mudar o contexto para demonstrar como afeta o comportamento
-        contexto.seuNome = "Ana Silva";
-        contexto.IdiomaPreferido = "en-US";
-        contexto.RegiaoFoco = "São Paulo";
-        
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine("\n⚡ CONTEXTO ALTERADO:");
-        Console.WriteLine($"   Nome: {contexto.seuNome}");
-        Console.WriteLine($"   Idioma: {contexto.IdiomaPreferido}");
-        Console.WriteLine($"   Região: {contexto.RegiaoFoco}");
-        Console.ResetColor();
-        
-        var resultado3 = await jornalista.ExecuteAsync(
-            "Tell me about a current technology trend in São Paulo"
-        );
-        
-        Console.WriteLine("\n📻 Resposta com Novo Contexto:");
-        Console.WriteLine(new string('-', 50));
-        Console.ForegroundColor = ConsoleColor.White;
-        Console.WriteLine(resultado3.Data);
-        Console.ResetColor();
-        
-        Console.WriteLine("\n🎯 OBSERVE: O agente agora se apresenta como Ana Silva e responde em inglês!");
-        Console.WriteLine("💡 PRÓXIMO PASSO: Veja o Exemplo 3 para entender como adicionar ferramentas!");
+        Console.WriteLine("\n💡 PRÓXIMO PASSO: Veja o Exemplo 3 para entender como adicionar ferramentas!");
       }
       catch (Exception ex)
       {
@@ -245,11 +212,10 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
 
       // Agente com ferramentas de busca
       var reporterBusca = new JornalistaComBusca(modelo)
-          .WithContext(contexto)
-          .WithTools(new SearchToolPack());
+          .WithContext(contexto);
 
       Console.ForegroundColor = ConsoleColor.Green;
-      Console.WriteLine("🔥 Pergunta: 'Quais são as últimas notícias sobre tecnologia no Brasil?'");
+      Console.WriteLine("🔥 Pergunta: 'Quais são as últimas notícias sobre tecnologia em Belo Horizonte e Minas Gerais?'");
       Console.ResetColor();
       Console.WriteLine("\n📻 Resposta do Jornalista (com busca web):");
       Console.WriteLine(new string('-', 50));
@@ -267,7 +233,6 @@ Seu nome é {ctx.seuNome}, um repórter apaixonado por Belo Horizonte e Minas Ge
         Console.WriteLine(new string('-', 50));
         Console.WriteLine($"📊 Tokens utilizados: {resultado.Usage.TotalTokens}");
         Console.WriteLine($"🔧 Ferramentas chamadas: {resultado.Tools.Count}");
-        Console.WriteLine($"⏱️  Tempo: Não disponível");
 
         // Mostrar quais ferramentas foram usadas
         if (resultado.Tools.Count > 0)
