@@ -1073,6 +1073,43 @@ namespace AgentSharp.Models
              completionTokens / 1000.0m * outputCostPer1kTokens;
     }
 
+    /// <summary>
+    /// Creates an embedding service using the same OpenAI client configuration
+    /// </summary>
+    /// <param name="embeddingModel">The embedding model to use (default: text-embedding-3-small)</param>
+    /// <returns>Configured OpenAI embedding service</returns>
+    public AgentSharp.Core.Memory.Services.OpenAIEmbeddingService GetEmbeddingService(string embeddingModel = "text-embedding-3-small")
+    {
+      try
+      {
+        // Extract endpoint from the current client options
+        var endpoint = _client.GetType()
+          .GetField("_options", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+          .GetValue(_client) as OpenAIClientOptions;
+
+        var endpointUri = endpoint?.Endpoint?.ToString() ?? "https://api.openai.com";
+
+        // Extract API key - this is more complex since it's wrapped in credentials
+        var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+        if (string.IsNullOrEmpty(apiKey))
+        {
+          throw new InvalidOperationException("Unable to retrieve API key. Ensure OPENAI_API_KEY environment variable is set.");
+        }
+
+        return new AgentSharp.Core.Memory.Services.OpenAIEmbeddingService(
+          apiKey: apiKey,
+          endpoint: endpointUri,
+          logger: new ConsoleLogger(), // Use a new logger instance
+          model: embeddingModel
+        );
+      }
+      catch (Exception ex)
+      {
+        Logger.Error("Error creating embedding service", ex);
+        throw new ModelException($"Failed to create embedding service: {ex.Message}", ex);
+      }
+    }
+
     #endregion
   }
 }

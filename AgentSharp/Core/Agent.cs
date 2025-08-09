@@ -96,9 +96,36 @@ namespace AgentSharp.Core
       _logger = logger ?? new ConsoleLogger();
       _modelConfig = modelConfig ?? new ModelConfiguration();
 
+      // 🎯 AUTO-CONFIGURAÇÃO INTELIGENTE DE STRUCTURED OUTPUT (APENAS SE NÃO JÁ CONFIGURADO)
+      // Se TResult não é um tipo primitivo/basic E structured output ainda não foi configurado
+      if (typeof(TResult) != typeof(object) &&
+          typeof(TResult) != typeof(string) &&
+          !typeof(TResult).IsPrimitive &&
+          typeof(TResult) != typeof(AgentResult<TResult>) &&
+          !_modelConfig.EnableStructuredOutput) // ← CHAVE: só auto-configura se não já configurado
+      {
+          // Preservar todas as configurações existentes, apenas adicionar structured output
+          _modelConfig.EnableStructuredOutput = true;
+          _modelConfig.ResponseType = typeof(TResult);
+
+          // Gerar schema apenas se não foi fornecido
+          if (string.IsNullOrEmpty(_modelConfig.ResponseSchema))
+          {
+              _modelConfig.ResponseSchema = Utils.JsonSchemaGenerator.GenerateSchema<TResult>();
+          }
+
+          // Ajustar temperatura para mais determinística em structured outputs (se não customizada)
+          if (_modelConfig.Temperature >= 0.7) // Se é o valor padrão
+          {
+              _modelConfig.Temperature = 0.1; // Mais determinística para dados estruturados
+          }
+
+          _logger.Log(LogLevel.Debug, $"Auto-configured structured extraction for type: {typeof(TResult).Name} (Temperature: {_modelConfig.Temperature})");
+      }
+
       // Configurar sistema de memória
       _storage = storage ?? new InMemoryStorage();
-      
+
       // Se o storage for VectorSqliteStorage, usar o embedding service dele
       IEmbeddingService embeddingService = new MockEmbeddingService();
       if (storage is VectorSqliteStorage vectorStorage)
@@ -106,7 +133,7 @@ namespace AgentSharp.Core
           // TODO: Extrair o embedding service do VectorSqliteStorage se necessário
           embeddingService = new MockEmbeddingService();
       }
-      
+
       _memoryManager = memoryManager ?? new MemoryManager(
           _storage,
           _model,
@@ -862,7 +889,7 @@ IMPORTANTE: Responda APENAS com JSON válido, sem texto adicional.";
    internal Agent<TContext, TResult> SetMemoryDomainConfiguration(MemoryDomainConfiguration config)
     {
         _memoryDomainConfig = config;
-        
+
         // Recriar MemoryManager com nova configuração de domínio
         _memoryManager = new MemoryManager(
             _storage,
@@ -870,7 +897,7 @@ IMPORTANTE: Responda APENAS com JSON válido, sem texto adicional.";
             _logger,
             new MockEmbeddingService(),
             _memoryDomainConfig);
-            
+
         return this;
     }
 

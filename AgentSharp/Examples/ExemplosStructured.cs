@@ -33,17 +33,18 @@ namespace AgentSharp.Examples
       Console.WriteLine("   • Validação e tipagem forte");
       Console.WriteLine("   • Extração estruturada de informações\n");
 
-      // Configuração para structured output
-      var config = new ModelConfiguration()
-          .WithStructuredExtraction<AnaliseDocumento>();
-
+      // ✅ NOVA ABORDAGEM - CLEAN & AUTO-CONFIGURED
+      // O Agent automaticamente detecta TResult=AnaliseDocumento e configura structured extraction
       var analisadorDocumento = new Agent<object, AnaliseDocumento>(modelo,
           "AnalisadorDocumentos",
           @"Você é um especialista em análise de documentos empresariais.
                 Analise o documento fornecido e extraia informações estruturadas conforme solicitado.
                 Seja preciso e detalhado em sua análise.
-                IMPORTANTE: Retorne apenas dados válidos e certifique-se de que todos os campos de string sejam preenchidos corretamente.",
-          config);
+                IMPORTANTE: Retorne apenas dados válidos e certifique-se de que todos os campos de string sejam preenchidos corretamente.");
+
+      // NOTA: Structured extraction é configurado automaticamente pelo framework!
+      // Não é mais necessário: .WithStructuredExtraction<AnaliseDocumento>()
+      // O tipo TResult já fornece essa informação ao construtor.
 
       var documentoExemplo = @"
 RELATÓRIO TRIMESTRAL - Q3 2024
@@ -210,14 +211,13 @@ Data: 15/11/2024";
 
     private static async Task ExemplarAnaliseCurriculo(IModel modelo)
     {
-      var configCurriculo = new ModelConfiguration()
-          .WithStructuredExtraction<AnaliseCurriculo>();
-
+      // ✅ NOVA ABORDAGEM - AUTO-CONFIGURED
       var analisadorCV = new Agent<object, AnaliseCurriculo>(modelo,
           "AnalisadorCurriculo",
           @"Você é um especialista em RH e análise de currículos.
-                Analise o currículo fornecido e extraia todas as informações relevantes.",
-          configCurriculo);
+                Analise o currículo fornecido e extraia todas as informações relevantes.");
+
+      // NOTA: Structured extraction automaticamente configurado para AnaliseCurriculo!
 
       var curriculoExemplo = @"
 JOÃO SANTOS SILVA

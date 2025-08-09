@@ -1,11 +1,10 @@
 using AgentSharp.Core.Memory.Interfaces;
 using AgentSharp.Utils;
+using OpenAI;
+using OpenAI.Embeddings;
 using System;
+using System.ClientModel;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace AgentSharp.Core.Memory.Services
@@ -13,24 +12,36 @@ namespace AgentSharp.Core.Memory.Services
     /// <summary>
     /// Serviço de embedding usando OpenAI API
     /// </summary>
-    public class OpenAIEmbeddingService : IEmbeddingService
+    public class OpenAIEmbeddingService : IEmbeddingService, IDisposable
     {
-        private readonly HttpClient _httpClient;
-        private readonly string _apiKey;
-        private readonly string _endpoint;
+        private readonly EmbeddingClient _embeddingClient;
         private readonly ILogger _logger;
-        private readonly string _model;
 
-        public OpenAIEmbeddingService(string apiKey, string endpoint = "https://api.openai.com", ILogger logger = null, string model = "text-embedding-ada-002")
+        public OpenAIEmbeddingService(string apiKey, string endpoint = "https://api.openai.com", ILogger logger = null, string model = "text-embedding-3-small")
         {
-            _apiKey = apiKey ?? throw new ArgumentNullException(nameof(apiKey));
-            _endpoint = endpoint ?? "https://api.openai.com";
+            if (string.IsNullOrEmpty(apiKey))
+                throw new ArgumentNullException(nameof(apiKey));
+
             _logger = logger ?? new ConsoleLogger();
-            _model = model;
-            
-            _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "AgentSharp/1.0");
+
+            try
+            {
+                var options = new OpenAIClientOptions();
+                if (!string.IsNullOrEmpty(endpoint) && endpoint != "https://api.openai.com")
+                {
+                    options.Endpoint = new Uri(endpoint);
+                }
+
+                var openAIClient = new OpenAIClient(new ApiKeyCredential(apiKey), options);
+                _embeddingClient = openAIClient.GetEmbeddingClient(model);
+
+                _logger.Log(LogLevel.Info, $"OpenAIEmbeddingService initialized with model {model}");
+            }
+            catch (Exception ex)
+            {
+                _logger.Log(LogLevel.Error, $"Error initializing OpenAIEmbeddingService: {ex.Message}");
+                throw;
+            }
         }
 
         public async Task<List<float>> GenerateEmbeddingAsync(string text)
@@ -40,123 +51,120 @@ namespace AgentSharp.Core.Memory.Services
                 if (string.IsNullOrWhiteSpace(text))
                     return new List<float>();
 
-                var requestBody = new
-                {
-                    input = text.Trim(),
-                    model = _model
-                };
+                _logger.Log(LogLevel.Debug, $"Generating embedding for text: {text.Substring(0, Math.Min(50, text.Length))}...");
 
-                var json = JsonSerializer.Serialize(requestBody);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var embeddingResult = await _embeddingClient.GenerateEmbeddingAsync(text.Trim());
+                var embedding = embeddingResult.Value;
+                var vector = embedding.ToFloats();
 
-                var response = await _httpClient.PostAsync($"{_endpoint}/v1/embeddings", content);
-                
-                if (!response.IsSuccessStatusCode)
-                {
-                    var error = await response.Content.ReadAsStringAsync();
-                    _logger.Log(LogLevel.Warning, $"Erro na API de embedding: {response.StatusCode} - {error}");
-                    return GenerateFallbackEmbedding(text); // Fallback para embedding simples
-                }
+                _logger.Log(LogLevel.Debug, $"Successfully generated embedding with {vector.Length} dimensions");
 
-                var responseJson = await response.Content.ReadAsStringAsync();
-                var embeddingResponse = JsonSerializer.Deserialize<EmbeddingResponse>(responseJson);
-
-                if (embeddingResponse?.Data?.Count > 0)
-                {
-                    return embeddingResponse.Data[0].Embedding;
-                }
-
-                return GenerateFallbackEmbedding(text);
+                return new List<float>(vector.ToArray());
             }
             catch (Exception ex)
             {
-                _logger.Log(LogLevel.Warning, $"Erro ao gerar embedding: {ex.Message}");
-                return GenerateFallbackEmbedding(text); // Fallback
+                _logger.Log(LogLevel.Error, $"Error generating embedding: {ex.Message}");
+                throw;
             }
-        }
-
-        /// <summary>
-        /// Gera um embedding simples baseado em hash como fallback
-        /// </summary>
-        private List<float> GenerateFallbackEmbedding(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-                return new List<float>(new float[384]); // Vetor zero
-
-            // Gerar embedding simples usando hash e características do texto
-            var embedding = new float[384]; // Tamanho padrão menor
-            var hash = text.GetHashCode();
-            var random = new Random(hash);
-
-            // Características básicas do texto
-            var length = Math.Min(text.Length, 1000) / 1000f;
-            var wordCount = text.Split(' ').Length / 100f;
-            var upperCaseRatio = CountUpperCase(text) / (float)text.Length;
-
-            for (int i = 0; i < embedding.Length; i++)
-            {
-                if (i < 10)
-                {
-                    // Primeiros 10 valores baseados em características
-                    switch (i)
-                    {
-                        case 0: embedding[i] = length; break;
-                        case 1: embedding[i] = wordCount; break;
-                        case 2: embedding[i] = upperCaseRatio; break;
-                        case 3: embedding[i] = text.Contains("joão") ? 1f : 0f; break;
-                        case 4: embedding[i] = text.Contains("café") ? 1f : 0f; break;
-                        case 5: embedding[i] = text.Contains("manhã") ? 1f : 0f; break;
-                        case 6: embedding[i] = text.Contains("estudar") ? 1f : 0f; break;
-                        case 7: embedding[i] = text.Contains("trabalhar") ? 1f : 0f; break;
-                        case 8: embedding[i] = text.Contains("forte") ? 1f : 0f; break;
-                        case 9: embedding[i] = text.Contains("preferir") || text.Contains("gosta") ? 1f : 0f; break;
-                        default: embedding[i] = (float)random.NextDouble() * 2f - 1f; break;
-                    }
-                }
-                else
-                {
-                    embedding[i] = (float)random.NextDouble() * 2f - 1f; // Valores aleatórios normalizados
-                }
-            }
-
-            return new List<float>(embedding);
-        }
-
-        private int CountUpperCase(string text)
-        {
-            int count = 0;
-            foreach (char c in text)
-            {
-                if (char.IsUpper(c)) count++;
-            }
-            return count;
         }
 
         public double CalculateSimilarity(List<float> embedding1, List<float> embedding2)
         {
-            if (embedding1?.Count != embedding2?.Count)
+            if (embedding1?.Count != embedding2?.Count || embedding1.Count == 0)
                 return 0.0;
 
-            // Similaridade do cosseno
+            // Estratégia baseada na implementação do VectorSqliteStorage
+            // mas com otimizações para diferentes cenários de uso
+            return CalculateCosineSimilarityOptimized(embedding1, embedding2);
+        }
+
+        /// <summary>
+        /// Cálculo otimizado de similaridade cosseno
+        /// Inspirado no VectorSqliteStorage mas com melhorias de performance
+        /// </summary>
+        private double CalculateCosineSimilarityOptimized(List<float> vector1, List<float> vector2)
+        {
             double dotProduct = 0.0;
             double norm1 = 0.0;
             double norm2 = 0.0;
 
-            for (int i = 0; i < embedding1.Count; i++)
+            // Otimização: conversão única para arrays se necessário (>512 dimensões)
+            if (vector1.Count > 512)
             {
-                dotProduct += embedding1[i] * embedding2[i];
-                norm1 += embedding1[i] * embedding1[i];
-                norm2 += embedding2[i] * embedding2[i];
+                return CalculateWithArrays(vector1, vector2);
             }
 
-            norm1 = Math.Sqrt(norm1);
-            norm2 = Math.Sqrt(norm2);
+            // Para embeddings típicos (<=512), usar acesso direto à lista
+            int count = vector1.Count;
+            for (int i = 0; i < count; i++)
+            {
+                double val1 = vector1[i];
+                double val2 = vector2[i];
+
+                dotProduct += val1 * val2;
+                norm1 += val1 * val1;
+                norm2 += val2 * val2;
+            }
+
+            // Evitar divisão por zero
+            if (norm1 == 0.0 || norm2 == 0.0)
+                return 0.0;
+
+            // Similaridade cosseno padrão (-1 a 1)
+            double similarity = dotProduct / (Math.Sqrt(norm1) * Math.Sqrt(norm2));
+
+            // Retornar valor normalizado para 0-1 (consistente com interface)
+            return Math.Max(0.0, Math.Min(1.0, (similarity + 1.0) * 0.5));
+        }
+
+        /// <summary>
+        /// Versão para embeddings muito grandes usando arrays
+        /// </summary>
+        private double CalculateWithArrays(List<float> vector1, List<float> vector2)
+        {
+            // Para embeddings grandes, converter para arrays uma vez
+            float[] arr1 = vector1.ToArray();
+            float[] arr2 = vector2.ToArray();
+
+            double dotProduct = 0.0;
+            double norm1 = 0.0;
+            double norm2 = 0.0;
+
+            int length = arr1.Length;
+
+            // Processamento unrolled para embeddings muito grandes
+            int chunks = length / 8;
+            int remainder = length % 8;
+
+            // Processar em grupos de 8 para máxima eficiência
+            for (int i = 0; i < chunks * 8; i += 8)
+            {
+                // Unrolled loop para melhor performance
+                for (int j = 0; j < 8; j++)
+                {
+                    double val1 = arr1[i + j];
+                    double val2 = arr2[i + j];
+                    dotProduct += val1 * val2;
+                    norm1 += val1 * val1;
+                    norm2 += val2 * val2;
+                }
+            }
+
+            // Processar elementos restantes
+            for (int i = chunks * 8; i < length; i++)
+            {
+                double val1 = arr1[i];
+                double val2 = arr2[i];
+                dotProduct += val1 * val2;
+                norm1 += val1 * val1;
+                norm2 += val2 * val2;
+            }
 
             if (norm1 == 0.0 || norm2 == 0.0)
                 return 0.0;
 
-            var similarity = dotProduct / (norm1 * norm2);
-            return Math.Max(0.0, Math.Min(1.0, (similarity + 1.0) / 2.0)); // Normalizar para 0-1
+            double similarity = dotProduct / (Math.Sqrt(norm1) * Math.Sqrt(norm2));
+            return Math.Max(0.0, Math.Min(1.0, (similarity + 1.0) * 0.5));
         }
 
         public async Task<List<List<float>>> GenerateEmbeddingsAsync(List<string> texts)
@@ -171,23 +179,8 @@ namespace AgentSharp.Core.Memory.Services
 
         public void Dispose()
         {
-            _httpClient?.Dispose();
+            // O EmbeddingClient é gerenciado pelo OpenAIClient
+            // Não há recursos adicionais para descartar nesta implementação
         }
-
-        #region Response Models
-
-        private class EmbeddingResponse
-        {
-            [JsonPropertyName("data")]
-            public List<EmbeddingData> Data { get; set; }
-        }
-
-        private class EmbeddingData
-        {
-            [JsonPropertyName("embedding")]
-            public List<float> Embedding { get; set; }
-        }
-
-        #endregion
     }
 }

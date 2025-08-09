@@ -1,4 +1,5 @@
 using AgentSharp.Examples;
+using AgentSharp.console;
 using AgentSharp.Models;
 using AgentSharp.Utils;
 using DotNetEnv;
@@ -172,7 +173,7 @@ namespace Agents_console
           case "9":
             await ExecuteExample("🏢 AVANÇADO: Sistema Empresarial Completo", () => ExemplosBasicos.ExecutarAnalistaFinanceiroRealData(modelo));
             break;
-          // EXEMPLOS ESPECIALIZADOS (10-18)
+          // EXEMPLOS ESPECIALIZADOS (10-20)
           case "10":
             await ExecuteExample("🤖 ESPECIALIZADO: Assistente Pessoal com Memória", () => ExemplosMemoria.ExecutarAssistentePessoal(modelo));
             break;
@@ -200,11 +201,23 @@ namespace Agents_console
           case "18":
             await ExecuteExample("📊 ESPECIALIZADO: Comparação Busca Textual vs Semântica", () => VectorMemoryExample.CompararBuscaTextualVsSemantica(modelo));
             break;
+          case "19":
+            await ExecuteExample("🚀 MODERNO: Busca Vetorial com sqlite-vec", () => VectorVecExample.ExecutarMenuVectorVec());
+            break;
+          case "20":
+            await ExecuteExample("⚡ MODERNO: Exemplos Avançados sqlite-vec", () => VectorVecExample.ExecutarMenuAvancadoVectorVec());
+            break;
+          case "21":
+            SqliteVecInstallationHelper.CheckAndGuideInstallation();
+            break;
+          case "22":
+            SqliteVecInstallationHelper.ShowInstallationGuide();
+            break;
           case "0":
             Console.WriteLine("👋 Obrigado por usar AgentSharp!");
             return false;
           default:
-            Console.WriteLine("❌ Opção inválida. Tente novamente (0-18).");
+            Console.WriteLine("❌ Opção inválida. Tente novamente (0-22).");
             break;
         }
       }
@@ -254,10 +267,20 @@ namespace Agents_console
       Console.WriteLine("  16. 🎭 Modo Anônimo - IDs Automáticos");
       Console.WriteLine("  17. 🔍 Assistente com Busca Semântica Avançada");
       Console.WriteLine("  18. 📊 Comparação Busca Textual vs Semântica");
+      Console.ForegroundColor = ConsoleColor.Green;
+      Console.WriteLine("🚀 SQLITE-VEC - Busca Vetorial Moderna");
+      Console.ResetColor();
+      Console.WriteLine("  19. 🚀 sqlite-vec - Introdução e Exemplos Básicos");
+      Console.WriteLine("  20. ⚡ sqlite-vec - Performance e Casos Avançados");
+      Console.ForegroundColor = ConsoleColor.Cyan;
+      Console.WriteLine("🔧 INSTALAÇÃO E CONFIGURAÇÃO");
+      Console.ResetColor();
+      Console.WriteLine("  21. 🔍 Verificar Instalação sqlite-vec");
+      Console.WriteLine("  22. 📋 Guia de Instalação Segura");
       Console.WriteLine();
       Console.WriteLine("  0. ❌ Sair");
       Console.WriteLine();
-      Console.Write("Digite sua escolha (0-18): ");
+      Console.Write("Digite sua escolha (0-22): ");
     }
 
     static async Task ExecuteExample(string exampleName, Func<Task> example)

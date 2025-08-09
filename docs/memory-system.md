@@ -250,9 +250,28 @@ var stats = await smartMemoryTools.GetMemoryStats();
 
 ### 1. Escolha do Storage
 
+**Storage Tradicional:**
 - **Desenvolvimento/Testes**: `InMemoryStorage`
-- **Produção**: `SqliteStorage` 
+- **Produção simples**: `SqliteStorage` 
 - **Alta escala**: Implemente `IStorage` com PostgreSQL/MongoDB
+
+**Storage Vetorial (Busca Semântica):**
+- **Todos os casos**: `VectorSqliteVecStorage` (moderna, simples, alta performance)
+- **Datasets pequenos (< 1K)**: `VectorSqliteStorage` (busca linear, se simplicidade máxima)
+- **Produção enterprise**: Considere Pinecone, Weaviate, ou Qdrant apenas se necessário
+
+```csharp
+// Configuração simples e moderna com sqlite-vec
+IVectorStorage CreateVectorStorage()
+{
+    return new VectorSqliteVecStorage(
+        connectionString: "Data Source=vectors.db;Cache Size=50000;Journal Mode=WAL",
+        embeddingModel: "text-embedding-3-small",
+        dimensions: 1536,
+        distanceMetric: "cosine"  // cosine, l2, ou inner_product
+    );
+}
+```
 
 ### 2. Contexto de Usuário
 
