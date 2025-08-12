@@ -1,4 +1,5 @@
 using AgentSharp.Core.Memory;
+using AgentSharp.Core.Memory.Services;
 using AgentSharp.Models;
 using AgentSharp.Utils;
 using System;
@@ -20,18 +21,28 @@ namespace AgentSharp.Core
     private readonly IModel _model;
     private readonly ILogger _logger;
     private readonly IMemory _memory;
+    private readonly IMemory _fallbackMemory;
+    private readonly ITelemetryService _telemetry;
     private readonly ModelConfiguration _defaultConfig;
+
+    /// <summary>
+    /// Gets the memory instance to use (configured memory or fallback BasicMemory)
+    /// </summary>
+    private IMemory Memory => _memory ?? _fallbackMemory;
 
     public ExecutionEngine(
         IModel model,
         ModelConfiguration config = null,
         ILogger logger = null,
-        IMemory memory = null)
+        IMemory memory = null,
+        ITelemetryService telemetry = null)
     {
       _model = model ?? throw new ArgumentNullException(nameof(model));
       _defaultConfig = config ?? new ModelConfiguration();
       _logger = logger ?? new ConsoleLogger();
-      _memory = memory ?? new InMemoryStore();
+      _memory = memory;
+      _telemetry = telemetry;
+      _fallbackMemory = new BasicMemory();
     }
 
     /// <summary>
@@ -63,12 +74,28 @@ namespace AgentSharp.Core
         // Executar modelo
         stopwatch.Start();
         _logger.Log(LogLevel.Debug, $"Enviando requisição para o modelo {_model.ModelName}");
+        
+        // Telemetria: início da chamada LLM (zero overhead quando desativada)
+        string llmOperationId = null;
+        if (_telemetry?.IsEnabled == true)
+        {
+            llmOperationId = $"llm_{Guid.NewGuid():N}";
+            _telemetry.TrackLLMRequest(llmOperationId);
+        }
+        
         var response = await _model.GenerateResponseAsync(request, finalConfig, cancellationToken);
         stopwatch.Stop();
 
         // Registrar uso e tempo de resposta
         var elapsedMs = stopwatch.ElapsedMilliseconds;
         _logger.Log(LogLevel.Debug, $"Resposta do modelo recebida em {elapsedMs}ms. Tokens: {response?.Usage?.TotalTokens ?? 0}");
+        
+        // Telemetria: fim da chamada LLM (zero overhead quando desativada)
+        if (_telemetry?.IsEnabled == true && llmOperationId != null)
+        {
+            var tokenCount = response?.Usage?.TotalTokens ?? 0;
+            _telemetry.CompleteLLMRequest(llmOperationId, tokenCount, tokenCount); // Usar tokenCount como "custo" em tokens
+        }
 
 
         // Verificar se há resultados de ferramentas (o OpenAIModel já as executou)
@@ -80,11 +107,11 @@ namespace AgentSharp.Core
           // Registrar resultados na memória para referência futura
           foreach (var toolResult in toolResults)
           {
-            await _memory.AddItemAsync(new MemoryItem(
+            await Memory.AddItemAsync(new MemoryItem(
                 toolResult.Result,
                 "tool_result",
-                0.8,
-                new Dictionary<string, object> { ["tool"] = toolResult.Name }
+              0.8,
+              new Dictionary<string, object> { ["tool"] = toolResult.Name }
             ));
           }
 
@@ -97,7 +124,7 @@ namespace AgentSharp.Core
         // Registrar resposta na memória
         if (!string.IsNullOrEmpty(response?.Content))
         {
-          await _memory.AddItemAsync(new MemoryItem(
+          await Memory.AddItemAsync(new MemoryItem(
               response.Content,
               "response",
               1.0,
@@ -161,8 +188,23 @@ namespace AgentSharp.Core
         stopwatch.Start();
         _logger.Log(LogLevel.Debug, $"Enviando requisição de streaming para o modelo {_model.ModelName}");
 
+        // Telemetria: início da chamada LLM streaming (zero overhead quando desativada)
+        string llmStreamingOperationId = null;
+        if (_telemetry?.IsEnabled == true)
+        {
+            llmStreamingOperationId = $"llm_streaming_{Guid.NewGuid():N}";
+            _telemetry.TrackLLMRequest(llmStreamingOperationId);
+        }
+
         var response = await _model.GenerateStreamingResponseAsync(
             request, finalConfig, streamHandler, cancellationToken);
+        
+        // Telemetria: fim da chamada LLM streaming (zero overhead quando desativada)
+        if (_telemetry?.IsEnabled == true && llmStreamingOperationId != null)
+        {
+            var streamingTokenCount = response?.Usage?.TotalTokens ?? 0;
+            _telemetry.CompleteLLMRequest(llmStreamingOperationId, streamingTokenCount, streamingTokenCount); // Usar tokenCount como "custo" em tokens
+        }
 
         stopwatch.Stop();
 
@@ -176,7 +218,7 @@ namespace AgentSharp.Core
         // Registrar resposta na memória
         if (!string.IsNullOrEmpty(response?.Content))
         {
-          await _memory.AddItemAsync(new MemoryItem(
+          await Memory.AddItemAsync(new MemoryItem(
               response.Content,
               "streaming_response",
               1.0,
@@ -244,16 +286,16 @@ namespace AgentSharp.Core
           }
           else
           {
-            var syncResult = tool.Execute(argsJson);
+            var syncResult = await tool.ExecuteAsync(argsJson, cancellationToken);
             toolResult = syncResult?.ToString() ?? string.Empty;
           }
 
           // Registrar resultado na memória
-          await _memory.AddItemAsync(new MemoryItem(
+          await Memory.AddItemAsync(new MemoryItem(
               toolResult,
               "tool_result",
-              0.8,
-              new Dictionary<string, object> { ["tool"] = result.Name }
+            0.8,
+            new Dictionary<string, object> { ["tool"] = result.Name }
           ));
 
           // Criar mensagem para o modelo usando o ID correto da chamada da ferramenta
@@ -334,20 +376,21 @@ namespace AgentSharp.Core
       foreach (var msg in messages)
       {
         // Evitar duplicatas verificando se já existe na memória
-        var existingItems = await _memory.GetItemsAsync(msg.Content, 1);
+        var existingItems = await Memory.GetItemsAsync(msg.Content, 1);
         if (existingItems.Any())
           continue;
 
         double relevance = msg.Role == Role.System ? 0.9 : 0.7;
         string type = "message_" + msg.Role.ToString().ToLowerInvariant();
 
-        await _memory.AddItemAsync(new MemoryItem(
+        await Memory.AddItemAsync(new MemoryItem(
             msg.Content,
             type,
             relevance
         ));
       }
     }
+
   }
 
   /// <summary>
@@ -376,40 +419,3 @@ namespace AgentSharp.Core
     public long ElapsedMilliseconds { get; set; }
   }
 }
-
-/*
-// Inicializar componentes
-var model = new OpenAIModel("gpt-4o", apiKey);
-var memory = new InMemoryStore();
-var logger = new ConsoleLogger();
-
-// Criar o motor de execução
-var engine = new ExecutionEngine<MyContext, string>(
-    model,
-    new ModelConfiguration { Temperature = 0.7 },
-    logger,
-    memory
-);
-
-// Preparar requisição
-var request = new ModelRequest
-{
-    Messages = new List<AIMessage>
-    {
-        AIMessage.System("Você é um assistente útil"),
-        AIMessage.User("Como está o tempo hoje?")
-    },
-    Tools = new List<Tool> { new WeatherTool() }
-};
-
-
-// Executar com ferramentas
-var result = await engine.ExecuteWithToolsAsync(
-    request
-);
-
-// Usar o resultado
-Console.WriteLine($"Resposta: {result.Data}");
-Console.WriteLine($"Ferramentas usadas: {result.ToolResults.Count}");
-Console.WriteLine($"Tempo de execução: {result.ElapsedMilliseconds}ms");
-*/

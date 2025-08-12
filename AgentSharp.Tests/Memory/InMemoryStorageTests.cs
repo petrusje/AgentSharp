@@ -1,6 +1,7 @@
 using AgentSharp.Core.Memory.Interfaces;
 using AgentSharp.Core.Memory.Models;
 using AgentSharp.Core.Memory.Services;
+using AgentSharp.Core.Memory.Services.HNSW;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Threading.Tasks;
@@ -8,14 +9,20 @@ using System.Threading.Tasks;
 namespace AgentSharp.Tests.Memory
 {
     [TestClass]
-    public class InMemoryStorageTests
+    public class SemanticMemoryStorageTests
     {
-    private InMemoryStorage? _storage;
+    private SemanticSqliteStorage? _storage;
 
         [TestInitialize]
         public void Setup()
         {
-            _storage = new InMemoryStorage();
+            // Create an embedding service for testing
+            var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? "test-key";
+            var endpoint = Environment.GetEnvironmentVariable("OPENAI_ENDPOINT") ?? "https://proxy.dta.totvs.ai/";
+            var embeddingService = new OpenAIEmbeddingService(apiKey, endpoint);
+            
+            // Use in-memory SQLite database for testing
+            _storage = new SemanticSqliteStorage("Data Source=:memory:", embeddingService, 1536);
         }
 
         [TestCleanup]

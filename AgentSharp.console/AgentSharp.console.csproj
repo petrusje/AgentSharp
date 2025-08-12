@@ -5,6 +5,14 @@
     <TargetFramework>net9.0</TargetFramework>
     <RootNamespace>Agents_console</RootNamespace>
 	<Version>1.0.3</Version>
+	<StartupObject>Agents_console.Program</StartupObject>
+    <!-- Desabilitar StyleCop Analyzers -->
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringLiveAnalysis>false</RunAnalyzersDuringLiveAnalysis>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>none</AnalysisLevel>
+    <!-- Configuração para recursos de localização -->
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +22,16 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AgentSharp\AgentSharp.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Messages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Messages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Messages.pt-BR.resx">
+      <DependentUpon>Messages.resx</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

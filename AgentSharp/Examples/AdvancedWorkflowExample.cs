@@ -48,7 +48,6 @@ namespace AgentSharp.Examples
         var workflow = new AdvancedWorkflow<ResearchContext, string>("Workflow de Pesquisa e Análise", logger)
             .WithUserId("user123")
             .WithDebugMode(true)
-            .WithTelemetry(true)
             .ForTask(ctx => $"Realizar pesquisa completa sobre '{ctx.Topic}' e gerar relatório final em {ctx.UserLanguage}")
             .RegisterStep(
                 "Pesquisa",

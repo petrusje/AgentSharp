@@ -1,5 +1,6 @@
 using AgentSharp.Core;
 using AgentSharp.Core.Memory.Services;
+using AgentSharp.Core.Memory.Services.HNSW;
 using AgentSharp.Models;
 using AgentSharp.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -14,6 +15,15 @@ namespace AgentSharp.Tests.Memory
     private MockModel? _mockModel;
     private ConsoleLogger? _logger;
 
+        // Helper method to create SemanticSqliteStorage for tests
+        private static SemanticSqliteStorage CreateTestStorage(string connectionString)
+        {
+            var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? "test-key";
+            var endpoint = Environment.GetEnvironmentVariable("OPENAI_ENDPOINT") ?? "https://proxy.dta.totvs.ai/";
+            var embeddingService = new OpenAIEmbeddingService(apiKey, endpoint);
+            return new SemanticSqliteStorage(connectionString, embeddingService, 1536);
+        }
+
         [TestInitialize]
         public void Setup()
         {
@@ -22,10 +32,10 @@ namespace AgentSharp.Tests.Memory
         }
 
         [TestMethod]
-        public async Task Agent_WithInMemoryStorage_ShouldWork()
+        public async Task Agent_WithSemanticMemoryStorage_ShouldWork()
         {
             // Arrange
-            var storage = new InMemoryStorage();
+            var storage = new SemanticSqliteStorage("Data Source=:memory:", new OpenAIEmbeddingService("test", "https://test"), 1536);
             var context = new TestContext { UserId = "test_user", SessionId = "test_session" };
 
             var agent = new Agent<TestContext, string>(_mockModel, "TestAgent", storage: storage)
@@ -44,7 +54,7 @@ namespace AgentSharp.Tests.Memory
         }
 
         [TestMethod]
-        public async Task Agent_WithSqliteStorage_ShouldPersistBetweenInstances()
+        public async Task Agent_WithSemanticSqliteStorage_ShouldPersistBetweenInstances()
         {
             // Arrange
             var dbPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"test_agent_{Guid.NewGuid()}.db");
@@ -53,7 +63,7 @@ namespace AgentSharp.Tests.Memory
             try
             {
                 // First agent instance
-                var storage1 = new SqliteStorage($"Data Source={dbPath}");
+                var storage1 = CreateTestStorage($"Data Source={dbPath}");
                 await storage1.InitializeAsync();
 
                 var agent1 = new Agent<TestContext, string>(_mockModel, "PersistentAgent", storage: storage1)
@@ -65,7 +75,7 @@ namespace AgentSharp.Tests.Memory
                 storage1 = null;
 
                 // Second agent instance (simulating app restart)
-                var storage2 = new SqliteStorage($"Data Source={dbPath}");
+                var storage2 = CreateTestStorage($"Data Source={dbPath}");
                 await storage2.InitializeAsync();
 
                 var agent2 = new Agent<TestContext, string>(_mockModel, "PersistentAgent", storage: storage2)
@@ -99,7 +109,7 @@ namespace AgentSharp.Tests.Memory
     public void Agent_MemoryManager_ShouldBeAccessible()
         {
             // Arrange
-            var storage = new InMemoryStorage();
+            var storage = new SemanticSqliteStorage("Data Source=:memory:", new OpenAIEmbeddingService("test", "https://test"), 1536);
             var context = new TestContext { UserId = "test_user", SessionId = "test_session" };
 
             var agent = new Agent<TestContext, string>(_mockModel, "TestAgent", storage: storage)
@@ -118,7 +128,7 @@ namespace AgentSharp.Tests.Memory
     public void Agent_WithMemoryTools_ShouldRegisterSmartMemoryToolPack()
         {
             // Arrange
-            var storage = new InMemoryStorage();
+            var storage = new SemanticSqliteStorage("Data Source=:memory:", new OpenAIEmbeddingService("test", "https://test"), 1536);
             var context = new TestContext { UserId = "test_user", SessionId = "test_session" };
 
             var agent = new Agent<TestContext, string>(_mockModel, "TestAgent", storage: storage)
@@ -136,7 +146,7 @@ namespace AgentSharp.Tests.Memory
     public void Agent_GetMemorySummary_ShouldReturnSummary()
         {
             // Arrange
-            var storage = new InMemoryStorage();
+            var storage = new SemanticSqliteStorage("Data Source=:memory:", new OpenAIEmbeddingService("test", "https://test"), 1536);
             var context = new TestContext { UserId = "test_user", SessionId = "test_session" };
 
             var agent = new Agent<TestContext, string>(_mockModel, "TestAgent", storage: storage)
@@ -155,7 +165,7 @@ namespace AgentSharp.Tests.Memory
         public async Task Agent_MultipleConversations_ShouldAccumulateMemory()
         {
             // Arrange
-            var storage = new InMemoryStorage();
+            var storage = new SemanticSqliteStorage("Data Source=:memory:", new OpenAIEmbeddingService("test", "https://test"), 1536);
             var context = new TestContext { UserId = "cumulative_user", SessionId = "cumulative_session" };
 
             var agent = new Agent<TestContext, string>(_mockModel, "CumulativeAgent", storage: storage)

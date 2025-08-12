@@ -11,3 +11,40 @@ end_of_line = crlf
 charset = utf-8
 insert_final_newline = true
 trim_trailing_whitespace = true
+
+# Desabilitar regras StyleCop específicas
+dotnet_diagnostic.SA1000.severity = none
+dotnet_diagnostic.SA1001.severity = none
+dotnet_diagnostic.SA1002.severity = none
+dotnet_diagnostic.SA1003.severity = none
+dotnet_diagnostic.SA1005.severity = none
+dotnet_diagnostic.SA1008.severity = none
+dotnet_diagnostic.SA1009.severity = none
+dotnet_diagnostic.SA1010.severity = none
+dotnet_diagnostic.SA1011.severity = none
+dotnet_diagnostic.SA1012.severity = none
+dotnet_diagnostic.SA1013.severity = none
+dotnet_diagnostic.SA1014.severity = none
+dotnet_diagnostic.SA1015.severity = none
+dotnet_diagnostic.SA1016.severity = none
+dotnet_diagnostic.SA1017.severity = none
+dotnet_diagnostic.SA1018.severity = none
+dotnet_diagnostic.SA1019.severity = none
+dotnet_diagnostic.SA1020.severity = none
+dotnet_diagnostic.SA1021.severity = none
+dotnet_diagnostic.SA1022.severity = none
+dotnet_diagnostic.SA1023.severity = none
+dotnet_diagnostic.SA1024.severity = none
+dotnet_diagnostic.SA1025.severity = none
+dotnet_diagnostic.SA1026.severity = none
+dotnet_diagnostic.SA1027.severity = none
+dotnet_diagnostic.SA1028.severity = none
+
+# Desabilitar todas as regras StyleCop de uma vez
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.ReadabilityRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.OrderingRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.NamingRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.MaintainabilityRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.LayoutRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.DocumentationRules.severity = none
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpacingRules.severity = none

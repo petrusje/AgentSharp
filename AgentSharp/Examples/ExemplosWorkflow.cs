@@ -52,7 +52,6 @@ namespace AgentSharp.Examples
         // Criar workflow avançado com encadeamento de entrada e saída
         var workflow = new AdvancedWorkflow<ContextoPesquisa, string>("Workflow de Pesquisa IA Brasil")
             .WithDebugMode(true)
-            .WithTelemetry(true)
             .ForTask(ctx => $"Criar um relatório executivo completo sobre {ctx.TopicoPesquisa} com análise {ctx.ProfundidadeAnalise} para {ctx.PublicoAlvo}")
             .RegisterStep("Pesquisa e Coleta de Dados", agentePesquisador,
                 ctx => $"Pesquise informações sobre o estado atual da Inteligência Artificial no Brasil, incluindo startups, investimentos, políticas públicas e tendências. Foque em {ctx.ProfundidadeAnalise} análise.",

@@ -2,6 +2,7 @@ using AgentSharp.Core;
 using AgentSharp.Core.Memory.Interfaces;
 using AgentSharp.Core.Memory.Models;
 using AgentSharp.Core.Memory.Services;
+using AgentSharp.Core.Memory.Services.HNSW;
 using AgentSharp.Models;
 using AgentSharp.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -24,7 +25,7 @@ namespace AgentSharp.Tests.Memory
         {
             _mockModel = new MockModel();
             _logger = new ConsoleLogger();
-            _storage = new InMemoryStorage();
+            _storage = new SemanticSqliteStorage("Data Source=:memory:", new OpenAIEmbeddingService("test", "https://test"), 1536);
             _memoryManager = new MemoryManager(_storage, _mockModel, _logger);
         }
 

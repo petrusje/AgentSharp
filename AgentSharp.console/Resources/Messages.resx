@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  
+  <!-- Application Header -->
+  <data name="AppTitle" xml:space="preserve">
+    <value>🤖 AgentSharp - PRACTICAL EXAMPLES</value>
+  </data>
+  <data name="AppSubtitle" xml:space="preserve">
+    <value>Interactive Learning System</value>
+  </data>
+  
+  <!-- Language Selection -->
+  <data name="SelectLanguage" xml:space="preserve">
+    <value>Select your language / Selecione seu idioma:</value>
+  </data>
+  <data name="LanguageEnglish" xml:space="preserve">
+    <value>1. English (US)</value>
+  </data>
+  <data name="LanguagePortuguese" xml:space="preserve">
+    <value>2. Português (BR)</value>
+  </data>
+  <data name="LanguagePrompt" xml:space="preserve">
+    <value>Choose (1-2): </value>
+  </data>
+  
+  <!-- Configuration -->
+  <data name="TelemetryPrompt" xml:space="preserve">
+    <value>Enable telemetry (detailed timing)? (y/n): </value>
+  </data>
+  <data name="TelemetryEnabled" xml:space="preserve">
+    <value>✅ Telemetry enabled - detailed timing will be shown</value>
+  </data>
+  <data name="TelemetryDisabled" xml:space="preserve">
+    <value>📊 Telemetry disabled - only basic timing shown</value>
+  </data>
+  
+  <!-- API Configuration -->
+  <data name="ApiKeyFound" xml:space="preserve">
+    <value>✅ API Key found! Endpoint: {0}</value>
+  </data>
+  <data name="ApiKeyError" xml:space="preserve">
+    <value>❌ Error: OPENAI_API_KEY environment variable not configured!</value>
+  </data>
+  <data name="ApiKeyInstructions1" xml:space="preserve">
+    <value>   1. Copy env.example file to .env</value>
+  </data>
+  <data name="ApiKeyInstructions2" xml:space="preserve">
+    <value>   2. Edit .env file with your OpenAI key</value>
+  </data>
+  <data name="ApiKeyInstructions3" xml:space="preserve">
+    <value>   3. Run the program again</value>
+  </data>
+  <data name="EnvFileLocation" xml:space="preserve">
+    <value>   .env file should be at: {0}</value>
+  </data>
+  
+  <!-- Model Initialization -->
+  <data name="ModelInitialized" xml:space="preserve">
+    <value>✅ OpenAI model initialized successfully!</value>
+  </data>
+  <data name="ModelDetails" xml:space="preserve">
+    <value>   Model: {0} | Temp: {1} | Max Tokens: {2}</value>
+  </data>
+  
+  <!-- Menu Categories -->
+  <data name="MenuTitle" xml:space="preserve">
+    <value>📋 MAIN MENU - Learn AgentSharp from Basic to Advanced:</value>
+  </data>
+  <data name="MenuFoundations" xml:space="preserve">
+    <value>🌱 LEVEL 1: FOUNDATIONS - Basic Concepts</value>
+  </data>
+  <data name="MenuIntermediate" xml:space="preserve">
+    <value>🚀 LEVEL 2: INTERMEDIATE - Advanced Features</value>
+  </data>
+  <data name="MenuAdvanced" xml:space="preserve">
+    <value>⚡ LEVEL 3: ADVANCED - Complex Cases</value>
+  </data>
+  
+  <!-- Menu Options -->
+  <data name="MenuOption1" xml:space="preserve">
+    <value>1. 🎯 Simple Agent - First Interaction</value>
+  </data>
+  <data name="MenuOption2" xml:space="preserve">
+    <value>2. 🎭 Agent with Personality - Basic Customization</value>
+  </data>
+  <data name="MenuOption3" xml:space="preserve">
+    <value>3. 🔧 Agent with Tools - Integrated Features</value>
+  </data>
+  <data name="MenuOption4" xml:space="preserve">
+    <value>4. 🧠 Agent with Reasoning - Reasoning Chains</value>
+  </data>
+  <data name="MenuOption5" xml:space="preserve">
+    <value>5. 📊 Structured Outputs - Typed Data</value>
+  </data>
+  <data name="MenuOption6" xml:space="preserve">
+    <value>6. 💾 Agent with Memory - State Persistence</value>
+  </data>
+  <data name="MenuOption7" xml:space="preserve">
+    <value>7. 🔄 Multi-agent Workflows - Orchestration</value>
+  </data>
+  <data name="MenuOption8" xml:space="preserve">
+    <value>8. 🔍 Semantic Search - Embeddings and Vectors</value>
+  </data>
+  <data name="MenuOptionExit" xml:space="preserve">
+    <value>0. ❌ Exit</value>
+  </data>
+  
+  <!-- Prompts and Messages -->
+  <data name="MenuPrompt" xml:space="preserve">
+    <value>Enter your choice (0-8): </value>
+  </data>
+  <data name="InvalidOption" xml:space="preserve">
+    <value>❌ Invalid option. Try again (0-8).</value>
+  </data>
+  <data name="ContinuePrompt" xml:space="preserve">
+    <value>Press any key to continue...</value>
+  </data>
+  <data name="Goodbye" xml:space="preserve">
+    <value>👋 Thank you for using AgentSharp!</value>
+  </data>
+  
+  <!-- Execution -->
+  <data name="Executing" xml:space="preserve">
+    <value>🚀 Executing: {0}</value>
+  </data>
+  <data name="ExecutionTime" xml:space="preserve">
+    <value>⏱️ Execution time: {0:F2}s</value>
+  </data>
+  <data name="ExecutionError" xml:space="preserve">
+    <value>❌ Error executing example: {0}</value>
+  </data>
+  <data name="ErrorDetails" xml:space="preserve">
+    <value>🔍 Details: {0}</value>
+  </data>
+  <data name="FatalError" xml:space="preserve">
+    <value>❌ Fatal error: {0}</value>
+  </data>
+  
+  <!-- Telemetry Messages -->
+  <data name="TelemetryLLMStart" xml:space="preserve">
+    <value>⏳ LLM Request starting...</value>
+  </data>
+  <data name="TelemetryLLMComplete" xml:space="preserve">
+    <value>✅ LLM Response: {0:F2}s | Tokens: {1} | Cost: ~${2:F4}</value>
+  </data>
+  <data name="TelemetryMemoryOperation" xml:space="preserve">
+    <value>💾 Memory operation: {0} ({1:F2}s)</value>
+  </data>
+  <data name="TelemetryToolExecution" xml:space="preserve">
+    <value>🔧 Tool '{0}' executed: {1:F2}s</value>
+  </data>
+  
+  <!-- Example Names -->
+  <data name="ExampleSimpleAgent" xml:space="preserve">
+    <value>🎯 FOUNDATIONS: Simple Agent</value>
+  </data>
+  <data name="ExamplePersonalityAgent" xml:space="preserve">
+    <value>🎭 FOUNDATIONS: Agent with Personality</value>
+  </data>
+  <data name="ExampleToolsAgent" xml:space="preserve">
+    <value>🔧 FOUNDATIONS: Agent with Tools</value>
+  </data>
+  <data name="ExampleReasoningAgent" xml:space="preserve">
+    <value>🧠 INTERMEDIATE: Agent with Reasoning</value>
+  </data>
+  <data name="ExampleStructuredOutput" xml:space="preserve">
+    <value>📊 INTERMEDIATE: Structured Outputs</value>
+  </data>
+  <data name="ExampleMemoryAgent" xml:space="preserve">
+    <value>💾 INTERMEDIATE: Agent with Memory</value>
+  </data>
+  <data name="ExampleWorkflows" xml:space="preserve">
+    <value>🔄 ADVANCED: Multi-agent Workflows</value>
+  </data>
+  <data name="ExampleSemanticSearch" xml:space="preserve">
+    <value>🔍 ADVANCED: Semantic Search</value>
+  </data>
+</root>

@@ -20,13 +20,40 @@ namespace AgentSharp.Core
   public class Agent<TContext, TResult> : IAgentCtxChannel, IAgent
   {
     public string Name { get; }
-    public string description => _promptManager.BuildSystemPrompt(Context); // Para compatibilidade
+    public string description 
+    {
+        get
+        {
+            try
+            {
+                return _agentContext != null ? _promptManager.BuildSystemPrompt(Context) : Name ?? "Agent";
+            }
+            catch
+            {
+                return Name ?? "Agent";
+            }
+        }
+    } // Para compatibilidade
 
     private readonly PromptManager<TContext> _promptManager;
     private readonly ToolManager _toolManager;
     private readonly ExecutionEngine<TContext, TResult> _executionEngine;
     private readonly IModel _model;
     private readonly ILogger _logger;
+    private ITelemetryService _telemetry;
+    
+    // Static telemetry service for global injection
+    private static ITelemetryService _globalTelemetry;
+    
+    /// <summary>
+    /// Configures global telemetry service for all Agent instances
+    /// </summary>
+    /// <param name="telemetry">Telemetry service to use globally</param>
+    public static void ConfigureGlobalTelemetry(ITelemetryService telemetry)
+    {
+        _globalTelemetry = telemetry;
+    }
+    
    // Configuração do modelo (parâmetros, temperatura, etc.)
     private ModelConfiguration _modelConfig;
 
@@ -40,8 +67,12 @@ namespace AgentSharp.Core
     // Gestão avançada de memória
     private IMemoryManager _memoryManager;
 
+    // Serviços separados de memória
+    private IMessageHistoryService _messageHistoryService;
+    private ISemanticMemoryService _semanticMemoryService;
+
     // Serviço de armazenamento (pode ser InMemory, Sqlite, etc.)
-    private readonly IStorage _storage;
+    private IStorage _storage;
 
     // Estado do agente
     private AgentContext<TContext> _agentContext;
@@ -123,27 +154,41 @@ namespace AgentSharp.Core
           _logger.Log(LogLevel.Debug, $"Auto-configured structured extraction for type: {typeof(TResult).Name} (Temperature: {_modelConfig.Temperature})");
       }
 
-      // Configurar sistema de memória
-      _storage = storage ?? new InMemoryStorage();
-
-      // Se o storage for VectorSqliteStorage, usar o embedding service dele
-      IEmbeddingService embeddingService = new MockEmbeddingService();
-      if (storage is VectorSqliteStorage vectorStorage)
+      // 🎯 SEPARAÇÃO DE SERVIÇOS DE MEMÓRIA
+      // Por padrão, apenas message history básico (baixo custo)
+      _messageHistoryService = new BasicMessageHistoryService();
+      _semanticMemoryService = null; // Desabilitado por padrão
+      
+      // Storage legado mantido para compatibilidade (mas não usado por padrão)
+      _storage = storage; // null por padrão - sem armazenamento automático
+      
+      // MemoryManager só é criado se semantic memory estiver habilitado
+      if (storage != null)
       {
-          // TODO: Extrair o embedding service do VectorSqliteStorage se necessário
-          embeddingService = new MockEmbeddingService();
-      }
+          // Se o storage for SemanticSqliteStorage, usar o embedding service dele
+          IEmbeddingService embeddingService = new MockEmbeddingService();
+          if (storage is SemanticSqliteStorage vectorStorage)
+          {
+              // TODO: Extrair o embedding service do SemanticSqliteStorage se necessário
+              embeddingService = new MockEmbeddingService();
+          }
 
-      _memoryManager = memoryManager ?? new MemoryManager(
-          _storage,
-          _model,
-          _logger,
-          embeddingService,
-          _memoryDomainConfig);
+          _memoryManager = memoryManager ?? new MemoryManager(
+              _storage,
+              _model,
+              _logger,
+              embeddingService,
+              _memoryDomainConfig);
+      }
+      else
+      {
+          _memoryManager = null; // Sem semantic memory por padrão
+      }
 
       _promptManager = new PromptManager<TContext>();
       _toolManager = new ToolManager();
-      _executionEngine = new ExecutionEngine<TContext, TResult>(_model, _modelConfig, _logger, new InMemoryStore());
+      _telemetry = _globalTelemetry; // Use global telemetry if available
+      _executionEngine = new ExecutionEngine<TContext, TResult>(_model, _modelConfig, _logger, null, _telemetry);
 
       // Adicionar instruções iniciais se fornecidas
       if (!string.IsNullOrEmpty(instructions))
@@ -157,12 +202,13 @@ namespace AgentSharp.Core
     {
       _toolManager.RegisterAgentMethods(this);
 
-      // Registrar SmartMemoryToolPack por padrão
-      _toolManager.RegisterToolPack(new SmartMemoryToolPack());
-
-      // Disponibilizar MemoryManager para tools
-      if (_memoryManager != null)
+      // 🎯 REGISTRAR SmartMemoryToolPack APENAS SE SEMANTIC MEMORY ESTIVER ATIVO
+      // Evita custos desnecessários de processamento semântico
+      // Usa null-safe operator (?.) pois _semanticMemoryService é null por padrão (configuração zero-cost)
+      if (_memoryManager != null && _semanticMemoryService?.IsEnabled == true)
       {
+          _toolManager.RegisterToolPack(new SmartMemoryToolPack());
+          
           // TODO: Adicionar mecanismo para passar MemoryManager para tools
       }
     }
@@ -219,6 +265,58 @@ namespace AgentSharp.Core
 
           return this;
       }
+
+    /// <summary>
+    /// Enable semantic memory with advanced AI-powered memory features (incurs processing costs)
+    /// </summary>
+    public Agent<TContext, TResult> WithSemanticMemory(IStorage storage, IEmbeddingService embeddingService = null)
+    {
+        _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+        
+        // Replace NoOp with real semantic memory service
+        // TODO: Create real implementation that uses storage + MemoryManager
+        var realEmbeddingService = embeddingService ?? new MockEmbeddingService();
+        
+        _memoryManager = new MemoryManager(
+            _storage,
+            _model,
+            _logger,
+            realEmbeddingService,
+            _memoryDomainConfig);
+        
+        // Enable semantic memory service
+        _semanticMemoryService = new MemoryManagerSemanticService(_memoryManager);
+        
+        // Re-register tools with semantic memory enabled
+        registerTools();
+        
+        return this;
+    }
+
+    /// <summary>
+    /// Configure custom message history service (lightweight conversation logging)
+    /// </summary>
+    public Agent<TContext, TResult> WithMessageHistory(IMessageHistoryService historyService)
+    {
+        _messageHistoryService = historyService ?? throw new ArgumentNullException(nameof(historyService));
+        return this;
+    }
+
+    /// <summary>
+    /// Enable both semantic memory and custom message history
+    /// </summary>
+    public Agent<TContext, TResult> WithFullMemory(IStorage storage, IMessageHistoryService historyService = null, IEmbeddingService embeddingService = null)
+    {
+        WithSemanticMemory(storage, embeddingService);
+        
+        if (historyService != null)
+        {
+            WithMessageHistory(historyService);
+        }
+        
+        return this;
+    }
+
     public Agent<TContext, TResult> AddSystemPrompt(string prompt)
     {
       _promptManager.AddSystemPrompt(_ => prompt);
@@ -423,12 +521,7 @@ Com base nesta análise, forneça sua resposta final:";
         // === DELEGADO: Gerar resumo automático do histórico via MemoryManager ===
         string userId = GetUserIdFromContext();
         string sessionId = GetSessionIdFromContext();
-        _memoryManager.UserId = userId;
-        _memoryManager.SessionId = sessionId;
-
-        // Carregar contexto de memória
-        var memoryContext = await _memoryManager.LoadContextAsync(userId, sessionId);
-
+        
         // Construir mensagens base
         var systemPrompt = _promptManager.BuildSystemPrompt(Context);
         var baseMessages = new List<AIMessage>();
@@ -436,8 +529,25 @@ Com base nesta análise, forneça sua resposta final:";
           baseMessages.Add(AIMessage.System(systemPrompt));
         baseMessages.Add(AIMessage.User(finalPrompt));
 
-        // Enriquecer mensagens com memórias relevantes
-        var enhancedMessages = await _memoryManager.EnhanceMessagesAsync(baseMessages, memoryContext);
+        List<AIMessage> enhancedMessages;
+        
+        // 🎯 CONDICIONAL: Usar MemoryManager apenas se semantic memory estiver ativo
+        if (_memoryManager != null)
+        {
+            _memoryManager.UserId = userId;
+            _memoryManager.SessionId = sessionId;
+
+            // Carregar contexto de memória
+            var memoryContext = await _memoryManager.LoadContextAsync(userId, sessionId);
+            
+            // Enriquecer mensagens com memórias relevantes
+            enhancedMessages = await _memoryManager.EnhanceMessagesAsync(baseMessages, memoryContext);
+        }
+        else
+        {
+            // Usar apenas as mensagens básicas (baixo custo)
+            enhancedMessages = baseMessages;
+        }
 
         // Criar requisição usando ToolManager
         var request = new ModelRequest
@@ -455,7 +565,13 @@ Com base nesta análise, forneça sua resposta final:";
         // Processar interação para extrair memórias automaticamente
         var userMessage = AIMessage.User(finalPrompt);
         var assistantMessage = AIMessage.Assistant(executionResult.RawResponse.Content);
-        await _memoryManager.ProcessInteractionAsync(userMessage, assistantMessage, memoryContext);
+        
+        // 🎯 PROCESSAMENTO DE MEMÓRIA CONDICIONAL
+        if (_memoryManager != null)
+        {
+            var memoryContext = new MemoryContext { UserId = userId, SessionId = sessionId };
+            await _memoryManager.ProcessInteractionAsync(userMessage, assistantMessage, memoryContext);
+        }
 
         // Atualizar histórico local
         if (!string.IsNullOrEmpty(executionResult.RawResponse.Content))

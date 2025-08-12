@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <!-- generic common properties -->
+    <VstsBuildNumber>$(BUILD_BUILDNUMBER)</VstsBuildNumber>
+    <BuildLabel>$([System.Text.RegularExpressions.Regex]::Replace($(VstsBuildNumber), ".*(\d{4}\.\d{1,2}\.\d{1,2}\.\d+).*", "$1"))</BuildLabel>
+    <SourceVersion>$(BUILD_SOURCEVERSION)</SourceVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <NeutralLanguage>en</NeutralLanguage>
+    <AssemblyVersion>$(BuildLabel)</AssemblyVersion>
+    <FileVersion>$(BuildLabel)</FileVersion>
+    <AssemblyInformationalVersion>$(SourceVersion)</AssemblyInformationalVersion>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <!-- code analysis -->
+    <RunCodeAnalysisOnThisProject>false</RunCodeAnalysisOnThisProject>
+    <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <CodeAnalysisCulture>en-US</CodeAnalysisCulture>
+    <!-- Desabilitar StyleCop -->
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringLiveAnalysis>false</RunAnalyzersDuringLiveAnalysis>
+    <AnalysisLevel>none</AnalysisLevel>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <!-- system level packages -->
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
+  </ItemGroup>
+</Project>

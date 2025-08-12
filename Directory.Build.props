@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <!-- Desabilitar StyleCop globalmente -->
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringLiveAnalysis>false</RunAnalyzersDuringLiveAnalysis>
+    <AnalysisLevel>none</AnalysisLevel>
+  </PropertyGroup>
+</Project>

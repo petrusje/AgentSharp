@@ -1,5 +1,6 @@
 using AgentSharp.Core;
 using AgentSharp.Core.Memory.Services;
+using AgentSharp.Core.Memory.Services.HNSW;
 using AgentSharp.Models;
 using AgentSharp.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -24,7 +25,7 @@ namespace AgentSharp.Tests.Core
         public async Task Agent_WithAnonymousMode_ShouldGenerateUserIdAndSessionId()
         {
             // Arrange
-            var storage = new InMemoryStorage();
+            var storage = new SemanticSqliteStorage("Data Source=:memory:", new OpenAIEmbeddingService("test", "https://test"), 1536);
             var agent = new Agent<object, string>(_mockModel, "AnonymousAgent", storage: storage)
                 .WithAnonymousMode(true);
 
@@ -45,7 +46,7 @@ namespace AgentSharp.Tests.Core
         public async Task Agent_WithAnonymousModeAndContext_ShouldUseProvidedIds()
         {
             // Arrange
-            var storage = new InMemoryStorage();
+            var storage = new SemanticSqliteStorage("Data Source=:memory:", new OpenAIEmbeddingService("test", "https://test"), 1536);
             var context = new TestContextWithIds { UserId = "user123", SessionId = "session456" };
 
             var agent = new Agent<TestContextWithIds, string>(_mockModel, "AnonymousAgent", storage: storage)
@@ -67,7 +68,7 @@ namespace AgentSharp.Tests.Core
         public async Task Agent_WithoutAnonymousMode_ShouldUseDefaultIds()
         {
             // Arrange
-            var storage = new InMemoryStorage();
+            var storage = new SemanticSqliteStorage("Data Source=:memory:", new OpenAIEmbeddingService("test", "https://test"), 1536);
             var agent = new Agent<object, string>(_mockModel, "RegularAgent", storage: storage);
 
             // Act
@@ -85,7 +86,7 @@ namespace AgentSharp.Tests.Core
         public async Task Agent_AnonymousMode_ConsistentIdsAcrossRequests()
         {
             // Arrange
-            var storage = new InMemoryStorage();
+            var storage = new SemanticSqliteStorage("Data Source=:memory:", new OpenAIEmbeddingService("test", "https://test"), 1536);
             var agent = new Agent<object, string>(_mockModel, "ConsistentAgent", storage: storage)
                 .WithAnonymousMode(true);
 
@@ -104,7 +105,7 @@ namespace AgentSharp.Tests.Core
         public async Task Agent_AnonymousMode_MemoryManagerShouldHaveCorrectIds()
         {
             // Arrange
-            var storage = new InMemoryStorage();
+            var storage = new SemanticSqliteStorage("Data Source=:memory:", new OpenAIEmbeddingService("test", "https://test"), 1536);
             var agent = new Agent<object, string>(_mockModel, "MemoryAgent", storage: storage)
                 .WithAnonymousMode(true);
 
@@ -123,7 +124,7 @@ namespace AgentSharp.Tests.Core
         public async Task Agent_AnonymousMode_WithPartialContext_ShouldGenerateSession()
         {
             // Arrange
-            var storage = new InMemoryStorage();
+            var storage = new SemanticSqliteStorage("Data Source=:memory:", new OpenAIEmbeddingService("test", "https://test"), 1536);
             var context = new TestContextWithIds { UserId = "provided_user" }; // SessionId missing
 
             var agent = new Agent<TestContextWithIds, string>(_mockModel, "PartialAgent", storage: storage)

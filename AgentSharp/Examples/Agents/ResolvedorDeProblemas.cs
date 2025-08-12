@@ -40,6 +40,8 @@ Use sempre as ferramentas de raciocínio para mostrar seu processo mental!")
     [FunctionCallParameter("contexto", "Contexto adicional ou restrições do problema")]
     private string AnalisarProblema(string problema, string contexto = "")
     {
+      // Contexto adicional pode incluir restrições, objetivos ou informações relevantes
+      // aqui está fixo para proposito de demonstração
       return $@"
 🧠 ANÁLISE ESTRUTURADA DO PROBLEMA
 ═══════════════════════════════════
@@ -84,6 +86,8 @@ Use sempre as ferramentas de raciocínio para mostrar seu processo mental!")
       return $@"
 💡 SOLUÇÕES PRIORIZADAS
 ═══════════════════════
+a partir da análise do problema
+{analise}
 
 🚀 AÇÕES IMEDIATAS (0-30 dias):
 • Implementar pesquisa de cancelamento NPS

@@ -13,13 +13,20 @@ namespace AgentSharp.Tests.Memory
     public class MemoryManagerDomainConfigTests
     {
     private readonly MockModel _mockModel;
-    private readonly InMemoryStorage _storage;
+    private readonly SemanticSqliteStorage _storage;
     private readonly ConsoleLogger _logger;
 
         public MemoryManagerDomainConfigTests()
         {
             _mockModel = new MockModel();
-            _storage = new InMemoryStorage();
+            
+            // Create an embedding service for testing
+            var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? "test-key";
+            var endpoint = Environment.GetEnvironmentVariable("OPENAI_ENDPOINT") ?? "https://proxy.dta.totvs.ai/";
+            var embeddingService = new OpenAIEmbeddingService(apiKey, endpoint);
+            
+            // Use in-memory SQLite database for testing
+            _storage = new SemanticSqliteStorage("Data Source=:memory:", embeddingService, 1536);
             _logger = new ConsoleLogger();
         }
 

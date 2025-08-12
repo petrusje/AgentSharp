@@ -6,9 +6,12 @@ bin/
 obj/
 .vs/
 .vscode/
-.claude/                 
+.claude/
+.sonarqube/
 AdvancedExamples/
 .DS_Store
 specs/     
 refs/
-
+*.db
+*/*.db
+*/*.tar

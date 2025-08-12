@@ -60,6 +60,18 @@ namespace AgentSharp.Models
     private readonly OpenAIClient _client;
     private readonly string _modelName;
 
+    // Static telemetry service for global instrumentation
+    private static ITelemetryService _globalTelemetry;
+
+    /// <summary>
+    /// Configures global telemetry service for all OpenAIModel instances
+    /// </summary>
+    /// <param name="telemetry">Telemetry service to use globally</param>
+    public static void ConfigureGlobalTelemetry(ITelemetryService telemetry)
+    {
+        _globalTelemetry = telemetry;
+    }
+
     /// <summary>
     /// Helper class to maintain streaming state, allowing asynchronous methods
     /// to modify values without needing ref parameters (not supported in .NET Standard 2.0).
@@ -161,7 +173,9 @@ namespace AgentSharp.Models
         Logger.Debug($"Starting request to model {_modelName} with {request.Messages.Count} messages and {request.Tools.Count} tools");
 
         // Use RetryHelper for retries in case of network failures
-        return await GenerateResponseInternalAsync(request, config, cancellationToken);
+        var response = await GenerateResponseInternalAsync(request, config, cancellationToken);
+
+        return response;
       }
       catch (Exception ex)
       {
@@ -190,8 +204,23 @@ namespace AgentSharp.Models
       var nativeMessages = ConvertToNativeMessages(request.Messages);
       var chatRequest = CreateChatRequest(request, config);
 
-      // First call to get initial response
+      // Telemetry: Track only the actual OpenAI API call time
+      string llmOperationId = null;
+      if (_globalTelemetry?.IsEnabled == true)
+      {
+          llmOperationId = $"llm_{Guid.NewGuid():N}";
+          _globalTelemetry.TrackLLMRequest(llmOperationId);
+      }
+
+      // First call to get initial response - PURE API CALL TIME
       ChatCompletion response = await _client.GetChatClient(_modelName).CompleteChatAsync(nativeMessages, chatRequest, cancellationToken);
+
+      // Telemetry: Complete immediately after API call
+      if (_globalTelemetry?.IsEnabled == true && !string.IsNullOrEmpty(llmOperationId))
+      {
+          var tokenCount = (response?.Usage?.InputTokenCount ?? 0) + (response?.Usage?.OutputTokenCount ?? 0);
+          _globalTelemetry.CompleteLLMRequest(llmOperationId, tokenCount, tokenCount);
+      }
 
       var modelResponse = new ModelResponse();
 
@@ -488,8 +517,23 @@ namespace AgentSharp.Models
     {
       Logger.Debug("Sending second request with tool results");
 
+      // Telemetry: Track the follow-up API call after tools
+      string followUpOperationId = null;
+      if (_globalTelemetry?.IsEnabled == true)
+      {
+          followUpOperationId = $"llm_{Guid.NewGuid():N}";
+          _globalTelemetry.TrackLLMRequest(followUpOperationId);
+      }
+
       var chatRequest = CreateChatRequestOptions(config);
       ChatCompletion finalResponse = await _client.GetChatClient(_modelName).CompleteChatAsync(nativeMessages, chatRequest, cancellationToken);
+
+      // Telemetry: Complete follow-up API call
+      if (_globalTelemetry?.IsEnabled == true && !string.IsNullOrEmpty(followUpOperationId))
+      {
+          var followUpTokenCount = (finalResponse?.Usage?.InputTokenCount ?? 0) + (finalResponse?.Usage?.OutputTokenCount ?? 0);
+          _globalTelemetry.CompleteLLMRequest(followUpOperationId, followUpTokenCount, followUpTokenCount);
+      }
 
       // Update final response content
       if (finalResponse.Content.Count > 0)

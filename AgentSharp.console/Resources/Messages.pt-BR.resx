@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  
+  <!-- Application Header -->
+  <data name="AppTitle" xml:space="preserve">
+    <value>🤖 AgentSharp - EXEMPLOS PRÁTICOS</value>
+  </data>
+  <data name="AppSubtitle" xml:space="preserve">
+    <value>Sistema de Aprendizado Interativo</value>
+  </data>
+  
+  <!-- Language Selection -->
+  <data name="SelectLanguage" xml:space="preserve">
+    <value>Selecione seu idioma / Select your language:</value>
+  </data>
+  <data name="LanguageEnglish" xml:space="preserve">
+    <value>1. English (US)</value>
+  </data>
+  <data name="LanguagePortuguese" xml:space="preserve">
+    <value>2. Português (BR)</value>
+  </data>
+  <data name="LanguagePrompt" xml:space="preserve">
+    <value>Escolha (1-2): </value>
+  </data>
+  
+  <!-- Configuration -->
+  <data name="TelemetryPrompt" xml:space="preserve">
+    <value>Ativar telemetria (tempo detalhado)? (s/n): </value>
+  </data>
+  <data name="TelemetryEnabled" xml:space="preserve">
+    <value>✅ Telemetria ativada - tempo detalhado será exibido</value>
+  </data>
+  <data name="TelemetryDisabled" xml:space="preserve">
+    <value>📊 Telemetria desativada - apenas tempo básico será exibido</value>
+  </data>
+  
+  <!-- API Configuration -->
+  <data name="ApiKeyFound" xml:space="preserve">
+    <value>✅ API Key encontrada! Endpoint: {0}</value>
+  </data>
+  <data name="ApiKeyError" xml:space="preserve">
+    <value>❌ Erro: Variável de ambiente OPENAI_API_KEY não configurada!</value>
+  </data>
+  <data name="ApiKeyInstructions1" xml:space="preserve">
+    <value>   1. Copie o arquivo env.example para .env</value>
+  </data>
+  <data name="ApiKeyInstructions2" xml:space="preserve">
+    <value>   2. Edite o arquivo .env com sua chave da OpenAI</value>
+  </data>
+  <data name="ApiKeyInstructions3" xml:space="preserve">
+    <value>   3. Execute novamente o programa</value>
+  </data>
+  <data name="EnvFileLocation" xml:space="preserve">
+    <value>   Arquivo .env deve estar em: {0}</value>
+  </data>
+  
+  <!-- Model Initialization -->
+  <data name="ModelInitialized" xml:space="preserve">
+    <value>✅ Modelo OpenAI inicializado com sucesso!</value>
+  </data>
+  <data name="ModelDetails" xml:space="preserve">
+    <value>   Modelo: {0} | Temp: {1} | Max Tokens: {2}</value>
+  </data>
+  
+  <!-- Menu Categories -->
+  <data name="MenuTitle" xml:space="preserve">
+    <value>📋 MENU PRINCIPAL - Aprenda AgentSharp do Básico ao Avançado:</value>
+  </data>
+  <data name="MenuFoundations" xml:space="preserve">
+    <value>🌱 NÍVEL 1: FUNDAMENTOS - Conceitos Básicos</value>
+  </data>
+  <data name="MenuIntermediate" xml:space="preserve">
+    <value>🚀 NÍVEL 2: INTERMEDIÁRIO - Recursos Avançados</value>
+  </data>
+  <data name="MenuAdvanced" xml:space="preserve">
+    <value>⚡ NÍVEL 3: AVANÇADO - Casos Complexos</value>
+  </data>
+  
+  <!-- Menu Options -->
+  <data name="MenuOption1" xml:space="preserve">
+    <value>1. 🎯 Agente Simples - Primeira Interação</value>
+  </data>
+  <data name="MenuOption2" xml:space="preserve">
+    <value>2. 🎭 Agente com Personalidade - Customização Básica</value>
+  </data>
+  <data name="MenuOption3" xml:space="preserve">
+    <value>3. 🔧 Agente com Tools - Ferramentas Integradas</value>
+  </data>
+  <data name="MenuOption4" xml:space="preserve">
+    <value>4. 🧠 Agente com Raciocínio - Cadeias de Reasoning</value>
+  </data>
+  <data name="MenuOption5" xml:space="preserve">
+    <value>5. 📊 Outputs Estruturados - Dados Tipados</value>
+  </data>
+  <data name="MenuOption6" xml:space="preserve">
+    <value>6. 💾 Agente com Memória - Persistência de Estado</value>
+  </data>
+  <data name="MenuOption7" xml:space="preserve">
+    <value>7. 🔄 Workflows Multi-agente - Orquestração</value>
+  </data>
+  <data name="MenuOption8" xml:space="preserve">
+    <value>8. 🔍 Busca Semântica - Embeddings e Vetores</value>
+  </data>
+  <data name="MenuOptionExit" xml:space="preserve">
+    <value>0. ❌ Sair</value>
+  </data>
+  
+  <!-- Prompts and Messages -->
+  <data name="MenuPrompt" xml:space="preserve">
+    <value>Digite sua escolha (0-8): </value>
+  </data>
+  <data name="InvalidOption" xml:space="preserve">
+    <value>❌ Opção inválida. Tente novamente (0-8).</value>
+  </data>
+  <data name="ContinuePrompt" xml:space="preserve">
+    <value>Pressione qualquer tecla para continuar...</value>
+  </data>
+  <data name="Goodbye" xml:space="preserve">
+    <value>👋 Obrigado por usar AgentSharp!</value>
+  </data>
+  
+  <!-- Execution -->
+  <data name="Executing" xml:space="preserve">
+    <value>🚀 Executando: {0}</value>
+  </data>
+  <data name="ExecutionTime" xml:space="preserve">
+    <value>⏱️ Tempo de execução: {0:F2}s</value>
+  </data>
+  <data name="ExecutionError" xml:space="preserve">
+    <value>❌ Erro ao executar exemplo: {0}</value>
+  </data>
+  <data name="ErrorDetails" xml:space="preserve">
+    <value>🔍 Detalhes: {0}</value>
+  </data>
+  <data name="FatalError" xml:space="preserve">
+    <value>❌ Erro fatal: {0}</value>
+  </data>
+  
+  <!-- Telemetry Messages -->
+  <data name="TelemetryLLMStart" xml:space="preserve">
+    <value>⏳ Solicitação LLM iniciando...</value>
+  </data>
+  <data name="TelemetryLLMComplete" xml:space="preserve">
+    <value>✅ Resposta LLM: {0:F2}s | Tokens: {1} | Custo: ~${2:F4}</value>
+  </data>
+  <data name="TelemetryMemoryOperation" xml:space="preserve">
+    <value>💾 Operação memória: {0} ({1:F2}s)</value>
+  </data>
+  <data name="TelemetryToolExecution" xml:space="preserve">
+    <value>🔧 Tool '{0}' executada: {1:F2}s</value>
+  </data>
+  
+  <!-- Example Names -->
+  <data name="ExampleSimpleAgent" xml:space="preserve">
+    <value>🎯 FUNDAMENTOS: Agente Simples</value>
+  </data>
+  <data name="ExamplePersonalityAgent" xml:space="preserve">
+    <value>🎭 FUNDAMENTOS: Agente com Personalidade</value>
+  </data>
+  <data name="ExampleToolsAgent" xml:space="preserve">
+    <value>🔧 FUNDAMENTOS: Agente com Tools</value>
+  </data>
+  <data name="ExampleReasoningAgent" xml:space="preserve">
+    <value>🧠 INTERMEDIÁRIO: Agente com Raciocínio</value>
+  </data>
+  <data name="ExampleStructuredOutput" xml:space="preserve">
+    <value>📊 INTERMEDIÁRIO: Outputs Estruturados</value>
+  </data>
+  <data name="ExampleMemoryAgent" xml:space="preserve">
+    <value>💾 INTERMEDIÁRIO: Agente com Memória</value>
+  </data>
+  <data name="ExampleWorkflows" xml:space="preserve">
+    <value>🔄 AVANÇADO: Workflows Multi-agente</value>
+  </data>
+  <data name="ExampleSemanticSearch" xml:space="preserve">
+    <value>🔍 AVANÇADO: Busca Semântica</value>
+  </data>
+</root>

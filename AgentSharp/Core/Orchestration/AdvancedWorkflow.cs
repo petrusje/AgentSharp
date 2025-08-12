@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AgentSharp.Core.Memory;
+using AgentSharp.Core.Memory.Services;
 using AgentSharp.Core;
 using AgentSharp.Models;
 using AgentSharp.Utils;
@@ -24,7 +25,6 @@ namespace AgentSharp.Core.Orchestration
     private bool _hasInstructions = false;
     private volatile bool _isExecuting = false;
     private bool _debugMode = false;
-    private bool _enableTelemetry = true;
 
     // Sessão e estado
     private WorkflowSession _session;
@@ -72,7 +72,7 @@ namespace AgentSharp.Core.Orchestration
           if (_session != null)
           {
             var context = _session.GetState<TContext>("current_context");
-            return context != null ? _promptManager.BuildSystemPrompt(context) : string.Empty;
+            return !Equals(context, default(TContext)) ? _promptManager.BuildSystemPrompt(context) : string.Empty;
           }
           return string.Empty;
         }
@@ -84,7 +84,7 @@ namespace AgentSharp.Core.Orchestration
     {
       WorkflowId = Guid.NewGuid().ToString("N");
       _promptManager = new PromptManager<TContext>();
-      _memory = memory ?? new InMemoryStore();
+      _memory = memory;
 
       // Criar sessão inicial
       CreateNewSession();
@@ -115,11 +115,6 @@ namespace AgentSharp.Core.Orchestration
       return this;
     }
 
-    public AdvancedWorkflow<TContext, TResult> WithTelemetry(bool enabled = true)
-    {
-      _enableTelemetry = enabled;
-      return this;
-    }
 
     public AdvancedWorkflow<TContext, TResult> WithMemory(IMemory memory)
     {
@@ -283,7 +278,7 @@ namespace AgentSharp.Core.Orchestration
 
         try
         {
-          await ExecuteStepAsync(step, context, messages, i, executionContext, cancellationToken);
+          await ExecuteStepAsync(step, context, messages, i, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -302,7 +297,7 @@ namespace AgentSharp.Core.Orchestration
       return context;
     }
 
-    private async Task ExecuteStepAsync(WorkflowStep step, TContext context, List<AIMessage> messages, int stepIndex, ExecutionContext executionContext, CancellationToken cancellationToken)
+    private async Task ExecuteStepAsync(WorkflowStep step, TContext context, List<AIMessage> messages, int stepIndex, CancellationToken cancellationToken)
     {
       var stepStartTime = DateTime.UtcNow;
 

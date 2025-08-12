@@ -1,309 +1,409 @@
-using AgentSharp.Examples;
-using AgentSharp.console;
-using AgentSharp.Models;
-using AgentSharp.Utils;
-using DotNetEnv;
-
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using DotNetEnv;
+using AgentSharp.Examples;
+using AgentSharp.Models;
+using AgentSharp.Utils;
+using AgentSharp.console.Services;
 
 namespace Agents_console
 {
-  class Program
-  {
-    static readonly ConsoleObj _consoleObj = new();
-
-    static async Task Main(string[] args)
+    /// <summary>
+    /// AgentSharp Console Application - Educational Examples
+    /// 
+    /// This application provides a structured learning path for AgentSharp framework,
+    /// progressing from basic concepts to advanced use cases.
+    /// 
+    /// Features:
+    /// - Multilingual support (en-US, pt-BR)
+    /// - Configurable telemetry for performance monitoring
+    /// - Clean, didactic menu structure
+    /// - Progressive learning path from foundations to advanced concepts
+    /// </summary>
+    class Program
     {
-      Env.TraversePath().Load();
+        private static readonly ConsoleObj _consoleObj = new();
+        private static LocalizationService _localization = new();
+        private static TelemetryService _telemetry;
 
-      Console.OutputEncoding = System.Text.Encoding.UTF8;
-      DisplayWelcomeMessage();
-
-      var (apiKey, endpoint) = GetApiKeyAndEndpoint(args);
-      if (string.IsNullOrWhiteSpace(apiKey))
-      {
-        DisplayApiKeyError();
-        return;
-      }
-
-      Console.WriteLine($"✅ API Key encontrada! Endpoint: {endpoint}");
-
-      try
-      {
-        var modelOptions = GetModelOptions(apiKey, endpoint);
-        IModel modelo = InitializeModel(modelOptions);
-        await DisplayMenu(modelo);
-      }
-      catch (Exception ex)
-      {
-        DisplayFatalError(ex);
-      }
-    }
-
-    private static void DisplayWelcomeMessage()
-    {
-      _consoleObj.WithColor(ConsoleColor.Cyan)
-        .WriteLine("╔══════════════════════════════════════════════════════════════╗")
-        .WriteLine("║              🤖 AgentSharp - EXEMPLOS PRÁTICOS               ║")
-        .WriteLine("║                Sistema de Demonstração Interativo            ║")
-        .WriteLine("╚══════════════════════════════════════════════════════════════╝")
-        .ResetColor();
-    }
-
-    private static (string apiKey, string endpoint) GetApiKeyAndEndpoint(string[] args)
-    {
-      const string OPENAI_API_KEY = "OPENAI_API_KEY";
-      const string OPENAI_ENDPOINT = "OPENAI_ENDPOINT";
-      const char VALUE_DELIMITER = '=';
-
-      var argKey = args.FirstOrDefault(x => x.StartsWith($"{OPENAI_API_KEY}{VALUE_DELIMITER}", StringComparison.OrdinalIgnoreCase));
-      var argEndpoint = args.FirstOrDefault(x => x.StartsWith($"{OPENAI_ENDPOINT}{VALUE_DELIMITER}", StringComparison.OrdinalIgnoreCase));
-      if (!string.IsNullOrWhiteSpace(argKey) && !string.IsNullOrWhiteSpace(argEndpoint))
-      {
-        var keyValue = argKey.Split(VALUE_DELIMITER).LastOrDefault();
-        var endpointValue = argEndpoint.Split(VALUE_DELIMITER).LastOrDefault();
-        if (!string.IsNullOrWhiteSpace(keyValue) && !string.IsNullOrWhiteSpace(endpointValue))
-          return (keyValue, endpointValue);
-      }
-
-      var apiKey = Environment.GetEnvironmentVariable(OPENAI_API_KEY);
-      var endpoint = Environment.GetEnvironmentVariable(OPENAI_ENDPOINT) ?? "https://proxy.dta.totvs.ai/";
-      return (apiKey, endpoint);
-    }
-
-    private static void DisplayApiKeyError()
-    {
-      _consoleObj.WithColor(ConsoleColor.Red)
-        .WriteLine("❌ Erro: Variável de ambiente OPENAI_API_KEY não configurada!")
-        .WriteLine("   1. Copie o arquivo env.example para .env")
-        .WriteLine("   2. Edite o arquivo .env com sua chave da OpenAI")
-        .WriteLine("   3. Execute novamente o programa")
-        .WriteLine($"   Arquivo .env deve estar em: {System.IO.Directory.GetCurrentDirectory()}")
-        .ResetColor();
-    }
-
-    private static ModelOptions GetModelOptions(string apiKey, string endpoint)
-    {
-      var modelName = Environment.GetEnvironmentVariable("MODEL_NAME") ?? "gpt-4o-mini";
-      var temperature = double.TryParse(Environment.GetEnvironmentVariable("TEMPERATURE"), out var temp) ? temp : 0.7;
-      var maxTokens = int.TryParse(Environment.GetEnvironmentVariable("MAX_TOKENS"), out var tokens) ? tokens : 2048;
-
-      Console.WriteLine($"🔧 Debug: Using model name = '{modelName}'");
-
-      return new ModelOptions
-      {
-        ModelName = modelName,
-        ApiKey = apiKey,
-        Endpoint = endpoint,
-        DefaultConfiguration = new ModelConfiguration
+        static async Task Main(string[] args)
         {
-          Temperature = temperature,
-          MaxTokens = maxTokens
-        }
-      };
-    }
+            try
+            {
+                // Initialize environment and services
+                await InitializeApplication();
 
-    private static IModel InitializeModel(ModelOptions modelOptions)
-    {
-      var modelFactory = new ModelFactory();
-      IModel modelo = modelFactory.CreateModel("openai", modelOptions);
-      _consoleObj.WithColor(ConsoleColor.Green)
-        .WriteLine("✅ Modelo OpenAI inicializado com sucesso!")
-        .WriteLine($"   Modelo: {modelOptions.ModelName} | Temp: {modelOptions.DefaultConfiguration.Temperature} | Max Tokens: {modelOptions.DefaultConfiguration.MaxTokens}")
-        .ResetColor();
-      return modelo;
-    }
+                // Configure user preferences
+                ConfigureUserPreferences();
 
-    static async Task DisplayMenu(IModel modelo)
-    {
-      while (true)
-      {
-        DisplayMenuOptions();
+                // Validate API configuration
+                var (apiKey, endpoint) = GetApiKeyAndEndpoint(args);
+                if (string.IsNullOrWhiteSpace(apiKey))
+                {
+                    DisplayApiKeyError();
+                    return;
+                }
 
-        var userChoice = Console.ReadLine();
-        Console.WriteLine();
+                Console.WriteLine(_localization.GetString("ApiKeyFound", endpoint));
 
-        if (!await ProcessUserChoice(userChoice, modelo))
-        {
-          break;
+                // Initialize AI model
+                var modelo = InitializeModel(apiKey, endpoint);
+
+                // Configure global telemetry for all agents and models
+                AgentSharp.Core.Agent<object, object>.ConfigureGlobalTelemetry(_telemetry);
+                AgentSharp.Models.OpenAIModel.ConfigureGlobalTelemetry(_telemetry);
+
+                // Start main application loop
+                await RunMainLoop(modelo);
+            }
+            catch (Exception ex)
+            {
+                DisplayFatalError(ex);
+            }
         }
 
-        Console.WriteLine();
-        Console.WriteLine("Pressione qualquer tecla para continuar...");
-        Console.ReadKey(true);
-        Console.Clear();
-      }
-    }
-
-    private static async Task<bool> ProcessUserChoice(string choice, IModel modelo)
-    {
-      try
-      {
-        switch (choice)
+        /// <summary>
+        /// Initializes the application environment and loads configuration
+        /// </summary>
+        private static async Task InitializeApplication()
         {
-          // NÍVEL 1: FUNDAMENTOS
-          case "1":
-            await ExecuteExample("🎯 FUNDAMENTOS: Agente Simples", () => ExemplosBasicos.ExecutarAgenteSimples(modelo));
-            break;
-          case "2":
-            await ExecuteExample("🎭 FUNDAMENTOS: Agente com Personalidade", () => ExemplosBasicos.ExecutarJornalistaMineiro(modelo));
-            break;
-          case "3":
-            await ExecuteExample("🔧 FUNDAMENTOS: Agente com Tools", () => ExemplosBasicos.ExecutarReporterComFerramentas(modelo));
-            break;
-          // NÍVEL 2: INTERMEDIÁRIO
-          case "4":
-            await ExecuteExample("🧠 INTERMEDIÁRIO: Agente com Raciocínio", () => ExemplosRaciocinio.ExecutarResolvedorProblemas(modelo));
-            break;
-          case "5":
-            await ExecuteExample("📊 INTERMEDIÁRIO: Outputs Estruturados", () => ExemplosStructured.ExecutarAnaliseDocumento(modelo));
-            break;
-          case "6":
-            await ExecuteExample("💾 INTERMEDIÁRIO: Agente com Memória", () => ExemplosMemoria.ExecutarAssistentePessoal(modelo));
-            break;
-          // NÍVEL 3: AVANÇADO
-          case "7":
-            await ExecuteExample("🔄 AVANÇADO: Workflows Multi-agente", () => ExemplosWorkflow.ExecutarWorkflowCompleto(modelo));
-            break;
-          case "8":
-            await ExecuteExample("🔍 AVANÇADO: Busca Semântica", () => VectorMemoryExample.ExecutarAssistenteComEmbeddings(modelo));
-            break;
-          case "9":
-            await ExecuteExample("🏢 AVANÇADO: Sistema Empresarial Completo", () => ExemplosBasicos.ExecutarAnalistaFinanceiroRealData(modelo));
-            break;
-          // EXEMPLOS ESPECIALIZADOS (10-20)
-          case "10":
-            await ExecuteExample("🤖 ESPECIALIZADO: Assistente Pessoal com Memória", () => ExemplosMemoria.ExecutarAssistentePessoal(modelo));
-            break;
-          case "11":
-            await ExecuteExample("🔧 ESPECIALIZADO: Consultor Técnico com Conhecimento", () => ExemplosMemoria.ExecutarConsultorTecnico(modelo));
-            break;
-          case "12":
-            await ExecuteExample("🛠️ ESPECIALIZADO: LLM Gerenciando Memórias", () => ExemplosMemoria.ExecutarDemonstracaoMemoryTools(modelo));
-            break;
-          case "13":
-            await ExecuteExample("📊 ESPECIALIZADO: Comparação Storage Providers", () => ExemplosMemoria.ExecutarComparacaoStorage(modelo));
-            break;
-          case "14":
-            await ExecuteExample("🏥 ESPECIALIZADO: Assistente Médico Customizado", () => ExemplosMemoria.ExecutarAssistenteMedicoCustomizado(modelo));
-            break;
-          case "15":
-            await ExecuteExample("⚖️ ESPECIALIZADO: Consultor Jurídico Especializado", () => ExemplosMemoria.ExecutarConsultorJuridico(modelo));
-            break;
-          case "16":
-            await ExecuteExample("🎭 ESPECIALIZADO: Modo Anônimo - IDs Automáticos", () => ExemplosMemoria.ExecutarModoAnonimo(modelo));
-            break;
-          case "17":
-            await ExecuteExample("🔍 ESPECIALIZADO: Busca Semântica Avançada", () => VectorMemoryExample.ExecutarAssistenteComEmbeddings(modelo));
-            break;
-          case "18":
-            await ExecuteExample("📊 ESPECIALIZADO: Comparação Busca Textual vs Semântica", () => VectorMemoryExample.CompararBuscaTextualVsSemantica(modelo));
-            break;
-          case "19":
-            await ExecuteExample("🚀 MODERNO: Busca Vetorial com sqlite-vec", () => VectorVecExample.ExecutarMenuVectorVec());
-            break;
-          case "20":
-            await ExecuteExample("⚡ MODERNO: Exemplos Avançados sqlite-vec", () => VectorVecExample.ExecutarMenuAvancadoVectorVec());
-            break;
-          case "21":
-            SqliteVecInstallationHelper.CheckAndGuideInstallation();
-            break;
-          case "22":
-            SqliteVecInstallationHelper.ShowInstallationGuide();
-            break;
-          case "0":
-            Console.WriteLine("👋 Obrigado por usar AgentSharp!");
-            return false;
-          default:
-            Console.WriteLine("❌ Opção inválida. Tente novamente (0-22).");
-            break;
+            // Load environment variables
+            Env.TraversePath().Load();
+            
+            // Set console encoding for proper emoji/unicode display
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            
+            // Display welcome header
+            DisplayWelcomeHeader();
+            
+            await Task.CompletedTask;
         }
-      }
-      catch (Exception ex)
-      {
-        Console.WriteLine($"❌ Erro ao executar exemplo: {ex.Message}");
-        Console.WriteLine($"🔍 Detalhes: {ex}");
-      }
 
-      return true; // Continuar no loop
+        /// <summary>
+        /// Configures user preferences for language and telemetry
+        /// </summary>
+        private static void ConfigureUserPreferences()
+        {
+            // Language selection
+            _localization.PromptForLanguageSelection();
+            
+            // Initialize telemetry with localization support
+            _telemetry = new TelemetryService(_localization);
+            
+            // Configure telemetry
+            _telemetry.PromptForTelemetryConfiguration();
+        }
+
+        /// <summary>
+        /// Displays the application welcome header
+        /// </summary>
+        private static void DisplayWelcomeHeader()
+        {
+            _consoleObj.WithColor(ConsoleColor.Cyan)
+                .WriteLine("╔══════════════════════════════════════════════════════════════╗")
+                .WriteLine("║              🤖 AgentSharp - PRACTICAL EXAMPLES              ║")
+                .WriteLine("║                Interactive Learning System                    ║")
+                .WriteLine("╚══════════════════════════════════════════════════════════════╝")
+                .ResetColor();
+        }
+
+        /// <summary>
+        /// Retrieves API key and endpoint from arguments or environment variables
+        /// </summary>
+        private static (string apiKey, string endpoint) GetApiKeyAndEndpoint(string[] args)
+        {
+            const string OPENAI_API_KEY = "OPENAI_API_KEY";
+            const string OPENAI_ENDPOINT = "OPENAI_ENDPOINT";
+            const char VALUE_DELIMITER = '=';
+
+            // Check command line arguments first
+            var argKey = args.FirstOrDefault(x => x.StartsWith($"{OPENAI_API_KEY}{VALUE_DELIMITER}", StringComparison.OrdinalIgnoreCase));
+            var argEndpoint = args.FirstOrDefault(x => x.StartsWith($"{OPENAI_ENDPOINT}{VALUE_DELIMITER}", StringComparison.OrdinalIgnoreCase));
+            
+            if (!string.IsNullOrWhiteSpace(argKey) && !string.IsNullOrWhiteSpace(argEndpoint))
+            {
+                var keyValue = argKey.Split(VALUE_DELIMITER).LastOrDefault();
+                var endpointValue = argEndpoint.Split(VALUE_DELIMITER).LastOrDefault();
+                if (!string.IsNullOrWhiteSpace(keyValue) && !string.IsNullOrWhiteSpace(endpointValue))
+                    return (keyValue, endpointValue);
+            }
+
+            // Fall back to environment variables
+            var apiKey = Environment.GetEnvironmentVariable(OPENAI_API_KEY);
+            var endpoint = Environment.GetEnvironmentVariable(OPENAI_ENDPOINT) ?? "https://proxy.dta.totvs.ai/";
+            return (apiKey, endpoint);
+        }
+
+        /// <summary>
+        /// Displays API key configuration error with instructions
+        /// </summary>
+        private static void DisplayApiKeyError()
+        {
+            _consoleObj.WithColor(ConsoleColor.Red)
+                .WriteLine(_localization.GetString("ApiKeyError"))
+                .WriteLine(_localization.GetString("ApiKeyInstructions1"))
+                .WriteLine(_localization.GetString("ApiKeyInstructions2"))
+                .WriteLine(_localization.GetString("ApiKeyInstructions3"))
+                .WriteLine(_localization.GetString("EnvFileLocation", System.IO.Directory.GetCurrentDirectory()))
+                .ResetColor();
+        }
+
+        /// <summary>
+        /// Initializes the AI model with configuration
+        /// </summary>
+        private static IModel InitializeModel(string apiKey, string endpoint)
+        {
+            var modelName = Environment.GetEnvironmentVariable("MODEL_NAME") ?? "gpt-4o-mini";
+            var temperature = double.TryParse(Environment.GetEnvironmentVariable("TEMPERATURE"), out var temp) ? temp : 0.7;
+            var maxTokens = int.TryParse(Environment.GetEnvironmentVariable("MAX_TOKENS"), out var tokens) ? tokens : 2048;
+
+            var modelOptions = new ModelOptions
+            {
+                ModelName = modelName,
+                ApiKey = apiKey,
+                Endpoint = endpoint,
+                DefaultConfiguration = new ModelConfiguration
+                {
+                    Temperature = temperature,
+                    MaxTokens = maxTokens
+                }
+            };
+
+            var modelFactory = new ModelFactory();
+            IModel modelo = modelFactory.CreateModel("openai", modelOptions);
+            
+            _consoleObj.WithColor(ConsoleColor.Green)
+                .WriteLine(_localization.GetString("ModelInitialized"))
+                .WriteLine(_localization.GetString("ModelDetails", modelOptions.ModelName, 
+                    modelOptions.DefaultConfiguration.Temperature, 
+                    modelOptions.DefaultConfiguration.MaxTokens))
+                .ResetColor();
+                
+            return modelo;
+        }
+
+        /// <summary>
+        /// Runs the main application loop with menu interaction
+        /// </summary>
+        private static async Task RunMainLoop(IModel modelo)
+        {
+            while (true)
+            {
+                DisplayMainMenu();
+
+                var userChoice = Console.ReadLine();
+                Console.WriteLine();
+
+                if (!await ProcessUserChoice(userChoice, modelo))
+                {
+                    break;
+                }
+
+                Console.WriteLine();
+                Console.WriteLine(_localization.GetString("ContinuePrompt"));
+                Console.ReadKey(true);
+                Console.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Displays the main menu with categorized options
+        /// </summary>
+        private static void DisplayMainMenu()
+        {
+            Console.WriteLine(_localization.GetString("MenuTitle"));
+            Console.WriteLine();
+            
+            // LEVEL 1: FOUNDATIONS
+            _consoleObj.WithColor(ConsoleColor.Green);
+            Console.WriteLine(_localization.GetString("MenuFoundations"));
+            _consoleObj.ResetColor();
+            Console.WriteLine($"  {_localization.GetString("MenuOption1")}");
+            Console.WriteLine($"  {_localization.GetString("MenuOption2")}");
+            Console.WriteLine($"  {_localization.GetString("MenuOption3")}");
+            Console.WriteLine();
+            
+            // LEVEL 2: INTERMEDIATE
+            _consoleObj.WithColor(ConsoleColor.Yellow);
+            Console.WriteLine(_localization.GetString("MenuIntermediate"));
+            _consoleObj.ResetColor();
+            Console.WriteLine($"  {_localization.GetString("MenuOption4")}");
+            Console.WriteLine($"  {_localization.GetString("MenuOption5")}");
+            Console.WriteLine($"  {_localization.GetString("MenuOption6")}");
+            Console.WriteLine();
+            
+            // LEVEL 3: ADVANCED
+            _consoleObj.WithColor(ConsoleColor.Cyan);
+            Console.WriteLine(_localization.GetString("MenuAdvanced"));
+            _consoleObj.ResetColor();
+            Console.WriteLine($"  {_localization.GetString("MenuOption7")}");
+            Console.WriteLine($"  {_localization.GetString("MenuOption8")}");
+            Console.WriteLine();
+            
+            Console.WriteLine($"  {_localization.GetString("MenuOptionExit")}");
+            Console.WriteLine();
+            Console.Write(_localization.GetString("MenuPrompt"));
+        }
+
+        /// <summary>
+        /// Processes user menu choice and executes corresponding example
+        /// </summary>
+        private static async Task<bool> ProcessUserChoice(string choice, IModel modelo)
+        {
+            try
+            {
+                switch (choice)
+                {
+                    // LEVEL 1: FOUNDATIONS
+                    case "1":
+                        await ExecuteExample(_localization.GetString("ExampleSimpleAgent"), 
+                            () => ExemplosBasicos.ExecutarAgenteSimples(modelo));
+                        break;
+                    case "2":
+                        await ExecuteExample(_localization.GetString("ExamplePersonalityAgent"), 
+                            () => ExemplosBasicos.ExecutarJornalistaMineiro(modelo));
+                        break;
+                    case "3":
+                        await ExecuteExample(_localization.GetString("ExampleToolsAgent"), 
+                            () => ExemplosBasicos.ExecutarReporterComFerramentas(modelo));
+                        break;
+                        
+                    // LEVEL 2: INTERMEDIATE
+                    case "4":
+                        await ExecuteExample(_localization.GetString("ExampleReasoningAgent"), 
+                            () => ExemplosRaciocinio.ExecutarResolvedorProblemas(modelo));
+                        break;
+                    case "5":
+                        await ExecuteExample(_localization.GetString("ExampleStructuredOutput"), 
+                            () => ExemplosStructured.ExecutarAnaliseDocumento(modelo));
+                        break;
+                    case "6":
+                        await ExecuteExample(_localization.GetString("ExampleMemoryAgent"), 
+                            () => ExemplosMemoria.ExecutarAssistentePessoal(modelo));
+                        break;
+                        
+                    // LEVEL 3: ADVANCED
+                    case "7":
+                        await ExecuteExample(_localization.GetString("ExampleWorkflows"), 
+                            () => ExemplosWorkflow.ExecutarWorkflowCompleto(modelo));
+                        break;
+                    case "8":
+                        await ExecuteExample(_localization.GetString("ExampleSemanticSearch"), 
+                            () => VectorMemoryExample.ExecutarAssistenteComEmbeddings(modelo));
+                        break;
+                        
+                    case "0":
+                        Console.WriteLine(_localization.GetString("Goodbye"));
+                        return false;
+                        
+                    default:
+                        Console.WriteLine(_localization.GetString("InvalidOption"));
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(_localization.GetString("ExecutionError", ex.Message));
+                Console.WriteLine(_localization.GetString("ErrorDetails", ex));
+            }
+
+            return true; // Continue in loop
+        }
+
+        /// <summary>
+        /// Executes an example with telemetry tracking and error handling
+        /// </summary>
+        private static async Task ExecuteExample(string exampleName, Func<Task> example)
+        {
+            Console.WriteLine(_localization.GetString("Executing", exampleName));
+            _consoleObj.WriteSeparator();
+            Console.WriteLine();
+
+            // Start telemetry tracking
+            var operationId = $"example_{exampleName}";
+            _telemetry.StartOperation(operationId);
+
+            try
+            {
+                // Execute the example
+                await example();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(_localization.GetString("ExecutionError", ex.Message));
+                if (_telemetry.IsEnabled)
+                {
+                    Console.WriteLine(_localization.GetString("ErrorDetails", ex));
+                }
+            }
+            finally
+            {
+                // Complete telemetry tracking
+                var elapsed = _telemetry.EndOperation(operationId);
+                
+                Console.WriteLine();
+                _consoleObj.WriteSeparator();
+                Console.WriteLine(_localization.GetString("ExecutionTime", elapsed));
+                
+                // Display telemetry summary if enabled
+                if (_telemetry.IsEnabled)
+                {
+                    DisplayTelemetrySummary();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Displays telemetry summary with detailed metrics
+        /// </summary>
+        private static void DisplayTelemetrySummary()
+        {
+            var summary = _telemetry.GetSummary();
+            if (summary.TotalEvents == 0)
+                return;
+
+            Console.WriteLine();
+            _consoleObj.WithColor(ConsoleColor.Magenta);
+            Console.WriteLine("📊 TELEMETRIA DETALHADA");
+            Console.WriteLine("═══════════════════════");
+            _consoleObj.ResetColor();
+
+            if (summary.LLMEvents > 0)
+            {
+                Console.WriteLine($"🤖 LLM: {summary.LLMEvents} chamadas | {summary.TotalLLMTime:F2}s | {summary.TotalTokens} tokens");
+            }
+            
+            if (summary.MemoryEvents > 0)
+            {
+                Console.WriteLine($"💾 Memória: {summary.MemoryEvents} operações | {summary.TotalMemoryTime:F2}s total");
+            }
+            
+            if (summary.ToolEvents > 0)
+            {
+                Console.WriteLine($"🔧 Tools: {summary.ToolEvents} execuções | {summary.TotalToolTime:F2}s total");
+            }
+
+            Console.WriteLine($"📈 Total: {summary.TotalEvents} eventos | {summary.TotalElapsedSeconds:F2}s | Média: {summary.AverageElapsedSeconds:F2}s");
+            
+            if (summary.TotalTokens > 0)
+            {
+                Console.WriteLine($"🎯 Tokens totais: {summary.TotalTokens} | Custo em tokens: {summary.TotalCostInTokens:F0}");
+            }
+            
+            // Clear telemetry for next example
+            _telemetry.Clear();
+        }
+
+        /// <summary>
+        /// Displays fatal error information
+        /// </summary>
+        private static void DisplayFatalError(Exception ex)
+        {
+            _consoleObj.WithColor(ConsoleColor.Red)
+                .WriteLine(_localization.GetString("FatalError", ex.Message))
+                .WriteLine($"Stack trace: {ex.StackTrace}")
+                .ResetColor();
+        }
     }
-
-    private static void DisplayMenuOptions()
-    {
-      Console.WriteLine("📋 MENU PRINCIPAL - Aprenda AgentSharp do Básico ao Avançado:");
-      Console.WriteLine();
-      Console.ForegroundColor = ConsoleColor.Green;
-      Console.WriteLine("🌱 NÍVEL 1: FUNDAMENTOS - Conceitos Básicos");
-      Console.ResetColor();
-      Console.WriteLine("  1. 🎯 Agente Simples - Primeira Interação");
-      Console.WriteLine("  2. 🎭 Agente com Personalidade - Customização Básica");
-      Console.WriteLine("  3. 🔧 Agente com Tools - Ferramentas Integradas");
-      Console.WriteLine();
-      Console.ForegroundColor = ConsoleColor.Yellow;
-      Console.WriteLine("🚀 NÍVEL 2: INTERMEDIÁRIO - Recursos Avançados");
-      Console.ResetColor();
-      Console.WriteLine("  4. 🧠 Agente com Raciocínio - Reasoning Chains");
-      Console.WriteLine("  5. 📊 Outputs Estruturados - Dados Tipados");
-      Console.WriteLine("  6. 💾 Agente com Memória - Persistência de Estado");
-      Console.WriteLine();
-      Console.ForegroundColor = ConsoleColor.Cyan;
-      Console.WriteLine("⚡ NÍVEL 3: AVANÇADO - Casos Complexos");
-      Console.ResetColor();
-      Console.WriteLine("  7. 🔄 Workflows Multi-agente - Orquestração");
-      Console.WriteLine("  8. 🔍 Busca Semântica - Embeddings e Vetores");
-      Console.WriteLine("  9. 🏢 Sistema Empresarial - Caso Real Completo");
-      Console.WriteLine();
-      Console.ForegroundColor = ConsoleColor.Magenta;
-      Console.WriteLine("🎓 EXEMPLOS ESPECIALIZADOS - Casos Específicos");
-      Console.ResetColor();
-      Console.WriteLine("  10. 🤖 Assistente Pessoal com Memória");
-      Console.WriteLine("  11. 🔧 Consultor Técnico com Conhecimento");
-      Console.WriteLine("  12. 🛠️ LLM Gerenciando Memórias");
-      Console.WriteLine("  13. 📊 Comparação Storage Providers");
-      Console.WriteLine("  14. 🏥 Assistente Médico Customizado");
-      Console.WriteLine("  15. ⚖️ Consultor Jurídico Especializado");
-      Console.WriteLine("  16. 🎭 Modo Anônimo - IDs Automáticos");
-      Console.WriteLine("  17. 🔍 Assistente com Busca Semântica Avançada");
-      Console.WriteLine("  18. 📊 Comparação Busca Textual vs Semântica");
-      Console.ForegroundColor = ConsoleColor.Green;
-      Console.WriteLine("🚀 SQLITE-VEC - Busca Vetorial Moderna");
-      Console.ResetColor();
-      Console.WriteLine("  19. 🚀 sqlite-vec - Introdução e Exemplos Básicos");
-      Console.WriteLine("  20. ⚡ sqlite-vec - Performance e Casos Avançados");
-      Console.ForegroundColor = ConsoleColor.Cyan;
-      Console.WriteLine("🔧 INSTALAÇÃO E CONFIGURAÇÃO");
-      Console.ResetColor();
-      Console.WriteLine("  21. 🔍 Verificar Instalação sqlite-vec");
-      Console.WriteLine("  22. 📋 Guia de Instalação Segura");
-      Console.WriteLine();
-      Console.WriteLine("  0. ❌ Sair");
-      Console.WriteLine();
-      Console.Write("Digite sua escolha (0-22): ");
-    }
-
-    static async Task ExecuteExample(string exampleName, Func<Task> example)
-    {
-      Console.WriteLine($"🚀 Executando: {exampleName}");
-      _consoleObj.WriteSeparator();
-      Console.WriteLine();
-
-      var startTime = DateTime.Now;
-      await example();
-      var duration = DateTime.Now - startTime;
-
-      Console.WriteLine();
-      _consoleObj.WriteSeparator();
-      Console.WriteLine($"⏱️ Tempo de execução: {duration.TotalSeconds:F2}s");
-    }
-
-    private static void DisplayFatalError(Exception ex)
-    {
-      _consoleObj.WithColor(ConsoleColor.Red)
-        .WriteLine($"❌ Erro fatal: {ex.Message}")
-        .WriteLine($"Stack trace: {ex.StackTrace}")
-        .ResetColor();
-    }
-  }
 }

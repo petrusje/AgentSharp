@@ -26,7 +26,7 @@ namespace AgentSharp.Examples
 
             Console.WriteLine("📚 CONCEITOS DEMONSTRADOS:");
             Console.WriteLine("   • OpenAIEmbeddingService - geração de embeddings");
-            Console.WriteLine("   • VectorSqliteStorage - armazenamento vetorial");
+            Console.WriteLine("   • SemanticSqliteStorage - armazenamento vetorial");
             Console.WriteLine("   • Semantic search - busca por significado");
             Console.WriteLine("   • Similarity scoring - pontuação de similaridade");
             Console.WriteLine("   • Knowledge base - base de conhecimento vetorial\n");
@@ -38,7 +38,7 @@ namespace AgentSharp.Examples
             var embeddingService = new OpenAIEmbeddingService(apiKey, endpoint, new ConsoleLogger(), "text-embedding-ada-002");
 
             // Configurar storage vetorial
-            var storage = new VectorSqliteStorage("Data Source=exemplo_vetorial.db", embeddingService, new ConsoleLogger());
+            var storage = new SemanticSqliteStorage("Data Source=exemplo_vetorial.db", embeddingService, 1536);
             await storage.InitializeAsync();
 
             var context = new UsuarioContext 
@@ -47,13 +47,14 @@ namespace AgentSharp.Examples
                 SessionId = "session_semantic_search" 
             };
 
-            // Configurar agente com memória vetorial
-            var assistente = new Agent<UsuarioContext, string>(modelo, "AssistenteSemantico", storage: storage)
+            // 🎯 NOVA ARQUITETURA: Agente com Memória Vetorial (Semantic Memory)
+            var assistente = new Agent<UsuarioContext, string>(modelo, "AssistenteSemantico")
                 .WithPersona("Você é um assistente inteligente que usa busca semântica para lembrar de informações relevantes")
                 .WithInstructions(@"
                     - Use suas memórias para contextualizar suas respostas
                     - Demonstre que você entende conexões semânticas entre conceitos
                     - Seja específico ao referenciar informações passadas")
+                .WithSemanticMemory(storage, embeddingService) // ✅ Semantic memory com embedding service
                 .WithContext(context);
 
             Console.WriteLine("🤖 Assistente com busca semântica avançada...\n");
@@ -120,9 +121,10 @@ namespace AgentSharp.Examples
             };
 
             // === TESTE 1: Busca Textual Tradicional ===
-            _console.WithColor(ConsoleColor.Magenta).WriteLine("🔤 TESTE 1: Busca Textual (SqliteStorage)").ResetColor();
+            _console.WithColor(ConsoleColor.Magenta).WriteLine("🔤 TESTE 1: Busca Textual (SemanticSqliteStorage)").ResetColor();
             
-            var textualStorage = new SqliteStorage("Data Source=textual_test.db");
+            var textualEmbeddingService = new OpenAIEmbeddingService(apiKey, endpoint);
+            var textualStorage = new SemanticSqliteStorage("Data Source=textual_test.db", textualEmbeddingService, 1536);
             await textualStorage.InitializeAsync();
             
             var agenteTextual = new Agent<UsuarioContext, string>(modelo, "AgenteTextual", storage: textualStorage)
@@ -139,7 +141,7 @@ namespace AgentSharp.Examples
             _console.WithColor(ConsoleColor.Magenta).WriteLine("\n🧠 TESTE 2: Busca Semântica (VectorStorage)").ResetColor();
             
             var embeddingService = new OpenAIEmbeddingService(apiKey, endpoint);
-            var vectorStorage = new VectorSqliteStorage("Data Source=vector_test.db", embeddingService);
+            var vectorStorage = new SemanticSqliteStorage("Data Source=vector_test.db", embeddingService, 1536);
             await vectorStorage.InitializeAsync();
             
             var agenteSemantico = new Agent<UsuarioContext, string>(modelo, "AgenteSemantico", storage: vectorStorage)
