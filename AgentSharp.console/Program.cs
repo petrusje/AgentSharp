@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNetEnv;
@@ -6,28 +7,32 @@ using AgentSharp.Examples;
 using AgentSharp.Models;
 using AgentSharp.Utils;
 using AgentSharp.console.Services;
+using AgentSharp.console.Utils;
+using AgentSharp.Core.Abstractions;
 
 namespace Agents_console
 {
     /// <summary>
     /// AgentSharp Console Application - Educational Examples
-    /// 
+    ///
     /// This application provides a structured learning path for AgentSharp framework,
     /// progressing from basic concepts to advanced use cases.
-    /// 
+    ///
     /// Features:
     /// - Multilingual support (en-US, pt-BR)
     /// - Configurable telemetry for performance monitoring
     /// - Clean, didactic menu structure
     /// - Progressive learning path from foundations to advanced concepts
     /// </summary>
-    class Program
+    public static class Program
     {
         private static readonly ConsoleObj _consoleObj = new();
-        private static LocalizationService _localization = new();
+        private static readonly IConsoleService _console = new ConsoleService();
+        private static LocalizationService _localization = new(_console);
         private static TelemetryService _telemetry;
 
-        static async Task Main(string[] args)
+
+        public static async Task Main(string[] args)
         {
             try
             {
@@ -70,13 +75,13 @@ namespace Agents_console
         {
             // Load environment variables
             Env.TraversePath().Load();
-            
+
             // Set console encoding for proper emoji/unicode display
             Console.OutputEncoding = System.Text.Encoding.UTF8;
-            
+
             // Display welcome header
             DisplayWelcomeHeader();
-            
+
             await Task.CompletedTask;
         }
 
@@ -87,10 +92,10 @@ namespace Agents_console
         {
             // Language selection
             _localization.PromptForLanguageSelection();
-            
+
             // Initialize telemetry with localization support
-            _telemetry = new TelemetryService(_localization);
-            
+            _telemetry = new TelemetryService(_localization, _console);
+
             // Configure telemetry
             _telemetry.PromptForTelemetryConfiguration();
         }
@@ -120,7 +125,7 @@ namespace Agents_console
             // Check command line arguments first
             var argKey = args.FirstOrDefault(x => x.StartsWith($"{OPENAI_API_KEY}{VALUE_DELIMITER}", StringComparison.OrdinalIgnoreCase));
             var argEndpoint = args.FirstOrDefault(x => x.StartsWith($"{OPENAI_ENDPOINT}{VALUE_DELIMITER}", StringComparison.OrdinalIgnoreCase));
-            
+
             if (!string.IsNullOrWhiteSpace(argKey) && !string.IsNullOrWhiteSpace(argEndpoint))
             {
                 var keyValue = argKey.Split(VALUE_DELIMITER).LastOrDefault();
@@ -131,7 +136,7 @@ namespace Agents_console
 
             // Fall back to environment variables
             var apiKey = Environment.GetEnvironmentVariable(OPENAI_API_KEY);
-            var endpoint = Environment.GetEnvironmentVariable(OPENAI_ENDPOINT) ?? "https://proxy.dta.totvs.ai/";
+            var endpoint = Environment.GetEnvironmentVariable(OPENAI_ENDPOINT) ?? "https://api.openai.com/";
             return (apiKey, endpoint);
         }
 
@@ -170,16 +175,17 @@ namespace Agents_console
                 }
             };
 
-            var modelFactory = new ModelFactory();
+            // Cria ModelFactory - usa DI se disponível
+            var modelFactory = CreateModelFactory(apiKey, endpoint);
             IModel modelo = modelFactory.CreateModel("openai", modelOptions);
-            
+
             _consoleObj.WithColor(ConsoleColor.Green)
                 .WriteLine(_localization.GetString("ModelInitialized"))
-                .WriteLine(_localization.GetString("ModelDetails", modelOptions.ModelName, 
-                    modelOptions.DefaultConfiguration.Temperature, 
+                .WriteLine(_localization.GetString("ModelDetails", modelOptions.ModelName,
+                    modelOptions.DefaultConfiguration.Temperature,
                     modelOptions.DefaultConfiguration.MaxTokens))
                 .ResetColor();
-                
+
             return modelo;
         }
 
@@ -202,7 +208,10 @@ namespace Agents_console
 
                 Console.WriteLine();
                 Console.WriteLine(_localization.GetString("ContinuePrompt"));
-                Console.ReadKey(true);
+
+                // Handle non-interactive mode safely
+                ConsoleHelper.SafeReadKey();
+
                 Console.Clear();
             }
         }
@@ -214,7 +223,7 @@ namespace Agents_console
         {
             Console.WriteLine(_localization.GetString("MenuTitle"));
             Console.WriteLine();
-            
+
             // LEVEL 1: FOUNDATIONS
             _consoleObj.WithColor(ConsoleColor.Green);
             Console.WriteLine(_localization.GetString("MenuFoundations"));
@@ -223,7 +232,7 @@ namespace Agents_console
             Console.WriteLine($"  {_localization.GetString("MenuOption2")}");
             Console.WriteLine($"  {_localization.GetString("MenuOption3")}");
             Console.WriteLine();
-            
+
             // LEVEL 2: INTERMEDIATE
             _consoleObj.WithColor(ConsoleColor.Yellow);
             Console.WriteLine(_localization.GetString("MenuIntermediate"));
@@ -232,7 +241,7 @@ namespace Agents_console
             Console.WriteLine($"  {_localization.GetString("MenuOption5")}");
             Console.WriteLine($"  {_localization.GetString("MenuOption6")}");
             Console.WriteLine();
-            
+
             // LEVEL 3: ADVANCED
             _consoleObj.WithColor(ConsoleColor.Cyan);
             Console.WriteLine(_localization.GetString("MenuAdvanced"));
@@ -240,7 +249,7 @@ namespace Agents_console
             Console.WriteLine($"  {_localization.GetString("MenuOption7")}");
             Console.WriteLine($"  {_localization.GetString("MenuOption8")}");
             Console.WriteLine();
-            
+
             Console.WriteLine($"  {_localization.GetString("MenuOptionExit")}");
             Console.WriteLine();
             Console.Write(_localization.GetString("MenuPrompt"));
@@ -257,46 +266,46 @@ namespace Agents_console
                 {
                     // LEVEL 1: FOUNDATIONS
                     case "1":
-                        await ExecuteExample(_localization.GetString("ExampleSimpleAgent"), 
+                        await ExecuteExample(_localization.GetString("ExampleSimpleAgent"),
                             () => ExemplosBasicos.ExecutarAgenteSimples(modelo));
                         break;
                     case "2":
-                        await ExecuteExample(_localization.GetString("ExamplePersonalityAgent"), 
+                        await ExecuteExample(_localization.GetString("ExamplePersonalityAgent"),
                             () => ExemplosBasicos.ExecutarJornalistaMineiro(modelo));
                         break;
                     case "3":
-                        await ExecuteExample(_localization.GetString("ExampleToolsAgent"), 
+                        await ExecuteExample(_localization.GetString("ExampleToolsAgent"),
                             () => ExemplosBasicos.ExecutarReporterComFerramentas(modelo));
                         break;
-                        
+
                     // LEVEL 2: INTERMEDIATE
                     case "4":
-                        await ExecuteExample(_localization.GetString("ExampleReasoningAgent"), 
+                        await ExecuteExample(_localization.GetString("ExampleReasoningAgent"),
                             () => ExemplosRaciocinio.ExecutarResolvedorProblemas(modelo));
                         break;
                     case "5":
-                        await ExecuteExample(_localization.GetString("ExampleStructuredOutput"), 
+                        await ExecuteExample(_localization.GetString("ExampleStructuredOutput"),
                             () => ExemplosStructured.ExecutarAnaliseDocumento(modelo));
                         break;
                     case "6":
-                        await ExecuteExample(_localization.GetString("ExampleMemoryAgent"), 
-                            () => ExemplosMemoria.ExecutarAssistentePessoal(modelo));
+                        await ExecuteExample("🎓 Exemplos Educativos de Memória",
+                            () => ExemplosMemoria.ExecutarExemplosEducativos(modelo));
                         break;
-                        
+
                     // LEVEL 3: ADVANCED
                     case "7":
-                        await ExecuteExample(_localization.GetString("ExampleWorkflows"), 
+                        await ExecuteExample(_localization.GetString("ExampleWorkflows"),
                             () => ExemplosWorkflow.ExecutarWorkflowCompleto(modelo));
                         break;
                     case "8":
-                        await ExecuteExample(_localization.GetString("ExampleSemanticSearch"), 
+                        await ExecuteExample(_localization.GetString("ExampleSemanticSearch"),
                             () => VectorMemoryExample.ExecutarAssistenteComEmbeddings(modelo));
                         break;
-                        
+
                     case "0":
                         Console.WriteLine(_localization.GetString("Goodbye"));
                         return false;
-                        
+
                     default:
                         Console.WriteLine(_localization.GetString("InvalidOption"));
                         break;
@@ -341,11 +350,11 @@ namespace Agents_console
             {
                 // Complete telemetry tracking
                 var elapsed = _telemetry.EndOperation(operationId);
-                
+
                 Console.WriteLine();
                 _consoleObj.WriteSeparator();
                 Console.WriteLine(_localization.GetString("ExecutionTime", elapsed));
-                
+
                 // Display telemetry summary if enabled
                 if (_telemetry.IsEnabled)
                 {
@@ -371,28 +380,144 @@ namespace Agents_console
 
             if (summary.LLMEvents > 0)
             {
-                Console.WriteLine($"🤖 LLM: {summary.LLMEvents} chamadas | {summary.TotalLLMTime:F2}s | {summary.TotalTokens} tokens");
+                Console.WriteLine($"🤖 LLM: {summary.LLMEvents} chamadas | {summary.TotalLLMTime:F2}s | {summary.LLMTokens} tokens");
             }
-            
+
             if (summary.MemoryEvents > 0)
             {
-                Console.WriteLine($"💾 Memória: {summary.MemoryEvents} operações | {summary.TotalMemoryTime:F2}s total");
+                var memoryDisplay = $"💾 Memória: {summary.MemoryEvents} operações | {summary.TotalMemoryTime:F2}s";
+                if (summary.MemoryTokens > 0 || summary.EmbeddingTokens > 0)
+                {
+                    memoryDisplay += $" | Tokens: {summary.MemoryTokens}";
+                    if (summary.EmbeddingTokens > 0)
+                        memoryDisplay += $" (embeddings: {summary.EmbeddingTokens})";
+                }
+                Console.WriteLine(memoryDisplay);
             }
-            
+
             if (summary.ToolEvents > 0)
             {
-                Console.WriteLine($"🔧 Tools: {summary.ToolEvents} execuções | {summary.TotalToolTime:F2}s total");
+                var toolDisplay = $"🔧 Tools: {summary.ToolEvents} execuções | {summary.TotalToolTime:F2}s";
+                if (summary.ToolTokens > 0)
+                    toolDisplay += $" | {summary.ToolTokens} tokens";
+                Console.WriteLine(toolDisplay);
             }
 
             Console.WriteLine($"📈 Total: {summary.TotalEvents} eventos | {summary.TotalElapsedSeconds:F2}s | Média: {summary.AverageElapsedSeconds:F2}s");
-            
+
             if (summary.TotalTokens > 0)
             {
-                Console.WriteLine($"🎯 Tokens totais: {summary.TotalTokens} | Custo em tokens: {summary.TotalCostInTokens:F0}");
+                Console.WriteLine($"🎯 Tokens Totais: {summary.TotalTokens} | LLM: {summary.LLMTokens} | Memória: {summary.MemoryTokens} | Embeddings: {summary.EmbeddingTokens} | Tools: {summary.ToolTokens}");
             }
-            
+
             // Clear telemetry for next example
             _telemetry.Clear();
+        }
+
+        /// <summary>
+        /// Cria ModelFactory com DI quando disponível
+        /// </summary>
+        private static ModelFactory CreateModelFactory(string apiKey, string endpoint)
+        {
+            try
+            {
+                // Tenta usar DI - cria providers manualmente para injeção
+                var providers = new List<IModelProvider>();
+
+                // Adiciona provider OpenAI se temos API key
+                if (!string.IsNullOrEmpty(apiKey))
+                {
+                    // Tenta carregar provider OpenAI via reflection (como faz AgentSharpBuilder)
+                    var openAiProvider = TryCreateOpenAIProvider(apiKey, endpoint);
+                    if (openAiProvider != null)
+                    {
+                        providers.Add(openAiProvider);
+
+                        _consoleObj.WithColor(ConsoleColor.Blue)
+                            .WriteLine("✅ Using DI-based ModelFactory with OpenAI provider")
+                            .ResetColor();
+                    }
+                }
+
+                // Se temos providers, usa construtor DI
+                if (providers.Any())
+                {
+                    return new ModelFactory(providers);
+                }
+            }
+            catch (Exception ex)
+            {
+                _consoleObj.WithColor(ConsoleColor.Yellow)
+                    .WriteLine($"⚠️  DI provider loading failed: {ex.Message}")
+                    .WriteLine("Falling back to legacy ModelFactory")
+                    .ResetColor();
+            }
+
+            // Fallback para quando não há providers disponíveis
+            _consoleObj.WithColor(ConsoleColor.Yellow)
+                .WriteLine("⚠️  No providers available - creating ModelFactory with empty provider list")
+                .WriteLine("   This will cause errors when trying to create models!")
+                .ResetColor();
+
+            // ModelFactory agora requer providers - fornece lista vazia como fallback
+            return new ModelFactory(new List<IModelProvider>());
+        }
+
+        /// <summary>
+        /// Tenta criar provider OpenAI via reflection
+        /// </summary>
+        private static IModelProvider TryCreateOpenAIProvider(string apiKey, string endpoint)
+        {
+            try
+            {
+                // Tenta carregar a partir dos assemblies carregados
+                var assemblies = System.AppDomain.CurrentDomain.GetAssemblies();
+                foreach (var assembly in assemblies)
+                {
+                    var type = assembly.GetType("AgentSharp.Providers.OpenAI.OpenAIModelProvider");
+                    if (type != null)
+                    {
+                        return (IModelProvider)Activator.CreateInstance(type, apiKey, endpoint);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error for debugging but continue to fallback
+                Console.WriteLine($"Warning: Failed to load OpenAI provider: {ex.Message}");
+            }
+
+            try
+            {
+                // Fallback: tenta no assembly atual e referenciados
+                var currentAssembly = System.Reflection.Assembly.GetExecutingAssembly();
+                var referencedAssemblies = currentAssembly.GetReferencedAssemblies();
+
+                foreach (var refAssembly in referencedAssemblies)
+                {
+                    try
+                    {
+                        var assembly = System.Reflection.Assembly.Load(refAssembly);
+                        var type = assembly.GetType("AgentSharp.Providers.OpenAI.OpenAIModelProvider");
+                        if (type != null)
+                        {
+                            return (IModelProvider)Activator.CreateInstance(type, apiKey, endpoint);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log specific assembly load failures for debugging
+                        Console.WriteLine($"Debug: Could not load from assembly {refAssembly.Name}: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error for debugging
+                Console.WriteLine($"Warning: Fallback assembly loading failed: {ex.Message}");
+            }
+
+            return null;
         }
 
         /// <summary>

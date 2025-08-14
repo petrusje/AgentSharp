@@ -38,9 +38,24 @@ namespace AgentSharp.Core
         void TrackMemoryOperation(string operation, double elapsedSeconds);
 
         /// <summary>
+        /// Tracks memory operations with token usage
+        /// </summary>
+        void TrackMemoryOperation(string operation, double elapsedSeconds, int tokenCount);
+
+        /// <summary>
+        /// Tracks embedding operations with token usage
+        /// </summary>
+        void TrackEmbeddingOperation(string operation, double elapsedSeconds, int tokenCount);
+
+        /// <summary>
         /// Tracks tool execution timing
         /// </summary>
         void TrackToolExecution(string toolName, double elapsedSeconds);
+
+        /// <summary>
+        /// Tracks tool execution timing with token usage
+        /// </summary>
+        void TrackToolExecution(string toolName, double elapsedSeconds, int tokenCount);
 
         /// <summary>
         /// Gets summary of all tracked events
@@ -68,6 +83,10 @@ namespace AgentSharp.Core
         public double TotalMemoryTime { get; set; }
         public double TotalToolTime { get; set; }
         public int TotalTokens { get; set; }
+        public int LLMTokens { get; set; }
+        public int MemoryTokens { get; set; }
+        public int EmbeddingTokens { get; set; }
+        public int ToolTokens { get; set; }
         public double TotalCostInTokens { get; set; }
     }
 }

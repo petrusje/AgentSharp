@@ -8,26 +8,26 @@ using System.Threading.Tasks;
 
 namespace Agents_console
 {
-
-  public class ConsoleWorkflowContext
-  {
-    public string Topic { get; set; }
-    public string InitialInput { get; set; }
-    public string Summary { get; set; }
-    public string Draft { get; set; }
-    public string FinalText { get; set; }
-  }
-
-  public class AgentWorkFlowBook(IModel model, string name) : Agent<ConsoleWorkflowContext, string>(model, name), IAgent
-  {
-    public async Task<string> ExecuteAsync(string input, object context, List<AIMessage> history, CancellationToken token)
+    public class ConsoleWorkflowContext
     {
-      return await base.ExecuteAsync(input, (ConsoleWorkflowContext)context, history, token);
+        public string Topic { get; set; }
+        public string InitialInput { get; set; }
+        public string Summary { get; set; }
+        public string Draft { get; set; }
+        public string FinalText { get; set; }
     }
-  }
-  class WorkflowExample
-  {
-    public static async Task RunWorkflowExample(IModel modelo)
+
+    public class AgentWorkFlowBook(IModel model, string name) : Agent<ConsoleWorkflowContext, string>(model, name)
+    {
+        public async Task<string> ExecuteAsync(string input, object context, List<AIMessage> history, CancellationToken token)
+        {
+            return await base.ExecuteAsync(input, (ConsoleWorkflowContext)context, history, token);
+        }
+    }
+
+    public static class WorkflowExample
+    {
+        public static async Task RunWorkflowExample(IModel modelo)
     {
       // ---- Início do exemplo Worflow ----
       Console.WriteLine("\n=== Exemplo de Workflow (Pesquisa -> Escrita -> Revisão) ===");
@@ -51,15 +51,9 @@ namespace Agents_console
         InitialInput = "Conceitos fundamentais de IA e suas aplicações modernas"
       };
 
-      // Configura um ReasoningToolPack específico para o workflow
-      //var reasoningTools = new ReasoningToolPack("workflow-reasoning", null, true);
-
       // Configura o workflow usando a API fluente com raciocínio melhorado
       var workflow = new SequentialWorkflow<ConsoleWorkflowContext, string>("Escrita de Artigos")
           .ForTask(ctx => $"Criar um texto completo sobre {ctx.Topic} com dados conteúdo: {ctx.InitialInput}")
-          //.WithReasoning(reasoningTools) // Use o ReasoningToolPack específico
-          // .WithMaxIterations(3)
-          // .WithQualityThreshold(0.7) // Define um limiar de qualidade mínima para aceitar o resultado
           .RegisterStep("Pesquisa", pesquisador,
               ctx => $"Realize uma pesquisa aprofundada sobre: {ctx.Topic}. Inclua conceitos fundamentais, história, aplicações modernas e tendências futuras.",
               (ctx, res) =>
@@ -96,21 +90,6 @@ namespace Agents_console
         Console.WriteLine($"  Saída: {step.Result}");
         Console.WriteLine();
       }
-      /*
-       Console.WriteLine("Número total de etapas de raciocínio: " + workflow.ReasoningMemory.Steps.Count);
-        Console.WriteLine("\nRaciocínio passo a passo:");
-
-        foreach (var step in workflow.ReasoningMemory.Steps)
-        {
-            Console.WriteLine($"- [{step.Timestamp:HH:mm:ss}] {step.Title}:");
-            Console.WriteLine($"  Raciocínio: {step.Reasoning.Substring(0, Math.Min(step.Reasoning.Length, 100))}...");
-            Console.WriteLine($"  Ação: {step.Action}");
-            Console.WriteLine($"  Próxima ação: {step.NextAction}, Confiança: {step.Confidence:P0}");
-            Console.WriteLine();
-        }
-        */
-
-      // ---- Fim do exemplo Worflow ----
     }
   }
 }

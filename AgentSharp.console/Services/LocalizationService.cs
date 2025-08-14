@@ -8,14 +8,16 @@ namespace AgentSharp.console.Services
     /// Service for managing localization and internationalization
     /// Supports pt-BR and en-US languages
     /// </summary>
-    public class LocalizationService
+    internal class LocalizationService
     {
         private readonly ResourceManager _resourceManager;
+        private readonly IConsoleService _console;
         private CultureInfo _currentCulture;
 
-        public LocalizationService()
+        public LocalizationService(IConsoleService console)
         {
-            _resourceManager = new ResourceManager("Agents_console.Resources.Messages", 
+            _console = console;
+            _resourceManager = new ResourceManager("Agents_console.Resources.Messages",
                 typeof(LocalizationService).Assembly);
             _currentCulture = CultureInfo.InvariantCulture; // Default to English
         }
@@ -38,7 +40,7 @@ namespace AgentSharp.console.Services
             }
             catch (CultureNotFoundException)
             {
-                Console.WriteLine($"⚠️ Culture '{culture}' not found, using default (en-US)");
+                _console.WriteLine($"⚠️ Culture '{culture}' not found, using default (en-US)");
                 _currentCulture = CultureInfo.InvariantCulture;
             }
         }
@@ -86,33 +88,33 @@ namespace AgentSharp.console.Services
         /// <returns>Selected culture code</returns>
         public string PromptForLanguageSelection()
         {
-            Console.WriteLine();
-            Console.WriteLine("╔══════════════════════════════════════════════════════════════╗");
-            Console.WriteLine("║              🌍 LANGUAGE / IDIOMA SELECTION                  ║");
-            Console.WriteLine("╚══════════════════════════════════════════════════════════════╝");
-            Console.WriteLine();
-            
-            // Always show language selection in both languages
-            Console.WriteLine("Select your language / Selecione seu idioma:");
-            Console.WriteLine("1. English (US)");
-            Console.WriteLine("2. Português (BR)");
-            Console.Write("Choose / Escolha (1-2): ");
+            _console.WriteLine();
+            _console.WriteLine("╔══════════════════════════════════════════════════════════════╗");
+            _console.WriteLine("║              🌍 LANGUAGE / IDIOMA SELECTION                  ║");
+            _console.WriteLine("╚══════════════════════════════════════════════════════════════╝");
+            _console.WriteLine();
 
-            var choice = Console.ReadLine();
-            Console.WriteLine();
+            // Always show language selection in both languages
+            _console.WriteLine("Select your language / Selecione seu idioma:");
+            _console.WriteLine("1. English (US)");
+            _console.WriteLine("2. Português (BR)");
+            _console.Write("Choose / Escolha (1-2): ");
+
+            var choice = _console.ReadLine();
+            _console.WriteLine();
 
             switch (choice)
             {
                 case "1":
                     SetCulture("en-US");
-                    Console.WriteLine("✅ Language set to English (US)");
+                    _console.WriteLine("✅ Language set to English (US)");
                     return "en-US";
                 case "2":
                     SetCulture("pt-BR");
-                    Console.WriteLine("✅ Idioma configurado para Português (BR)");
+                    _console.WriteLine("✅ Idioma configurado para Português (BR)");
                     return "pt-BR";
                 default:
-                    Console.WriteLine("⚠️ Invalid selection, using English (US) / Seleção inválida, usando English (US)");
+                    _console.WriteLine("⚠️ Invalid selection, using English (US) / Seleção inválida, usando English (US)");
                     SetCulture("en-US");
                     return "en-US";
             }

@@ -45,7 +45,7 @@ namespace AgentSharp.Examples
 
             // === TESTE 1: Agent Simples (Padrão - Baixo Custo) ===
             _console.WithColor(ConsoleColor.Cyan)
-                .WriteLine("💰 TESTE 1: Agent Simples (BAIXO CUSTO)")
+                .WriteLine("🎯 TESTE 1: Agent Simples (POUCOS TOKENS)")
                 .WriteLine("═══════════════════════════════════════")
                 .ResetColor();
 
@@ -66,7 +66,7 @@ namespace AgentSharp.Examples
 
             // === TESTE 2: Agent Semântico (Opt-in - Alto Custo) ===
             _console.WithColor(ConsoleColor.Magenta)
-                .WriteLine("🧠 TESTE 2: Agent Semântico (ALTO CUSTO - OPT-IN)")
+                .WriteLine("🧠 TESTE 2: Agent Semântico (MUITOS TOKENS - OPT-IN)")
                 .WriteLine("═════════════════════════════════════════════════")
                 .ResetColor();
 
@@ -75,12 +75,12 @@ namespace AgentSharp.Examples
             var endpoint = Environment.GetEnvironmentVariable("OPENAI_ENDPOINT") ?? "https://proxy.dta.totvs.ai/";
             var embeddingService = new OpenAIEmbeddingService(apiKey, endpoint);
             var storage = new SemanticSqliteStorage("Data Source=memory_example.db", embeddingService, 1536);
-            
+
             var agentSematico = new Agent<object, string>(modelo, "SmartBot")
                 .WithPersona("Assistente inteligente com memória avançada")
                 .WithSemanticMemory(storage); // ✅ Opt-in explícito
 
-            Console.WriteLine("✅ Agent criado COM semantic memory (custos altos)");
+            Console.WriteLine("✅ Agent criado COM semantic memory (mais tokens)");
             Console.WriteLine("   • SmartMemoryToolPack habilitado");
             Console.WriteLine("   • Processamento de embeddings ativo");
             Console.WriteLine("   • MemoryManagerSemanticService\n");
@@ -115,25 +115,20 @@ namespace AgentSharp.Examples
         }
 
         /// <summary>
-        /// Exemplo 1: Assistente pessoal que lembra de preferências
+        /// Exemplo 1: Assistente pessoal que lembra de preferências - Comparação de Storage
         /// </summary>
         public static async Task ExecutarAssistentePessoal(IModel modelo)
         {
             _console.WithColor(ConsoleColor.Yellow)
-                .WriteLine("💾 NÍVEL 2 - AGENTE COM MEMÓRIA: Persistência de Estado")
+                .WriteLine("💾 NÍVEL 2 - AGENTE COM MEMÓRIA: Comparação de Performance")
                 .WriteLine("════════════════════════════════════════════════════════")
                 .ResetColor();
 
             Console.WriteLine("📚 CONCEITOS DEMONSTRADOS:");
-            Console.WriteLine("   • SemanticSqliteStorage - armazenamento persistente");
-            Console.WriteLine("   • Session management - controle de sessões");
-            Console.WriteLine("   • Context persistence - persistência de contexto");
-            Console.WriteLine("   • Memory retrieval - recuperação de memórias");
-            Console.WriteLine("   • Personalized interactions - interações personalizadas\n");
-
-            // Configurar storage persistente
-            var storage = CreateDefaultStorage("Data Source=exemplo_assistente.db");
-            await storage.InitializeAsync();
+            Console.WriteLine("   • SemanticMemoryStorage vs SemanticSqliteStorage");
+            Console.WriteLine("   • Medição de tempo de execução");
+            Console.WriteLine("   • Análise de performance em memória");
+            Console.WriteLine("   • Comparação de custos de memory retrieval\n");
 
             // Criar contexto do usuário
             var context = new UsuarioContext
@@ -142,51 +137,181 @@ namespace AgentSharp.Examples
                 SessionId = "sessao_demo_memoria" // SessionId fixo para demonstração
             };
 
-            // 🎯 NOVA ARQUITETURA: Agente com Semantic Memory (opt-in)
-            var assistente = new Agent<UsuarioContext, string>(modelo, "AssistentePessoal")
-                .WithPersona("Você é um assistente pessoal que lembra das preferências e contexto do usuário")
-                .WithInstructions(@"
-                    - Sempre cumprimente o usuário pelo nome quando souber
-                    - Lembre-se das preferências mencionadas
-                    - Use as informações armazenadas para personalizar suas respostas
-                    - Seja proativo em sugerir baseado no histórico")
-                .WithSemanticMemory(storage) // ✅ Semantic memory explícito (custos)
-                .WithContext(context);
+            var resultados = new List<(string Storage, long TempoTotal, string Resultado)>();
 
-            Console.WriteLine("💬 Simulando múltiplas conversas...\n");
+            // === TESTE 1: SemanticMemoryStorage (In-Memory HNSW) ===
+            // Note: SemanticMemoryStorage implementa IMemoryStorage, mas para compatibilidade com o método existente
+            // vamos usar SemanticSqliteStorage que implementa IStorage
+            await TestarAssistentePessoalComStorage(
+                "SemanticSqliteStorage (Substituto para HNSW)",
+                () => CreateDefaultStorage("Data Source=exemplo_assistente_hnsw_substituto.db"),
+                modelo,
+                context,
+                resultados);
 
-            // === PRIMEIRA CONVERSA: Estabelecer preferências ===
-            _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: Oi, meu nome é João. Prefiro café forte e gosto de trabalhar pela manhã.").ResetColor();
+            // === TESTE 2: SemanticSqliteStorage (Persistente) ===
+            await TestarAssistentePessoalComStorage(
+                "SemanticSqliteStorage (SQLite)",
+                () => CreateDefaultStorage("Data Source=exemplo_assistente_comparacao.db"),
+                modelo,
+                context,
+                resultados);
 
-            var resposta1 = await assistente.ExecuteAsync(
-                "Oi, meu nome é João. Prefiro café forte e gosto de trabalhar pela manhã."
-            );
+            // === EXIBIR COMPARAÇÃO ===
+            ExibirComparacaoAssistentePessoal(resultados);
+        }
 
-            _console.WithColor(ConsoleColor.Green).WriteLine($"🤖 ASSISTENTE: {resposta1.Data}").ResetColor();
-            Console.WriteLine();
+        private static async Task TestarAssistentePessoalComStorage(
+            string nomeStorage,
+            Func<IStorage> criarStorage,
+            IModel modelo,
+            UsuarioContext context,
+            List<(string Storage, long TempoTotal, string Resultado)> resultados)
+        {
+            _console.WithColor(ConsoleColor.Magenta).WriteLine($"\n🧪 TESTE: {nomeStorage}").ResetColor();
 
-            // === SEGUNDA CONVERSA ===
-            _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: Que horas você recomenda para eu estudar hoje?").ResetColor();
+            // Rate limiting - esperar entre testes
+            if (resultados.Count > 0)
+            {
+                Console.WriteLine("⏳ Aguardando para evitar rate limiting...");
+                await Task.Delay(3000);
+            }
 
-            var resposta2 = await assistente.ExecuteAsync(
-                "Que horas você recomenda para eu estudar hoje?"
-            );
+            var stopwatchTotal = System.Diagnostics.Stopwatch.StartNew();
 
-            _console.WithColor(ConsoleColor.Green).WriteLine($"🤖 ASSISTENTE: {resposta2.Data}").ResetColor();
-            Console.WriteLine();
+            try
+            {
+                // Criar storage
+                var storage = criarStorage();
 
-            // === TERCEIRA CONVERSA ===
-            _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: Bom dia! Como você prepararia um café para mim?").ResetColor();
+                // Verificar se é IMemoryStorage e implementa InitializeAsync
+                if (storage is IMemoryStorage memStorage)
+                {
+                    await memStorage.InitializeAsync();
+                }
 
-            var resposta3 = await assistente.ExecuteAsync(
-                "Bom dia! Como você prepararia um café para mim?"
-            );
+                // 🎯 NOVA ARQUITETURA: Agente com Semantic Memory
+                var assistente = new Agent<UsuarioContext, string>(modelo, $"AssistentePessoal_{nomeStorage}")
+                    .WithPersona("Você é um assistente pessoal que lembra das preferências e contexto do usuário")
+                    .WithInstructions(@"
+                        - Sempre cumprimente o usuário pelo nome quando souber
+                        - Lembre-se das preferências mencionadas
+                        - Use as informações armazenadas para personalizar suas respostas
+                        - Seja proativo em sugerir baseado no histórico")
+                    .WithSemanticMemory(storage)
+                    .WithContext(context);
 
-            _console.WithColor(ConsoleColor.Green).WriteLine($"🤖 ASSISTENTE: {resposta3.Data}").ResetColor();
+                Console.WriteLine("💬 Executando conversas simuladas...\n");
 
-            // Mostrar memórias armazenadas
-            await MostrarMemorias(assistente);
+                // === PRIMEIRA CONVERSA: Estabelecer preferências ===
+                _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: Oi, meu nome é João. Prefiro café forte e gosto de trabalhar pela manhã.").ResetColor();
 
+                var resposta1 = await assistente.ExecuteAsync(
+                    "Oi, meu nome é João. Prefiro café forte e gosto de trabalhar pela manhã."
+                );
+
+                _console.WithColor(ConsoleColor.Green).WriteLine($"🤖 ASSISTENTE: {resposta1.Data}").ResetColor();
+
+                // === SEGUNDA CONVERSA ===
+                _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: Que horas você recomenda para eu estudar hoje?").ResetColor();
+
+                var resposta2 = await assistente.ExecuteAsync(
+                    "Que horas você recomenda para eu estudar hoje?"
+                );
+
+                _console.WithColor(ConsoleColor.Green).WriteLine($"🤖 ASSISTENTE: {resposta2.Data}").ResetColor();
+
+                // === TERCEIRA CONVERSA ===
+                _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: Bom dia! Como você prepararia um café para mim?").ResetColor();
+
+                var resposta3 = await assistente.ExecuteAsync(
+                    "Bom dia! Como você prepararia um café para mim?"
+                );
+
+                _console.WithColor(ConsoleColor.Green).WriteLine($"🤖 ASSISTENTE: {resposta3.Data}").ResetColor();
+
+                stopwatchTotal.Stop();
+
+                _console.WithColor(ConsoleColor.DarkGray)
+                    .WriteLine($"  ⏱️  Tempo total: {stopwatchTotal.ElapsedMilliseconds}ms")
+                    .ResetColor();
+
+                // Mostrar memórias se possível
+                try
+                {
+                    await MostrarMemorias(assistente);
+                }
+                catch (Exception ex)
+                {
+                    _console.WithColor(ConsoleColor.DarkYellow)
+                        .WriteLine($"  ⚠️  Não foi possível mostrar memórias: {ex.Message}")
+                        .ResetColor();
+                }
+
+                // Armazenar resultado
+                resultados.Add((nomeStorage, stopwatchTotal.ElapsedMilliseconds, resposta3.Data));
+
+                // Limpar recursos se necessário
+                if (storage is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                stopwatchTotal.Stop();
+                _console.WithColor(ConsoleColor.Red)
+                    .WriteLine($"❌ Erro em {nomeStorage}: {ex.Message}")
+                    .ResetColor();
+
+                resultados.Add((nomeStorage, stopwatchTotal.ElapsedMilliseconds, $"ERRO: {ex.Message}"));
+            }
+        }
+
+        private static void ExibirComparacaoAssistentePessoal(List<(string Storage, long TempoTotal, string Resultado)> resultados)
+        {
+            _console.WithColor(ConsoleColor.Yellow)
+                .WriteLine("\n📊 COMPARAÇÃO DE PERFORMANCE - ASSISTENTE PESSOAL")
+                .WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                .ResetColor();
+
+            Console.WriteLine($"{"Storage",-30} | {"Tempo Total",-12} | {"Status",-10}");
+            Console.WriteLine(new string('─', 60));
+
+            foreach (var resultado in resultados)
+            {
+                var status = resultado.Resultado.Contains("ERRO") ? "❌ Erro" : "✅ OK";
+                Console.WriteLine($"{resultado.Storage,-30} | {resultado.TempoTotal + "ms",-12} | {status,-10}");
+            }
+
+            // Encontrar o mais rápido
+            var sucessos = resultados.Where(r => !r.Resultado.Contains("ERRO")).ToList();
+            if (sucessos.Any())
+            {
+                var maisRapido = sucessos.OrderBy(r => r.TempoTotal).First();
+                _console.WithColor(ConsoleColor.Green)
+                    .WriteLine($"\n🏆 Mais rápido: {maisRapido.Storage} ({maisRapido.TempoTotal}ms)")
+                    .ResetColor();
+
+                if (sucessos.Count > 1)
+                {
+                    var maisLento = sucessos.OrderByDescending(r => r.TempoTotal).First();
+                    var diferenca = maisLento.TempoTotal - maisRapido.TempoTotal;
+                    var percentual = (diferenca * 100.0) / maisRapido.TempoTotal;
+
+                    _console.WithColor(ConsoleColor.Cyan)
+                        .WriteLine($"📈 Diferença de performance: {diferenca}ms ({percentual:F1}% mais lento)")
+                        .ResetColor();
+                }
+            }
+
+            _console.WithColor(ConsoleColor.Yellow)
+                .WriteLine("\n📋 ANÁLISE:")
+                .WriteLine("• SemanticMemoryStorage: Otimizado para velocidade (HNSW in-memory)")
+                .WriteLine("• SemanticSqliteStorage: Persistência garantida, mas pode ser mais lento")
+                .WriteLine("• Use SemanticMemoryStorage para demos e testes rápidos")
+                .WriteLine("• Use SemanticSqliteStorage para aplicações que precisam de persistência")
+                .ResetColor();
         }
 
         /// <summary>
@@ -418,11 +543,7 @@ namespace AgentSharp.Examples
                 await Task.Delay(5000); // 5 segundos entre testes
             }
 
-            // Forçar coleta de lixo antes de medir
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-
+            // Medir memória inicial sem forçar coleta de lixo
             var memoriaInicial = GC.GetTotalMemory(false);
             var stopwatchTotal = System.Diagnostics.Stopwatch.StartNew();
             var stopwatchInit = System.Diagnostics.Stopwatch.StartNew();
@@ -466,8 +587,7 @@ namespace AgentSharp.Examples
                 // Medir memória final
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
-                GC.Collect();
-
+                // Medir memória final
                 var memoriaFinal = GC.GetTotalMemory(false);
                 var usoMemoria = memoriaFinal - memoriaInicial;
 
@@ -843,17 +963,264 @@ namespace AgentSharp.Examples
                 .WriteLine("   • Sistemas com autenticação opcional")
                 .ResetColor();
         }
+
+        /// <summary>
+        /// EXEMPLOS EDUCATIVOS: Demonstração progressiva do sistema de memória
+        /// Exemplos com controles granulares para otimização de custos
+        /// </summary>
+        public static async Task ExecutarExemplosEducativos(IModel modelo)
+        {
+            _console.WithColor(ConsoleColor.Magenta)
+                .WriteLine("🎓 EXEMPLOS EDUCATIVOS: Sistema de Memória AgentSharp")
+                .WriteLine("════════════════════════════════════════════════════════")
+                .WriteLine("📚 Progressão: Do Básico ao Avançado com Controles Granulares")
+                .ResetColor();
+
+            Console.WriteLine("\n📋 EXEMPLOS DEMONSTRADOS:");
+            Console.WriteLine("0️⃣  Sem Memória (Baseline - menor custo)");
+            Console.WriteLine("1️⃣  Apenas Histórico (WithHistoryToMessages)");
+            Console.WriteLine("2️⃣  Memórias LLM (WithUserMemories)");
+            Console.WriteLine("3️⃣  Busca Semântica (WithMemorySearch)");
+            Console.WriteLine("4️⃣  Configuração Híbrida (tudo ativo)\n");
+
+            // Exemplo 0: Baseline sem memória
+            await ExemploBaseline(modelo);
+
+            // Exemplo 1: Apenas histórico
+            await ExemploHistorico(modelo);
+
+            // Exemplo 2: Memórias extraídas pela LLM
+            await ExemploMemoriasLLM(modelo);
+
+            // Exemplo 3: Busca semântica
+            await ExemploBuscaSemantica(modelo);
+
+            // Exemplo 4: Configuração híbrida
+            await ExemploHibrido(modelo);
+
+            _console.WithColor(ConsoleColor.Yellow)
+                .WriteLine("\n🎯 RESUMO DE RECOMENDAÇÕES:")
+                .WriteLine("• 0️⃣  Use para chat simples, FAQ, calculadoras")
+                .WriteLine("• 1️⃣  Use para conversas com contexto de sessão")
+                .WriteLine("• 2️⃣  Use para assistentes que aprendem sobre usuários")
+                .WriteLine("• 3️⃣  Use para busca em bases de conhecimento")
+                .WriteLine("• 4️⃣  Use apenas quando ROI justificar todos os custos")
+                .ResetColor();
+        }
+
+        private static async Task ExemploBaseline(IModel modelo)
+        {
+            _console.WithColor(ConsoleColor.Green)
+                .WriteLine("\n0️⃣  BASELINE: SEM MEMÓRIA")
+                .WriteLine("═══════════════════════════")
+                .ResetColor();
+
+            Console.WriteLine("💰 CUSTO: MÍNIMO | 🔧 SETUP: Zero configuração\n");
+
+            var agent = new Agent<object, string>(modelo, "ChatBot Simples")
+                .WithPersona("Você é um assistente simples e direto.");
+
+            _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: Oi, meu nome é João.").ResetColor();
+            var resposta1 = await agent.ExecuteAsync("Oi, meu nome é João.");
+            _console.WithColor(ConsoleColor.Yellow).WriteLine($"🤖 ASSISTENTE: {resposta1.Data}\n").ResetColor();
+
+            _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: Qual é o meu nome?").ResetColor();
+            var resposta2 = await agent.ExecuteAsync("Qual é o meu nome?");
+            _console.WithColor(ConsoleColor.Yellow).WriteLine($"🤖 ASSISTENTE: {resposta2.Data}").ResetColor();
+
+            _console.WithColor(ConsoleColor.Red)
+                .WriteLine("🔍 OBSERVAÇÃO: Agente não lembra - sem memória configurada")
+                .ResetColor();
+        }
+
+        private static async Task ExemploHistorico(IModel modelo)
+        {
+            _console.WithColor(ConsoleColor.Green)
+                .WriteLine("\n1️⃣  HISTÓRICO DE MENSAGENS")
+                .WriteLine("═══════════════════════════")
+                .ResetColor();
+
+            Console.WriteLine("🎯 TOKENS: BAIXO-MÉDIO | 🔧 SETUP: WithHistoryToMessages(true)\n");
+
+            var agent = new Agent<object, string>(modelo, "ChatBot com Histórico")
+                .WithPersona("Você mantém contexto da conversa atual.")
+                .WithHistoryToMessages(true, numMessages: 5);
+
+            _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: Oi, meu nome é Maria.").ResetColor();
+            var resposta1 = await agent.ExecuteAsync("Oi, meu nome é Maria.");
+            _console.WithColor(ConsoleColor.Yellow).WriteLine($"🤖 ASSISTENTE: {resposta1.Data}\n").ResetColor();
+
+            _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: Qual é o meu nome?").ResetColor();
+            var resposta2 = await agent.ExecuteAsync("Qual é o meu nome?");
+            _console.WithColor(ConsoleColor.Yellow).WriteLine($"🤖 ASSISTENTE: {resposta2.Data}").ResetColor();
+
+            _console.WithColor(ConsoleColor.Green)
+                .WriteLine("🔍 OBSERVAÇÃO: Agente lembra - histórico incluído no contexto")
+                .ResetColor();
+        }
+
+        private static async Task ExemploMemoriasLLM(IModel modelo)
+        {
+            _console.WithColor(ConsoleColor.Green)
+                .WriteLine("\n2️⃣  MEMÓRIAS EXTRAÍDAS PELA LLM")
+                .WriteLine("═════════════════════════════")
+                .ResetColor();
+
+            Console.WriteLine("🎯 TOKENS: MÉDIO-ALTO | 🔧 SETUP: WithUserMemories(true)\n");
+
+            var storage = CreateDefaultStorage("Data Source=exemplo_llm.db");
+            await storage.InitializeAsync();
+
+            var agent = new Agent<UsuarioContext, string>(modelo, "Assistente Inteligente")
+                .WithPersona("Você aprende sobre o usuário e extrai informações importantes.")
+                .WithSemanticMemory(storage)
+                .WithUserMemories(true)  // 🎯 Controle granular
+                .WithContext(new UsuarioContext { UserId = "user123", SessionId = "session456" });
+
+            _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: Sou Carlos, engenheiro de 35 anos, prefiro café forte.").ResetColor();
+            var resposta1 = await agent.ExecuteAsync("Sou Carlos, engenheiro de 35 anos, prefiro café forte.");
+            _console.WithColor(ConsoleColor.Yellow).WriteLine($"🤖 ASSISTENTE: {resposta1.Data}\n").ResetColor();
+
+            await Task.Delay(1000);
+
+            _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: Me fale sobre as informações que você sabe sobre mim.").ResetColor();
+            var resposta2 = await agent.ExecuteAsync("Me fale sobre as informações que você sabe sobre mim.");
+            _console.WithColor(ConsoleColor.Yellow).WriteLine($"🤖 ASSISTENTE: {resposta2.Data}").ResetColor();
+
+            _console.WithColor(ConsoleColor.Green)
+                .WriteLine("🔍 OBSERVAÇÃO: LLM extraiu e armazenou memórias via function calling")
+                .ResetColor();
+        }
+
+        private static async Task ExemploBuscaSemantica(IModel modelo)
+        {
+            _console.WithColor(ConsoleColor.Green)
+                .WriteLine("\n3️⃣  BUSCA SEMÂNTICA")
+                .WriteLine("═══════════════════")
+                .ResetColor();
+
+            Console.WriteLine("🎯 TOKENS: ALTO | 🔧 SETUP: WithMemorySearch(true)\n");
+
+            var storage = CreateDefaultStorage("Data Source=exemplo_busca.db");
+            await storage.InitializeAsync();
+
+            var agent = new Agent<UsuarioContext, string>(modelo, "Especialista em Busca")
+                .WithPersona("Você busca informações relevantes na base de conhecimento.")
+                .WithSemanticMemory(storage)
+                .WithUserMemories(true)
+                .WithMemorySearch(true)  // 🎯 Controle granular
+                .WithContext(new UsuarioContext { UserId = "expert001", SessionId = "search_session" });
+
+            // Adicionar conhecimento
+            _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: Python é uma linguagem de programação de alto nível.").ResetColor();
+            var resposta1 = await agent.ExecuteAsync("Python é uma linguagem de programação de alto nível.");
+            _console.WithColor(ConsoleColor.Yellow).WriteLine($"🤖 ASSISTENTE: {resposta1.Data}\n").ResetColor();
+
+            _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: JavaScript é usado para desenvolvimento web.").ResetColor();
+            var resposta2 = await agent.ExecuteAsync("JavaScript é usado para desenvolvimento web.");
+            _console.WithColor(ConsoleColor.Yellow).WriteLine($"🤖 ASSISTENTE: {resposta2.Data}\n").ResetColor();
+
+            await Task.Delay(2000);
+
+            // Testar busca semântica
+            _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: Me conte sobre linguagens para desenvolvimento web.").ResetColor();
+            var resposta3 = await agent.ExecuteAsync("Me conte sobre linguagens para desenvolvimento web, que conversamos.");
+            _console.WithColor(ConsoleColor.Yellow).WriteLine($"🤖 ASSISTENTE: {resposta3.Data}").ResetColor();
+
+            _console.WithColor(ConsoleColor.Green)
+                .WriteLine("🔍 OBSERVAÇÃO: LLM usou busca semântica para encontrar informações relevantes")
+                .ResetColor();
+        }
+
+        private static async Task ExemploHibrido(IModel modelo)
+        {
+            _console.WithColor(ConsoleColor.Green)
+                .WriteLine("\n4️⃣  CONFIGURAÇÃO HÍBRIDA COMPLETA")
+                .WriteLine("═════════════════════════════════")
+                .ResetColor();
+
+            Console.WriteLine("💰 CUSTO: MÁXIMO | 🔧 SETUP: Todas as funcionalidades ativas\n");
+
+            var storage = CreateDefaultStorage("Data Source=exemplo_hibrido.db");
+            await storage.InitializeAsync();
+
+            var agent = new Agent<UsuarioContext, string>(modelo, "Assistente AI Avançado")
+                .WithPersona("Você é um assistente AI avançado especializado em desenvolvimento de software. Você aprende sobre o usuário, lembra de conversas anteriores e acessa conhecimento relevante para fornecer respostas personalizadas e contextuais.")
+                .WithSemanticMemory(storage)
+                .WithHistoryToMessages(true, 8)     // 🎯 Histórico
+                .WithUserMemories(true)             // 🎯 Extração de memórias
+                .WithMemorySearch(true)             // 🎯 Busca semântica
+                .WithContext(new UsuarioContext { UserId = "advanced_user", SessionId = "hybrid_session" });
+
+            Console.WriteLine("🤖 CONFIGURAÇÃO HÍBRIDA:");
+            Console.WriteLine("   ✅ AddHistoryToMessages: true (mantém contexto da conversa)");
+            Console.WriteLine("   ✅ EnableUserMemories: true (extrai e armazena informações do usuário)");
+            Console.WriteLine("   ✅ EnableMemorySearch: true (busca conhecimento relevante)\n");
+
+            // === FASE 1: Estabelecer perfil e preferências do usuário ===
+            _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: Olá! Sou João, desenvolvedor senior em C# há 8 anos. Trabalho principalmente com microserviços e APIs REST.").ResetColor();
+            var resposta1 = await agent.ExecuteAsync("Olá! Sou João, desenvolvedor senior em C# há 8 anos. Trabalho principalmente com microserviços e APIs REST.");
+            _console.WithColor(ConsoleColor.Yellow).WriteLine($"🤖 ASSISTENTE: {resposta1.Data}\n").ResetColor();
+
+            await Task.Delay(1500); // Rate limiting
+
+            // === FASE 2: Adicionar informações técnicas específicas ===
+            _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: Estou trabalhando em um projeto e-commerce que processa 50mil pedidos/dia. Uso SQL Server, Redis para cache e EventBus com RabbitMQ.").ResetColor();
+            var resposta2 = await agent.ExecuteAsync("Estou trabalhando em um projeto e-commerce que processa 50mil pedidos/dia. Uso SQL Server, Redis para cache e EventBus com RabbitMQ.");
+            _console.WithColor(ConsoleColor.Yellow).WriteLine($"🤖 ASSISTENTE: {resposta2.Data}\n").ResetColor();
+
+            await Task.Delay(1500); // Rate limiting
+
+            // === FASE 3: Testar busca semântica com questão relacionada ===
+            _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: Estou enfrentando gargalos de performance no sistema de pagamentos. Que estratégias você recomenda?").ResetColor();
+            var resposta3 = await agent.ExecuteAsync("Estou enfrentando gargalos de performance no sistema de pagamentos. Que estratégias você recomenda?");
+            _console.WithColor(ConsoleColor.Yellow).WriteLine($"🤖 ASSISTENTE: {resposta3.Data}\n").ResetColor();
+
+            await Task.Delay(1500); // Rate limiting
+
+            // === FASE 4: Testar histórico de conversas + conhecimento do usuário ===
+            _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: Me dê sugestões de monitoramento considerando minha stack atual e o problema que mencionei.").ResetColor();
+            var resposta4 = await agent.ExecuteAsync("Me dê sugestões de monitoramento considerando minha stack atual e o problema que mencionei.");
+            _console.WithColor(ConsoleColor.Yellow).WriteLine($"🤖 ASSISTENTE: {resposta4.Data}\n").ResetColor();
+
+            await Task.Delay(1500); // Rate limiting
+
+            // === FASE 5: Testar persistência de memórias entre sessões ===
+            _console.WithColor(ConsoleColor.Cyan).WriteLine("👤 USUÁRIO: Qual era mesmo meu nome e quantos anos de experiência tenho?").ResetColor();
+            var resposta5 = await agent.ExecuteAsync("Qual era mesmo meu nome e quantos anos de experiência tenho?");
+            _console.WithColor(ConsoleColor.Yellow).WriteLine($"🤖 ASSISTENTE: {resposta5.Data}\n").ResetColor();
+
+            // === DEMONSTRAÇÃO DAS FUNCIONALIDADES ===
+            _console.WithColor(ConsoleColor.Blue)
+                .WriteLine("🔍 FUNCIONALIDADES DEMONSTRADAS:")
+                .WriteLine("   📚 HISTÓRICO: Referenciou conversas anteriores na mesma sessão")
+                .WriteLine("   🧠 MEMÓRIAS: Extraiu e lembrou informações pessoais/técnicas do usuário")
+                .WriteLine("   🔍 BUSCA: Encontrou conhecimento relevante sobre performance e monitoramento")
+                .WriteLine("   💾 PERSISTÊNCIA: Manteve informações entre diferentes perguntas")
+                .ResetColor();
+
+            // Mostrar memórias armazenadas
+            await MostrarMemorias(agent);
+
+            _console.WithColor(ConsoleColor.Green)
+                .WriteLine("\n✅ VALOR DA CONFIGURAÇÃO HÍBRIDA:")
+                .WriteLine("   • Conversas naturais e contextuais")
+                .WriteLine("   • Personalização baseada no perfil do usuário")
+                .WriteLine("   • Sugestões relevantes ao histórico técnico")
+                .WriteLine("   • Continuidade entre sessões")
+                .ResetColor();
+        }
     }
 
     // === CLASSES DE CONTEXTO ===
 
-    public class UsuarioContext
+    internal class UsuarioContext
     {
         public string UserId { get; set; }
         public string SessionId { get; set; }
     }
 
-    public class ProjetoContext
+    internal class ProjetoContext
     {
         public string UserId { get; set; }
         public string SessionId { get; set; }

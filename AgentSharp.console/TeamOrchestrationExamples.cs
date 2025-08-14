@@ -7,6 +7,7 @@ using AgentSharp.Core.Memory.Services;
 using AgentSharp.Core.Orchestration;
 using AgentSharp.Models;
 using AgentSharp.Utils;
+using AgentSharp.console.Utils;
 
 namespace AgentSharp.console
 {
@@ -361,7 +362,7 @@ TARGET AUDIENCE: C-level executives and investors
                     }
 
                     Console.WriteLine("\nPress any key to continue...");
-                    Console.ReadKey(true);
+                    ConsoleHelper.SafeReadKey();
                 }
                 catch (Exception ex)
                 {
@@ -370,7 +371,7 @@ TARGET AUDIENCE: C-level executives and investors
                         .ResetColor();
                     
                     Console.WriteLine("Press any key to continue...");
-                    Console.ReadKey(true);
+                    ConsoleHelper.SafeReadKey();
                 }
             }
         }

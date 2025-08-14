@@ -26,7 +26,7 @@ namespace AgentSharp.Core
         /// <summary>
         /// Configurações de memória
         /// </summary>
-        public MemoryConfiguration Memory { get; set; } = new MemoryConfiguration();
+        public AgentSharp.Core.Memory.Configuration.MemoryConfiguration Memory { get; set; } = new AgentSharp.Core.Memory.Configuration.MemoryConfiguration();
 
         /// <summary>
         /// Configurações de auditoria
@@ -62,42 +62,6 @@ namespace AgentSharp.Core
         Summary
     }
 
-    /// <summary>
-    /// Configurações específicas de memória
-    /// Como Quantidade máxima de memórias (sessão e usuário), max execuções, relevância mínima, auto summary, numero minimo para cria resumo.
-    /// </summary>
-    public class MemoryConfiguration
-    {
-        /// <summary>
-        /// Limite máximo de memórias a serem mantidas por usuário
-        /// </summary>
-        public int MaxMemoriesPerUser { get; set; } = 1000;
-
-        /// <summary>
-        /// Limite máximo de mensagens por sessão
-        /// </summary>
-        public int MaxMessagesPerSession { get; set; } = 100;
-
-        /// <summary>
-        /// Limite máximo de runs por sessão
-        /// </summary>
-        public int MaxRunsPerSession { get; set; } = 50;
-
-        /// <summary>
-        /// Relevância mínima para uma memória ser considerada importante
-        /// </summary>
-        public double MinRelevanceThreshold { get; set; } = 0.5;
-
-        /// <summary>
-        /// Habilitar criação automática de resumos
-        /// </summary>
-        public bool EnableAutoSummary { get; set; } = true;
-
-        /// <summary>
-        /// Número de mensagens necessárias para criar um resumo
-        /// </summary>
-        public int SummaryThreshold { get; set; } = 20;
-    }
 
     /// <summary>
     /// Configurações de auditoria

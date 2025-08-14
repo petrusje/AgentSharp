@@ -73,14 +73,14 @@ namespace AgentSharp.Core.Memory.Services
             if (embedding1?.Count != embedding2?.Count || embedding1.Count == 0)
                 return 0.0;
 
-            // Estratégia baseada na implementação do VectorSqliteVecStorage
+            // Estratégia baseada na implementação do SemanticSqliteStorage
             // mas com otimizações para diferentes cenários de uso
             return CalculateCosineSimilarityOptimized(embedding1, embedding2);
         }
 
         /// <summary>
         /// Cálculo otimizado de similaridade cosseno
-        /// Inspirado no VectorSqliteVecStorage mas com melhorias de performance
+        /// Inspirado no SemanticSqliteStorage mas com melhorias de performance
         /// </summary>
         private double CalculateCosineSimilarityOptimized(List<float> vector1, List<float> vector2)
         {

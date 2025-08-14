@@ -197,7 +197,7 @@
     <value>⏳ Solicitação LLM iniciando...</value>
   </data>
   <data name="TelemetryLLMComplete" xml:space="preserve">
-    <value>✅ Resposta LLM: {0:F2}s | Tokens: {1} | Custo: ~${2:F4}</value>
+    <value>✅ Resposta LLM: {0:F2}s | Tokens: {1}</value>
   </data>
   <data name="TelemetryMemoryOperation" xml:space="preserve">
     <value>💾 Operação memória: {0} ({1:F2}s)</value>

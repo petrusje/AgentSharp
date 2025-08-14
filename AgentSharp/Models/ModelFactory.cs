@@ -1,15 +1,39 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using AgentSharp.Core.Abstractions;
 
 namespace AgentSharp.Models
 {
   /// <summary>
-  /// Fábrica padrão para criação de modelos
+  /// Fábrica PURA para criação de modelos usando APENAS Dependency Injection
+  /// NÃO mantém backward compatibility - FORÇA o uso de DI para arquitetura limpa
   /// </summary>
   public class ModelFactory : IModelFactory
   {
+    private readonly IEnumerable<IModelProvider> _providers;
+
     /// <summary>
-    /// Cria uma instância de modelo baseado no tipo
+    /// Construtor com Dependency Injection (ÚNICO construtor disponível)
     /// </summary>
+    /// <param name="providers">Provedores de modelo injetados via DI (OBRIGATÓRIO)</param>
+    /// <exception cref="ArgumentException">Se providers for null ou vazio</exception>
+    public ModelFactory(IEnumerable<IModelProvider> providers)
+    {
+      if (providers == null || !providers.Any())
+        throw new ArgumentException("ModelFactory REQUER providers configurados via DI. Configure pelo menos um IModelProvider.", nameof(providers));
+        
+      _providers = providers;
+    }
+
+    /// <summary>
+    /// Cria uma instância de modelo baseado no tipo usando APENAS DI providers
+    /// FALHA EXPLICITAMENTE se provider não configurado - força arquitetura limpa
+    /// </summary>
+    /// <param name="modelType">Tipo do modelo (deve corresponder a um provider configurado)</param>
+    /// <param name="options">Opções de configuração do modelo</param>
+    /// <returns>Instância do modelo</returns>
+    /// <exception cref="ArgumentException">Se provider não encontrado</exception>
     public IModel CreateModel(string modelType, ModelOptions options)
     {
       if (string.IsNullOrWhiteSpace(modelType))
@@ -18,78 +42,59 @@ namespace AgentSharp.Models
       if (options == null)
         throw new ArgumentNullException(nameof(options));
 
-      // Valida e prepara as opções antes de criar o modelo
+      // Valida opções
       options.Validate();
 
-      switch (modelType.ToLowerInvariant())
+      // ARQUITETURA LIMPA: APENAS DI, sem fallback
+      var provider = _providers.FirstOrDefault(p => 
+        p.ProviderName.Equals(modelType, StringComparison.OrdinalIgnoreCase));
+        
+      if (provider == null)
       {
-        case "openai":
-          var model = new OpenAIModel(options.ModelName, options.ApiKey, options.Endpoint);
-          return model;
-
-        /*()  case "ollama":
-              var ollamaModel = new OllamaModel(options.ModelName, options.Endpoint ?? "http://localhost:11434");
-              return ollamaModel;
-
-          case "mock":
-              return new MockModel();
-        */
-        // Futuros provedores podem ser adicionados aqui
-        // case "anthropic":
-        //    return new AnthropicModel(...);
-
-        default:
-          throw new ArgumentException($"Tipo de modelo não suportado: {modelType}", nameof(modelType));
+        var availableProviders = string.Join(", ", _providers.Select(p => p.ProviderName));
+        throw new ArgumentException(
+          $"Provider '{modelType}' não configurado. Providers disponíveis: [{availableProviders}]. " +
+          "Configure o provider via DI antes de usar.", nameof(modelType));
       }
+
+      var config = ConvertToModelConfiguration(options);
+      return provider.CreateModel(options.ModelName, config);
     }
 
     /// <summary>
-    /// Cria uma instância do modelo OpenAI com as configurações padrão
+    /// Converte ModelOptions para ModelConfiguration (para DI providers)
     /// </summary>
-    /// <param name="modelName">Nome do modelo OpenAI a ser usado</param>
-    /// <param name="apiKey">Chave de API (opcional se definida como variável de ambiente)</param>
-    /// <returns>Instância do modelo OpenAI</returns>
-    public static IModel CreateOpenAIModel(string modelName, string apiKey = null)
+    private static ModelConfiguration ConvertToModelConfiguration(ModelOptions options)
     {
-      var options = new ModelOptions
+      return options.DefaultConfiguration ?? new ModelConfiguration
       {
-        ModelName = modelName,
-        ApiKey = apiKey
+        Temperature = 0.7,
+        MaxTokens = 2048
       };
-
-      return new ModelFactory().CreateModel("openai", options);
     }
 
-    /// <summary>
-    /// Cria uma instância do modelo Ollama com as configurações padrão
-    /// </summary>
-    /// <param name="modelName">Nome do modelo Ollama a ser usado (ex: "llama2", "mistral")</param>
-    /// <param name="baseUrl">URL base do servidor Ollama (padrão: http://localhost:11434)</param>
-    /// <returns>Instância do modelo Ollama</returns>
-    public static IModel CreateOllamaModel(string modelName, string baseUrl = "http://localhost:11434")
-    {
-      var options = new ModelOptions
-      {
-        ModelName = modelName,
-        Endpoint = baseUrl
-      };
+    // *** TODO O CÓDIGO LEGACY FOI REMOVIDO ***
+    // ModelFactory agora funciona APENAS com DI - arquitetura limpa!
 
-      return new ModelFactory().CreateModel("ollama", options);
-    }
+    // *** MÉTODOS ESTÁTICOS LEGACY REMOVIDOS ***
+    // Use DI para configurar providers explicitamente!
+    // 
+    // EXEMPLO DE USO CORRETO:
+    // var providers = new List<IModelProvider> { new OpenAIModelProvider(apiKey) };
+    // var factory = new ModelFactory(providers);
+    // var model = factory.CreateModel("openai", options);
 
-    /// <summary>
-    /// Cria uma instância de modelo para simulação/testes
-    /// </summary>
-    /// <param name="modelName">Nome do modelo mock</param>
-    /// <returns>Instância do modelo simulado</returns>
-    public static IModel CreateMockModel(string modelName = "mock-model")
-    {
-      var options = new ModelOptions
-      {
-        ModelName = modelName
-      };
-
-      return new ModelFactory().CreateModel("mock", options);
-    }
+    // *** MÉTODOS DE REFLEXÃO REMOVIDOS ***
+    // Não devemos usar reflexão - isso é anti-pattern!
+    // 
+    // ARQUITETURA CORRETA:
+    // 1. Aplicação referencia AgentSharp.Providers.OpenAI
+    // 2. Configura providers explicitamente via DI
+    // 3. Injeta na ModelFactory via construtor
+    //
+    // EXEMPLO:
+    // var provider = new OpenAIModelProvider(apiKey, endpoint);
+    // var factory = new ModelFactory(new[] { provider });
+    // var model = factory.CreateModel("openai", options);
   }
 }

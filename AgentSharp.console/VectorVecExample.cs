@@ -1,15 +1,25 @@
 using System;
 using System.Threading.Tasks;
 using AgentSharp.Examples;
+using AgentSharp.console.Utils;
 
 namespace AgentSharp.console
 {
     /// <summary>
-    /// Exemplo de uso do VectorSqliteVecStorage para busca vetorial de alta performance.
+    /// Exemplo de uso do SemanticSqliteStorage para busca vetorial de alta performance.
     /// Utiliza sqlite-vec - sucessor moderno e simplificado do sqlite-vss.
     /// </summary>
-    public class VectorVecExample
+    internal static class VectorVecExample
     {
+        private const string CHOOSE_OPTION = "Escolha uma opção:";
+        private const string BACK_TO_MAIN_MENU = "0. Voltar ao menu principal";
+        private const string PRESS_KEY_TO_CONTINUE = "\nPressione qualquer tecla para continuar...";
+        private const string INVALID_OPTION = "Opção inválida!";
+        private const string VERIFY_MESSAGE = "Verifique se:";
+        private const string OPENAI_KEY_CHECK = "- Sua API key OpenAI está configurada";
+        private const string SQLITE_VEC_CHECK = "- A extensão sqlite-vec está instalada";
+        private const string PERMISSIONS_CHECK = "- Você tem permissões de escrita no diretório";
+
         public static async Task ExecutarMenuVectorVec()
         {
             while (true)
@@ -18,13 +28,13 @@ namespace AgentSharp.console
                 Console.WriteLine("=== AGENTSHARP - VECTOR SQLITE-VEC ===");
                 Console.WriteLine("Busca vetorial de alta performance com sqlite-vec");
                 Console.WriteLine();
-                Console.WriteLine("Escolha uma opção:");
+                Console.WriteLine(CHOOSE_OPTION);
                 Console.WriteLine("1. Exemplo Básico - Introdução ao sqlite-vec");
                 Console.WriteLine("2. Comparação de Métricas - cosine vs l2 vs inner_product");
                 Console.WriteLine("3. Teste de Performance - Escala e throughput");
                 Console.WriteLine("4. Casos de Uso Práticos - RAG, Recomendações, etc");
                 Console.WriteLine("5. Info sobre sqlite-vec");
-                Console.WriteLine("0. Voltar ao menu principal");
+                Console.WriteLine(BACK_TO_MAIN_MENU);
                 Console.WriteLine();
                 Console.Write("Opção: ");
 
@@ -58,23 +68,23 @@ namespace AgentSharp.console
                             return;
 
                         default:
-                            Console.WriteLine("Opção inválida!");
+                            Console.WriteLine(INVALID_OPTION);
                             break;
                     }
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"\nErro: {ex.Message}");
-                    Console.WriteLine("Verifique se:");
-                    Console.WriteLine("- Sua API key OpenAI está configurada");
-                    Console.WriteLine("- A extensão sqlite-vec está instalada");
-                    Console.WriteLine("- Você tem permissões de escrita no diretório");
+                    Console.WriteLine(VERIFY_MESSAGE);
+                    Console.WriteLine(OPENAI_KEY_CHECK);
+                    Console.WriteLine(SQLITE_VEC_CHECK);
+                    Console.WriteLine(PERMISSIONS_CHECK);
                 }
 
                 if (opcao != "0")
                 {
-                    Console.WriteLine("\nPressione qualquer tecla para continuar...");
-                    Console.ReadKey();
+                    Console.WriteLine(PRESS_KEY_TO_CONTINUE);
+                    ConsoleHelper.SafeReadKey();
                 }
             }
         }
@@ -87,13 +97,13 @@ namespace AgentSharp.console
                 Console.WriteLine("=== SQLITE-VEC AVANÇADO - PERFORMANCE E CASOS PRÁTICOS ===");
                 Console.WriteLine("Casos de uso avançados e otimizações de performance");
                 Console.WriteLine();
-                Console.WriteLine("Escolha uma opção:");
+                Console.WriteLine(CHOOSE_OPTION);
                 Console.WriteLine("1. Performance Comparada - Diferentes tamanhos de dataset");
                 Console.WriteLine("2. Casos de Uso Empresariais - RAG, Recomendações");
                 Console.WriteLine("3. Otimizações de SQLite - WAL, Cache, Indexação");
                 Console.WriteLine("4. Benchmarks Detalhados - Métricas e throughput");
                 Console.WriteLine("5. Migração de Outros Sistemas - Pinecone, Weaviate, etc");
-                Console.WriteLine("0. Voltar ao menu principal");
+                Console.WriteLine(BACK_TO_MAIN_MENU);
                 Console.WriteLine();
                 Console.Write("Opção: ");
 
@@ -139,7 +149,7 @@ namespace AgentSharp.console
                 if (opcao != "0")
                 {
                     Console.WriteLine("\nPressione qualquer tecla para continuar...");
-                    Console.ReadKey();
+                    ConsoleHelper.SafeReadKey();
                 }
             }
         }
@@ -257,7 +267,7 @@ namespace AgentSharp.console
             Console.WriteLine("   • Classificação automática");
 
             Console.WriteLine("\n💡 EXEMPLO PRÁTICO - Sistema RAG:");
-            Console.WriteLine("var ragSystem = new VectorSqliteVecStorage(");
+            Console.WriteLine("var ragSystem = new SemanticSqliteStorage(");
             Console.WriteLine("    \"Data Source=knowledge_base.db\",");
             Console.WriteLine("    \"text-embedding-3-small\", 1536, \"cosine\");");
             Console.WriteLine("");
@@ -396,7 +406,7 @@ namespace AgentSharp.console
             Console.WriteLine("results = pinecone.Index('my-index').query(vector, top_k=10)");
             Console.WriteLine();
             Console.WriteLine("DEPOIS:");
-            Console.WriteLine("var storage = new VectorSqliteVecStorage(...);");
+            Console.WriteLine("var storage = new SemanticSqliteStorage(...);");
             Console.WriteLine("storage.StoreEmbeddings(embeddings);");
             Console.WriteLine("var results = storage.SearchSimilar(vector, 10);");
             Console.WriteLine();
@@ -407,7 +417,7 @@ namespace AgentSharp.console
             Console.WriteLine("result = client.query.get('Document').with_near_vector(vector)");
             Console.WriteLine();
             Console.WriteLine("DEPOIS:");
-            Console.WriteLine("var storage = new VectorSqliteVecStorage(...);");
+            Console.WriteLine("var storage = new SemanticSqliteStorage(...);");
             Console.WriteLine("storage.StoreEmbeddings(embeddings);");
             Console.WriteLine("var results = storage.SearchSimilar(vector, 10);");
             Console.WriteLine();
@@ -420,7 +430,7 @@ namespace AgentSharp.console
             Console.WriteLine();
             Console.WriteLine("DEPOIS:");
             Console.WriteLine("// Tudo automático!");
-            Console.WriteLine("var storage = new VectorSqliteVecStorage(...);");
+            Console.WriteLine("var storage = new SemanticSqliteStorage(...);");
             Console.WriteLine("storage.StoreEmbeddings(embeddings);");
             Console.WriteLine();
 
@@ -435,7 +445,7 @@ namespace AgentSharp.console
             Console.WriteLine("\n📋 CHECKLIST DE MIGRAÇÃO:");
             Console.WriteLine("□ 1. Exportar vetores da solução atual");
             Console.WriteLine("□ 2. Instalar sqlite-vec extension");
-            Console.WriteLine("□ 3. Configurar VectorSqliteVecStorage");
+            Console.WriteLine("□ 3. Configurar SemanticSqliteStorage");
             Console.WriteLine("□ 4. Importar vetores (batch para performance)");
             Console.WriteLine("□ 5. Testar queries básicas");
             Console.WriteLine("□ 6. Ajustar configurações de performance");

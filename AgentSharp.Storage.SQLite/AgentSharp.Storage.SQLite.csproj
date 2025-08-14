@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
+		<PackageId>AgentSharp.Storage.SQLite</PackageId>
+		<Version>1.0.3</Version>
+		<Authors>Petrus Junior Evangelista</Authors>
+		<Description>
+			SQLite storage provider for AgentSharp - provides persistent storage with vector search capabilities.
+			Part of the AgentSharp framework for building AI agents.
+		</Description>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<RepositoryUrl>https://github.com/petrusje/AgentSharp</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<AssemblyName>AgentSharp.Storage.SQLite</AssemblyName>
+		<RootNamespace>AgentSharp.Storage.SQLite</RootNamespace>
+	</PropertyGroup>
+
+	<!-- Enable C# 7.3 for compatibility -->
+	<PropertyGroup>
+		<LangVersion>7.3</LangVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.8" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.32" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AgentSharp\AgentSharp.csproj" />
+	</ItemGroup>
+</Project>

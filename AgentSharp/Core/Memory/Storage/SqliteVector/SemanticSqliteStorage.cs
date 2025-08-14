@@ -149,6 +149,23 @@ namespace AgentSharp.Core.Memory.Services
                         command.CommandText = createMetadataSql;
                         command.ExecuteNonQuery();
                     }
+
+                    // Create session messages table for conversation history
+                    var createSessionMessagesSql = @"
+                        CREATE TABLE IF NOT EXISTS session_messages (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            user_id TEXT NOT NULL,
+                            session_id TEXT NOT NULL,
+                            role TEXT NOT NULL,
+                            content TEXT NOT NULL,
+                            created_at TEXT NOT NULL
+                        )";
+
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = createSessionMessagesSql;
+                        command.ExecuteNonQuery();
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -614,6 +631,94 @@ namespace AgentSharp.Core.Memory.Services
         public async Task DeleteSessionAsync(string sessionId)
         {
             await ((SqliteSessionStorage)Sessions).DeleteSessionAsync(sessionId);
+        }
+
+        /// <summary>
+        /// Obtém histórico de mensagens de uma sessão para contexto conversacional (como /refs)
+        /// </summary>
+        public async Task<List<AIMessage>> GetSessionHistoryAsync(string userId, string sessionId, int limit = 10)
+        {
+            var query = @"
+                SELECT role, content, created_at 
+                FROM session_messages 
+                WHERE user_id = @userId AND session_id = @sessionId 
+                ORDER BY created_at DESC 
+                LIMIT @limit";
+            
+            var messages = new List<AIMessage>();
+            
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                connection.Open();
+                using (var command = new SqliteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@userId", userId);
+                    command.Parameters.AddWithValue("@sessionId", sessionId);
+                    command.Parameters.AddWithValue("@limit", limit);
+                    
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var role = reader.GetString(0); // role column
+                            var content = reader.GetString(1); // content column
+                            
+                            switch (role.ToLower())
+                            {
+                                case "user":
+                                    messages.Add(AIMessage.User(content));
+                                    break;
+                                case "assistant":
+                                    messages.Add(AIMessage.Assistant(content));
+                                    break;
+                                case "system":
+                                    messages.Add(AIMessage.System(content));
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Reverter para ordem cronológica (mais antiga primeiro)
+            messages.Reverse();
+            return messages;
+        }
+
+        /// <summary>
+        /// Salva uma mensagem no histórico da sessão
+        /// </summary>
+        public async Task SaveSessionMessageAsync(string userId, string sessionId, AIMessage message)
+        {
+            await EnsureTablesExistAsync();
+            
+            var insertQuery = @"
+                INSERT INTO session_messages (user_id, session_id, role, content, created_at)
+                VALUES (@userId, @sessionId, @role, @content, @createdAt)";
+            
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                connection.Open();
+                using (var command = new SqliteCommand(insertQuery, connection))
+                {
+                    command.Parameters.AddWithValue("@userId", userId);
+                    command.Parameters.AddWithValue("@sessionId", sessionId);
+                    command.Parameters.AddWithValue("@role", message.Role);
+                    command.Parameters.AddWithValue("@content", message.Content);
+                    command.Parameters.AddWithValue("@createdAt", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
+                    
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Ensures that required tables exist
+        /// </summary>
+        private async Task EnsureTablesExistAsync()
+        {
+            // Tables are created in InitializeDatabase(), this is just a safety check
+            await Task.CompletedTask;
         }
     }
 

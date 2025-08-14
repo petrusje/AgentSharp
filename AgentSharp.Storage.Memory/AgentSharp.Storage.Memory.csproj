@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
+		<PackageId>AgentSharp.Storage.Memory</PackageId>
+		<Version>1.0.3</Version>
+		<Authors>Petrus Junior Evangelista</Authors>
+		<Description>
+			In-memory storage provider for AgentSharp - provides fast temporary storage for testing and development.
+			Part of the AgentSharp framework for building AI agents.
+		</Description>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<RepositoryUrl>https://github.com/petrusje/AgentSharp</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<AssemblyName>AgentSharp.Storage.Memory</AssemblyName>
+		<RootNamespace>AgentSharp.Storage.Memory</RootNamespace>
+	</PropertyGroup>
+
+	<!-- Enable C# 7.3 for compatibility -->
+	<PropertyGroup>
+		<LangVersion>7.3</LangVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.32" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AgentSharp\AgentSharp.csproj" />
+	</ItemGroup>
+</Project>

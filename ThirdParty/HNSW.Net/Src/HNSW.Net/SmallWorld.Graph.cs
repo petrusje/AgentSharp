@@ -9,8 +9,8 @@ namespace HNSW.Net
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Runtime.Serialization.Formatters.Binary;
     using System.Text;
+    using Newtonsoft.Json;
 
     /// <content>
     /// The part with the implemnation of a hierarchical small world graph.
@@ -231,9 +231,12 @@ namespace HNSW.Net
             {
                 using (var stream = new MemoryStream())
                 {
-                    var formatter = new BinaryFormatter();
-                    formatter.Serialize(stream, this.entryPoint.Id);
-                    formatter.Serialize(stream, this.entryPoint.MaxLevel);
+                    // Serialize entry point info
+                    var entryPointBytes = BitConverter.GetBytes(this.entryPoint.Id);
+                    stream.Write(entryPointBytes, 0, entryPointBytes.Length);
+
+                    var maxLevelBytes = BitConverter.GetBytes(this.entryPoint.MaxLevel);
+                    stream.Write(maxLevelBytes, 0, maxLevelBytes.Length);
 
                     for (int level = this.entryPoint.MaxLevel; level >= 0; --level)
                     {
@@ -243,7 +246,12 @@ namespace HNSW.Net
                             edges[node.Id] = node.GetConnections(level).Select(x => x.Id).ToList();
                         });
 
-                        formatter.Serialize(stream, edges);
+                        var edgesJson = JsonConvert.SerializeObject(edges);
+                        var edgesBytes = Encoding.UTF8.GetBytes(edgesJson);
+                        var lengthBytes = BitConverter.GetBytes(edgesBytes.Length);
+
+                        stream.Write(lengthBytes, 0, lengthBytes.Length);
+                        stream.Write(edgesBytes, 0, edgesBytes.Length);
                     }
 
                     return stream.ToArray();
@@ -262,14 +270,29 @@ namespace HNSW.Net
 
                 using (var stream = new MemoryStream(bytes))
                 {
-                    var formatter = new BinaryFormatter();
-                    int entryId = (int)formatter.Deserialize(stream);
-                    int maxLevel = (int)formatter.Deserialize(stream);
+                    // Read entry point info
+                    var entryIdBytes = new byte[4];
+                    stream.Read(entryIdBytes, 0, 4);
+                    int entryId = BitConverter.ToInt32(entryIdBytes, 0);
+
+                    var maxLevelBytes = new byte[4];
+                    stream.Read(maxLevelBytes, 0, 4);
+                    int maxLevel = BitConverter.ToInt32(maxLevelBytes, 0);
 
                     nodeList[entryId] = this.NewNode(entryId, items[entryId], maxLevel);
                     for (int level = maxLevel; level >= 0; --level)
                     {
-                        var edges = (Dictionary<int, List<int>>)formatter.Deserialize(stream);
+                        // Read edges length
+                        var lengthBytes = new byte[4];
+                        stream.Read(lengthBytes, 0, 4);
+                        var edgesLength = BitConverter.ToInt32(lengthBytes, 0);
+
+                        // Read edges JSON
+                        var edgesBytes = new byte[edgesLength];
+                        stream.Read(edgesBytes, 0, edgesLength);
+                        var edgesJson = Encoding.UTF8.GetString(edgesBytes);
+                        var edges = JsonConvert.DeserializeObject<Dictionary<int, List<int>>>(edgesJson);
+
                         foreach (var pair in edges)
                         {
                             var currentNode = getOrAdd(pair.Key, level);

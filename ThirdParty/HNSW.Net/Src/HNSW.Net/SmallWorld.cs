@@ -10,7 +10,8 @@ namespace HNSW.Net
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
-    using System.Runtime.Serialization.Formatters.Binary;
+    using System.Text;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// <see href="https://arxiv.org/abs/1603.09320">Hierarchical Navigable Small World Graphs</see>.
@@ -135,10 +136,15 @@ namespace HNSW.Net
                 throw new InvalidOperationException("The graph does not exist");
             }
 
-            var formatter = new BinaryFormatter();
             using (var stream = new MemoryStream())
             {
-                formatter.Serialize(stream, this.graph.Parameters);
+                var parametersJson = JsonConvert.SerializeObject(this.graph.Parameters);
+                var parametersBytes = Encoding.UTF8.GetBytes(parametersJson);
+
+                // Write parameters length first, then parameters, then edges
+                var lengthBytes = BitConverter.GetBytes(parametersBytes.Length);
+                stream.Write(lengthBytes, 0, lengthBytes.Length);
+                stream.Write(parametersBytes, 0, parametersBytes.Length);
 
                 var edgeBytes = this.graph.Serialize();
                 stream.Write(edgeBytes, 0, edgeBytes.Length);
@@ -154,10 +160,18 @@ namespace HNSW.Net
         /// <param name="bytes">The serialized parameters and edges.</param>
         public void DeserializeGraph(IList<TItem> items, byte[] bytes)
         {
-            var formatter = new BinaryFormatter();
             using (var stream = new MemoryStream(bytes))
             {
-                var parameters = (Parameters)formatter.Deserialize(stream);
+                // Read parameters length
+                var lengthBytes = new byte[4];
+                stream.Read(lengthBytes, 0, 4);
+                var parametersLength = BitConverter.ToInt32(lengthBytes, 0);
+
+                // Read parameters JSON
+                var parametersBytes = new byte[parametersLength];
+                stream.Read(parametersBytes, 0, parametersLength);
+                var parametersJson = Encoding.UTF8.GetString(parametersBytes);
+                var parameters = JsonConvert.DeserializeObject<Parameters>(parametersJson);
 
                 var graph = new Graph(this.distance, parameters);
                 graph.Deserialize(items, bytes.Skip((int)stream.Position).ToArray());

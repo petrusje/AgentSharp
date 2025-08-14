@@ -1,5 +1,6 @@
 using AgentSharp.Attributes;
 using AgentSharp.Core;
+using AgentSharp.Core.Abstractions;
 using AgentSharp.Models;
 using System;
 using System.Collections.Generic;
@@ -122,9 +123,35 @@ namespace AgentSharp.Examples
   public static class CustomContextExample
   {
     /// <summary>
+    /// Demonstra como DI PURA funciona (vai falhar propositalmente)
+    /// </summary>
+    private static IModel CreateModelWithDI(string modelName)
+    {
+      Console.WriteLine("⚠️  DI PURA requer referência a AgentSharp.Providers.OpenAI");
+      Console.WriteLine("Tentando criar ModelFactory sem providers...");
+
+      try
+      {
+        // ISSO VAI FALHAR - e é assim que deve ser!
+        var modelFactory = new ModelFactory(new List<IModelProvider>());
+        return null; // Não vai chegar aqui
+      }
+      catch (ArgumentException ex)
+      {
+        Console.WriteLine($"✅ FALHOU COMO ESPERADO: {ex.Message}");
+        Console.WriteLine("\n🎯 ARQUITETURA LIMPA: DI é OBRIGATÓRIO!");
+        Console.WriteLine("Para usar em produção:");
+        Console.WriteLine("1. Referencie: AgentSharp.Providers.OpenAI");
+        Console.WriteLine("2. Configure: var provider = new OpenAIModelProvider(apiKey)");
+        Console.WriteLine("3. Injete: var factory = new ModelFactory([provider])");
+        return null;
+      }
+    }
+
+    /// <summary>
     /// Demonstration of using the agent with custom context.
     /// </summary>
-    public static async Task RunExample()
+    public static void RunExample()
     {
       // Create the custom context
       var context = new AgentContextSample
@@ -137,43 +164,17 @@ namespace AgentSharp.Examples
                 }
       };
 
-      // Create the model via factory
-      var options = new ModelOptions
-      {
-        ModelName = "gpt-4o-mini"
-      };
-      var model = new ModelFactory().CreateModel("openai", options);
+      // DEMONSTRAÇÃO: Como DI pura funciona (vai falhar)
+      var model = CreateModelWithDI("demo-model");
 
-      // Create the agent with custom context
-      var config = new ModelConfiguration
-      {
-        Temperature = 0.3,
-        MaxTokens = 1000
-      };
-
-      var agent = new AdvancedAgent(model)
-          .WithContext(context) // Use the fluent method to set the context
-          .WithConfig(config);
-
-      // Execute the agent
-      var result = await agent.ExecuteAsync(
-          "What is my preferred theme and what can you tell me about my interactions?");
-
-      // Access the result
-      Console.WriteLine($"Response: {result.Value}");
-
-      // Execute with streaming
-      await agent.ExecuteStreamingAsync(
-          "Add a new notification preference as 'email'",
-          chunk => Console.Write(chunk),
-          context);
-
-      // View the updated history
-      Console.WriteLine("\nInteraction history:");
-      foreach (var item in context.InteractionHistory)
-      {
-        Console.WriteLine($"- {item}");
-      }
+      // SEM FALLBACK: DI pura força arquitetura limpa!
+      Console.WriteLine("\nEste example NÃO executará o agente - isso é INTENCIONAL!");
+      Console.WriteLine("Configure DI corretamente em seu projeto para usar AgentSharp.");
+      return; // Sai sem executar o agente
     }
   }
+
+  // *** MOCK PROVIDER REMOVIDO ***
+  // Examples agora demonstram APENAS conceitos de DI
+  // Para implementação real: referencie AgentSharp.Providers.*
 }

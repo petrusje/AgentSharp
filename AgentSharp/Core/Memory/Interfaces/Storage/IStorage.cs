@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AgentSharp.Core.Memory.Models;
+using AgentSharp.Models;
 
 namespace AgentSharp.Core.Memory.Interfaces
 {
@@ -107,6 +108,16 @@ namespace AgentSharp.Core.Memory.Interfaces
         /// Remove uma sessão e todos os seus dados
         /// </summary>
         Task DeleteSessionAsync(string sessionId);
+
+        /// <summary>
+        /// Obtém histórico de mensagens de uma sessão para contexto conversacional (como /refs)
+        /// </summary>
+        Task<List<AIMessage>> GetSessionHistoryAsync(string userId, string sessionId, int limit = 10);
+
+        /// <summary>
+        /// Salva uma mensagem no histórico da sessão
+        /// </summary>
+        Task SaveSessionMessageAsync(string userId, string sessionId, AIMessage message);
 
         #endregion
     }

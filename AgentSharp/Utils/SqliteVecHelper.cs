@@ -138,7 +138,7 @@ Target Location: {Path.Combine(currentDir, platform.BinaryName)}
    You can place the binary in any of these locations:
    • {Path.Combine(AppContext.BaseDirectory, platform.BinaryName)}
    • {Path.Combine(Environment.CurrentDirectory, platform.BinaryName)}
-   • Specify custom path in VectorSqliteVecStorage constructor
+   • Specify custom path in SemanticSqliteStorage constructor
 
 ⚠️  SECURITY NOTES:
    • Only download from official GitHub releases

@@ -117,15 +117,6 @@ namespace AgentSharp.Models
     /// </remarks>
     public Type ResponseType { get; set; }
 
-    /// <summary>
-    /// Preserves backward compatibility com ModelId property
-    /// </summary>
-    [Obsolete("Use ModelName instead")]
-    public string ModelId
-    {
-      get => ModelName;
-      set => ModelName = value;
-    }
 
     /// <summary>
     /// Merges configurations with another, prioritizing settings

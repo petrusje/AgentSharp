@@ -1,13 +1,14 @@
 using System;
 using System.Threading.Tasks;
 using AgentSharp.Utils;
+using AgentSharp.console.Utils;
 
 namespace AgentSharp.console
 {
     /// <summary>
     /// Utility for installing and managing sqlite-vec binaries safely
     /// </summary>
-    public class SqliteVecInstallationHelper
+    public static class SqliteVecInstallationHelper
     {
         public static void CheckAndGuideInstallation()
         {
@@ -61,7 +62,7 @@ namespace AgentSharp.console
                 Console.WriteLine("✅ sqlite-vec is properly installed and ready to use!");
                 Console.WriteLine($"   Location: {status.BinaryPath}");
                 Console.WriteLine();
-                TestBinary(status.BinaryPath);
+                TestBinary();
             }
         }
 
@@ -72,7 +73,7 @@ namespace AgentSharp.console
 
             Console.WriteLine();
             Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
+            ConsoleHelper.SafeReadKey();
         }
 
         public static void ShowInstallationGuide()
@@ -80,7 +81,7 @@ namespace AgentSharp.console
             ShowInstallationInstructions();
         }
 
-        private static void TestBinary(string binaryPath)
+        private static void TestBinary()
         {
             Console.WriteLine("🧪 Would you like to test the binary with a database connection? (y/N): ");
             var response = Console.ReadLine()?.ToLower();
@@ -91,10 +92,10 @@ namespace AgentSharp.console
                 {
                     Console.WriteLine("Testing sqlite-vec connection...");
 
-                    // This would normally create a VectorSqliteVecStorage instance
+                    // This would normally create a SemanticSqliteStorage instance
                     // For now, just show that it would work
                     Console.WriteLine("✅ Binary test would be performed here");
-                    Console.WriteLine("   (This would create a test VectorSqliteVecStorage instance)");
+                    Console.WriteLine("   (This would create a test SemanticSqliteStorage instance)");
                 }
                 catch (Exception ex)
                 {

@@ -1,6 +1,8 @@
 using AgentSharp.Core;
+using AgentSharp.Core.Abstractions;
 using AgentSharp.Models;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AgentSharp.Examples
@@ -24,13 +26,73 @@ namespace AgentSharp.Examples
 
   public static class FinanciamentoToolPackExample
   {
-    public static async Task RunAsync()
+    /// <summary>
+    /// Exemplo usando Dependency Injection PURA (RECOMENDADO)
+    /// Demonstra como configurar DI corretamente - SEM shortcuts ou métodos estáticos
+    /// </summary>
+    public static void RunWithDIAsync(string apiKey, string endpoint = "https://api.openai.com/")
     {
-      var model = new ModelFactory().CreateModel("openai", new ModelOptions { ModelName = "gpt-4o" });
-      var toolPack = new FinanciamentoToolPack();
-      var agente = new FinancingAgent(model, "financiamento", "Agente de financiamento")
-          .WithToolPacks(toolPack);
+      // ARQUITETURA LIMPA: Configure providers explicitamente
+      // NOTA: Precisa referenciar AgentSharp.Providers.OpenAI no seu projeto!
 
+      Console.WriteLine("\u26a0️  EXEMPLO DI REQUER REFERÊNCIA: AgentSharp.Providers.OpenAI");
+      Console.WriteLine("Configure assim em seu projeto:");
+      Console.WriteLine();
+      Console.WriteLine("var providers = new List<IModelProvider>");
+      Console.WriteLine("{");
+      Console.WriteLine("    new OpenAIModelProvider(apiKey, endpoint)");
+      Console.WriteLine("};");
+      Console.WriteLine("var factory = new ModelFactory(providers);");
+      Console.WriteLine("var model = factory.CreateModel(\"openai\", options);");
+      Console.WriteLine();
+      Console.WriteLine("📝 Para demonstração, usando método legacy...");
+
+      // Para demonstração, vamos usar mock model
+      RunLegacyAsync();
+    }
+
+    /// <summary>
+    /// Exemplo TEMPORÁRIO usando MockModel (para demonstração)
+    /// Em produção: use DI com providers reais!
+    /// </summary>
+    public static void RunLegacyAsync()
+    {
+      // ATENÇÃO: ModelFactory agora REQUER DI!
+      // Isso VAI FALHAR se não tiver providers configurados
+
+      Console.WriteLine("⚠️  AVISO: ModelFactory agora requer DI!");
+      Console.WriteLine("Este exemplo vai falhar - isso é INTENCIONAL!");
+      Console.WriteLine("Configure providers via DI para usar em produção.");
+
+      try
+      {
+        // Isso VAI FALHAR - e é assim que deve ser!
+        var modelFactory = new ModelFactory(new List<IModelProvider>());
+        Console.WriteLine("Não deveria chegar aqui!");
+      }
+      catch (ArgumentException ex)
+      {
+        Console.WriteLine($"✅ FALHOU COMO ESPERADO: {ex.Message}");
+        Console.WriteLine("\n🎯 ARQUITETURA LIMPA: DI é OBRIGATÓRIO!");
+        Console.WriteLine("Para usar em produção:");
+        Console.WriteLine("1. Referencie: AgentSharp.Providers.OpenAI");
+        Console.WriteLine("2. Configure: var provider = new OpenAIModelProvider(apiKey)");
+        Console.WriteLine("3. Injete: var factory = new ModelFactory([provider])");
+        Console.WriteLine("4. Use: factory.CreateModel(\"openai\", options)");
+      }
+    }
+
+    /// <summary>
+    /// Método principal que executava o exemplo (mantém compatibilidade)
+    /// </summary>
+    public static void RunAsync()
+    {
+      // Por padrão, usa a abordagem legacy para manter compatibilidade
+      RunLegacyAsync();
+    }
+
+    private static async Task ExecuteFinancingExample(Agent<PropostaContexto, string> agente)
+    {
       var contexto = new PropostaContexto
       {
         NomeCliente = "Ana Souza",
@@ -53,4 +115,8 @@ namespace AgentSharp.Examples
       }
     }
   }
+
+  // *** MOCK PROVIDER REMOVIDO ***
+  // Examples agora demonstram APENAS conceitos de DI
+  // Para implementação real: referencie AgentSharp.Providers.*
 }
