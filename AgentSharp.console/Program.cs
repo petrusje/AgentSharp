@@ -9,6 +9,7 @@ using AgentSharp.Utils;
 using AgentSharp.console.Services;
 using AgentSharp.console.Utils;
 using AgentSharp.Core.Abstractions;
+using AgentSharp.Providers.OpenAI;
 
 namespace Agents_console
 {
@@ -419,105 +420,20 @@ namespace Agents_console
         /// </summary>
         private static ModelFactory CreateModelFactory(string apiKey, string endpoint)
         {
-            try
+            var providers = new List<IModelProvider>();
+
+            // Adiciona o OpenAIModelProvider se a API Key estiver presente
+            if (!string.IsNullOrWhiteSpace(apiKey))
             {
-                // Tenta usar DI - cria providers manualmente para injeção
-                var providers = new List<IModelProvider>();
-
-                // Adiciona provider OpenAI se temos API key
-                if (!string.IsNullOrEmpty(apiKey))
-                {
-                    // Tenta carregar provider OpenAI via reflection (como faz AgentSharpBuilder)
-                    var openAiProvider = TryCreateOpenAIProvider(apiKey, endpoint);
-                    if (openAiProvider != null)
-                    {
-                        providers.Add(openAiProvider);
-
-                        _consoleObj.WithColor(ConsoleColor.Blue)
-                            .WriteLine("✅ Using DI-based ModelFactory with OpenAI provider")
-                            .ResetColor();
-                    }
-                }
-
-                // Se temos providers, usa construtor DI
-                if (providers.Any())
-                {
-                    return new ModelFactory(providers);
-                }
-            }
-            catch (Exception ex)
-            {
-                _consoleObj.WithColor(ConsoleColor.Yellow)
-                    .WriteLine($"⚠️  DI provider loading failed: {ex.Message}")
-                    .WriteLine("Falling back to legacy ModelFactory")
-                    .ResetColor();
+                providers.Add(new AgentSharp.Providers.OpenAI.OpenAIModelProvider(apiKey, endpoint));
             }
 
-            // Fallback para quando não há providers disponíveis
-            _consoleObj.WithColor(ConsoleColor.Yellow)
-                .WriteLine("⚠️  No providers available - creating ModelFactory with empty provider list")
-                .WriteLine("   This will cause errors when trying to create models!")
-                .ResetColor();
-
-            // ModelFactory agora requer providers - fornece lista vazia como fallback
-            return new ModelFactory(new List<IModelProvider>());
-        }
-
-        /// <summary>
-        /// Tenta criar provider OpenAI via reflection
-        /// </summary>
-        private static IModelProvider TryCreateOpenAIProvider(string apiKey, string endpoint)
-        {
-            try
+            if (!providers.Any())
             {
-                // Tenta carregar a partir dos assemblies carregados
-                var assemblies = System.AppDomain.CurrentDomain.GetAssemblies();
-                foreach (var assembly in assemblies)
-                {
-                    var type = assembly.GetType("AgentSharp.Providers.OpenAI.OpenAIModelProvider");
-                    if (type != null)
-                    {
-                        return (IModelProvider)Activator.CreateInstance(type, apiKey, endpoint);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                // Log error for debugging but continue to fallback
-                Console.WriteLine($"Warning: Failed to load OpenAI provider: {ex.Message}");
+                throw new InvalidOperationException("Configure pelo menos um IModelProvider antes de criar o ModelFactory.");
             }
 
-            try
-            {
-                // Fallback: tenta no assembly atual e referenciados
-                var currentAssembly = System.Reflection.Assembly.GetExecutingAssembly();
-                var referencedAssemblies = currentAssembly.GetReferencedAssemblies();
-
-                foreach (var refAssembly in referencedAssemblies)
-                {
-                    try
-                    {
-                        var assembly = System.Reflection.Assembly.Load(refAssembly);
-                        var type = assembly.GetType("AgentSharp.Providers.OpenAI.OpenAIModelProvider");
-                        if (type != null)
-                        {
-                            return (IModelProvider)Activator.CreateInstance(type, apiKey, endpoint);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        // Log specific assembly load failures for debugging
-                        Console.WriteLine($"Debug: Could not load from assembly {refAssembly.Name}: {ex.Message}");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                // Log error for debugging
-                Console.WriteLine($"Warning: Fallback assembly loading failed: {ex.Message}");
-            }
-
-            return null;
+            return new ModelFactory(providers);
         }
 
         /// <summary>
