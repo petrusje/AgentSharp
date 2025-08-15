@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using AgentSharp.Core.Memory;
 using AgentSharp.Core.Memory.Services;
 using AgentSharp.Core;
+using AgentSharp.Core.Abstractions;
+using AgentSharp.Core.Configuration;
+using AgentSharp.Core.Logging;
 using AgentSharp.Models;
 using AgentSharp.Utils;
 
@@ -20,6 +23,7 @@ namespace AgentSharp.Core.Orchestration
     private readonly PromptManager<TContext> _promptManager;
     private readonly object _sessionLock = new object();
     private readonly object _executionLock = new object();
+    private readonly IWorkflowLogger _advancedLogger;
 
     // Configurações do workflow
     private bool _hasInstructions = false;
@@ -79,15 +83,34 @@ namespace AgentSharp.Core.Orchestration
       }
     }
 
-    public AdvancedWorkflow(string name, ILogger logger = null, IMemory memory = null)
-        : base(name, logger)
+    public AdvancedWorkflow(string name, ILogger logger = null, IMemory memory = null,
+                           WorkflowResourceConfiguration config = null)
+        : base(name, logger, config, new ProductionWorkflowLogger(logger ?? new ConsoleLogger()))
     {
       WorkflowId = Guid.NewGuid().ToString("N");
       _promptManager = new PromptManager<TContext>();
       _memory = memory;
+      _advancedLogger = new ProductionWorkflowLogger(logger ?? new ConsoleLogger());
 
       // Criar sessão inicial
       CreateNewSession();
+
+      // Registrar recursos no CompositeDisposable do base com validação
+      if (_memory != null)
+      {
+        var memoryDisposable = _memory as IDisposable;
+        if (memoryDisposable != null)
+        {
+          RegisterDisposable(memoryDisposable);
+          _advancedLogger.LogInformation("Memory resource registered for disposal: {0}", 
+                                       _memory.GetType().Name);
+        }
+        else
+        {
+          _advancedLogger.LogWarning("Memory resource does not implement IDisposable: {0}", 
+                                   _memory.GetType().Name);
+        }
+      }
 
       _logger.Log(LogLevel.Info, $"Advanced workflow '{name}' created with ID: {WorkflowId}");
     }
@@ -119,6 +142,11 @@ namespace AgentSharp.Core.Orchestration
     public AdvancedWorkflow<TContext, TResult> WithMemory(IMemory memory)
     {
       _memory = memory ?? throw new ArgumentNullException(nameof(memory));
+      
+      // Registrar nova memória como recurso gerenciado
+      if (_memory != null)
+        RegisterDisposable(_memory as IDisposable);
+        
       return this;
     }
 
@@ -183,6 +211,8 @@ namespace AgentSharp.Core.Orchestration
 
     public override async Task<TContext> ExecuteAsync(TContext context, CancellationToken cancellationToken = default)
     {
+      ThrowIfDisposed();
+      
       // Verificar se já está executando
       lock (_executionLock)
       {
@@ -244,18 +274,21 @@ namespace AgentSharp.Core.Orchestration
         _session.AddRun(run);
       }
 
-      // Salvar na memória
-      await _memory.AddItemAsync(new MemoryItem(
-          $"Workflow execution started: {_name}",
-          "workflow_start",
-          1.0,
-          new Dictionary<string, object>
-          {
-            ["workflow_id"] = WorkflowId,
-            ["session_id"] = SessionId,
-            ["execution_id"] = executionContext.ExecutionId
-          }
-      ));
+      // Salvar na memória se disponível
+      if (_memory != null)
+      {
+        await _memory.AddItemAsync(new MemoryItem(
+            $"Workflow execution started: {_name}",
+            "workflow_start",
+            1.0,
+            new Dictionary<string, object>
+            {
+              ["workflow_id"] = WorkflowId,
+              ["session_id"] = SessionId,
+              ["execution_id"] = executionContext.ExecutionId
+            }
+        ));
+      }
     }
 
     private async Task<TContext> ExecuteStepsAsync(TContext context, WorkflowRun run, ExecutionContext executionContext, CancellationToken cancellationToken)
@@ -375,12 +408,15 @@ namespace AgentSharp.Core.Orchestration
         memoryMetadata["estimated_cost"] = stepTokenUsage.EstimatedCost;
       }
 
-      await _memory.AddItemAsync(new MemoryItem(
-          $"Step completed: {step.Name}",
-          "step_completion",
-          1.0,
-          memoryMetadata
-      ));
+      if (_memory != null)
+      {
+        await _memory.AddItemAsync(new MemoryItem(
+            $"Step completed: {step.Name}",
+            "step_completion",
+            1.0,
+            memoryMetadata
+        ));
+      }
     }
 
     private async Task FinalizeExecutionAsync(TContext result, WorkflowRun run, ExecutionContext executionContext)
@@ -403,21 +439,24 @@ namespace AgentSharp.Core.Orchestration
         _session.UpdateState("final_result", result);
       }
 
-      // Salvar na memória
-      await _memory.AddItemAsync(new MemoryItem(
-          $"Workflow execution completed: {_name}",
-          "workflow_completion",
-          1.0,
-          new Dictionary<string, object>
-          {
-            ["workflow_id"] = WorkflowId,
-            ["session_id"] = SessionId,
-            ["execution_id"] = executionContext.ExecutionId,
-            ["duration_ms"] = executionContext.ElapsedTime.TotalMilliseconds,
-            ["total_calls"] = executionContext.CallCount,
-            ["total_executions"] = executionContext.ExecutionCount
-          }
-      ));
+      // Salvar na memória se disponível
+      if (_memory != null)
+      {
+        await _memory.AddItemAsync(new MemoryItem(
+            $"Workflow execution completed: {_name}",
+            "workflow_completion",
+            1.0,
+            new Dictionary<string, object>
+            {
+              ["workflow_id"] = WorkflowId,
+              ["session_id"] = SessionId,
+              ["execution_id"] = executionContext.ExecutionId,
+              ["duration_ms"] = executionContext.ElapsedTime.TotalMilliseconds,
+              ["total_calls"] = executionContext.CallCount,
+              ["total_executions"] = executionContext.ExecutionCount
+            }
+        ));
+      }
     }
 
     private async Task HandleExecutionErrorAsync(Exception ex, WorkflowRun run, ExecutionContext executionContext)
@@ -433,20 +472,23 @@ namespace AgentSharp.Core.Orchestration
         _session.UpdateState("execution_end", DateTime.UtcNow);
       }
 
-      // Salvar erro na memória
-      await _memory.AddItemAsync(new MemoryItem(
-          $"Workflow execution failed: {_name} - {ex.Message}",
-          "workflow_error",
-          1.0,
-          new Dictionary<string, object>
-          {
-            ["workflow_id"] = WorkflowId,
-            ["session_id"] = SessionId,
-            ["execution_id"] = executionContext.ExecutionId,
-            ["error_type"] = ex.GetType().Name,
-            ["error_message"] = ex.Message
-          }
-      ));
+      // Salvar erro na memória se disponível
+      if (_memory != null)
+      {
+        await _memory.AddItemAsync(new MemoryItem(
+            $"Workflow execution failed: {_name} - {ex.Message}",
+            "workflow_error",
+            1.0,
+            new Dictionary<string, object>
+            {
+              ["workflow_id"] = WorkflowId,
+              ["session_id"] = SessionId,
+              ["execution_id"] = executionContext.ExecutionId,
+              ["error_type"] = ex.GetType().Name,
+              ["error_message"] = ex.Message
+            }
+        ));
+      }
     }
 
     #endregion
@@ -488,6 +530,8 @@ After:
 */
     public WorkflowMetrics GetMetrics()
     {
+      ThrowIfDisposed();
+      
       lock (_sessionLock)
       {
         return new WorkflowMetrics
@@ -516,6 +560,70 @@ After:
 
       var totalTicks = completedRuns.Sum(r => r.Duration.Value.Ticks);
       return new TimeSpan(totalTicks / completedRuns.Count);
+    }
+
+    #endregion
+
+    #region Resource Management Override
+
+    /// <summary>
+    /// Override do Dispose para cleanup específico do AdvancedWorkflow
+    /// </summary>
+    public override void Dispose()
+    {
+      try
+      {
+        // Cancelar execução se estiver rodando
+        lock (_executionLock)
+        {
+          if (_isExecuting)
+          {
+            _logger.Log(LogLevel.Warning, "Disposing workflow while execution is in progress");
+          }
+        }
+
+        _logger.Log(LogLevel.Info, $"Disposing Advanced workflow '{_name}' with ID: {WorkflowId}");
+      }
+      catch (Exception ex)
+      {
+        // Log but don't throw during disposal
+        System.Diagnostics.Debug.WriteLine($"Error during AdvancedWorkflow disposal: {ex.Message}");
+      }
+      finally
+      {
+        // Chama o dispose do base que gerencia todos os recursos
+        base.Dispose();
+      }
+    }
+
+    /// <summary>
+    /// Override do DisposeAsync para cleanup assíncrono específico
+    /// </summary>
+    public override async ValueTask DisposeAsync()
+    {
+      try
+      {
+        // Cancelar execução se estiver rodando
+        lock (_executionLock)
+        {
+          if (_isExecuting)
+          {
+            _logger.Log(LogLevel.Warning, "Disposing workflow while execution is in progress");
+          }
+        }
+
+        _logger.Log(LogLevel.Info, $"Disposing Advanced workflow '{_name}' with ID: {WorkflowId}");
+      }
+      catch (Exception ex)
+      {
+        // Log but don't throw during disposal
+        System.Diagnostics.Debug.WriteLine($"Error during AdvancedWorkflow disposal: {ex.Message}");
+      }
+      finally
+      {
+        // Chama o dispose assíncrono do base que gerencia todos os recursos
+        await base.DisposeAsync();
+      }
     }
 
     #endregion
