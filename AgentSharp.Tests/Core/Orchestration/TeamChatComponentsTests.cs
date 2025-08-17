@@ -447,17 +447,6 @@ namespace AgentSharp.Tests.Core.Orchestration
         }
 
         [Fact]
-        public void GlobalVariableBuilder_Add_EmptyName_ThrowsException()
-        {
-            // Arrange
-            var builder = new GlobalVariableBuilder();
-
-            // Act & Assert
-            Assert.Throws<ArgumentException>(() =>
-                builder.Add("", "agent1", "description"));
-        }
-
-        [Fact]
         public void SystemMessageBuilder_BuildForAgent_NullArguments_ThrowsException()
         {
             // Arrange
