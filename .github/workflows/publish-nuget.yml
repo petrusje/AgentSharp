@@ -24,7 +24,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: 8.0.x
 
       - name: Cache NuGet packages
         uses: actions/cache@v4
@@ -41,7 +41,16 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Run unit tests
-        run: dotnet test AgentSharp.Tests/AgentSharp.Tests.csproj --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage --settings test.runsettings
+        run: |
+          echo "🧪 Running tests..."
+          # Try the specific project first
+          if dotnet test AgentSharp.Tests/AgentSharp.Tests.csproj --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage --settings test.runsettings; then
+            echo "✅ Tests completed successfully"
+          else
+            echo "❌ Project-specific test failed, trying solution-wide test..."
+            # Fallback to solution-wide test
+            dotnet test --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage --settings test.runsettings
+          fi
         continue-on-error: true
 
       - name: Generate coverage report
@@ -89,7 +98,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: 8.0.x
 
       - name: Cache NuGet packages
         uses: actions/cache@v4
@@ -106,7 +115,15 @@ jobs:
         run: dotnet build AgentSharp/AgentSharp.csproj --no-restore --configuration Release
 
       - name: Run tests one more time before publish
-        run: dotnet test AgentSharp.Tests/AgentSharp.Tests.csproj --no-build --configuration Release --verbosity minimal
+        run: |
+          echo "🧪 Final test run before publish..."
+          # Try the specific project first
+          if dotnet test AgentSharp.Tests/AgentSharp.Tests.csproj --configuration Release --verbosity minimal; then
+            echo "✅ Final tests passed"
+          else
+            echo "❌ Project-specific test failed, trying solution-wide test..."
+            dotnet test --configuration Release --verbosity minimal
+          fi
 
       - name: Validate documentation
         run: |
