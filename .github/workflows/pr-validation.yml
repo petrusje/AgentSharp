@@ -46,7 +46,7 @@ jobs:
         run: dotnet test AgentSharp.Tests/AgentSharp.Tests.csproj --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory ./coverage --verbosity normal
 
       - name: Generate coverage report
-        uses: danielpalme/ReportGenerator-GitHub-Action@5.1.26
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.4.12
         with:
           reports: './coverage/**/*.xml'
           targetdir: './coverage-report'
