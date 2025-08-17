@@ -347,9 +347,13 @@ namespace AgentSharp.Tests.Core.Orchestration
 
             // Assert
             Assert.Contains("3/5", result);
-            Assert.Contains("60%", result);
+            // Flexible percentage check - handles both "60%" and "60 %" formats across different cultures
+            Assert.True(result.Contains("60%") || result.Contains("60 %"), 
+                $"Expected to contain '60%' or '60 %', but got: {result}");
             Assert.Contains("2/3", result);
-            Assert.Contains("67%", result);
+            // Flexible percentage check for required completion
+            Assert.True(result.Contains("67%") || result.Contains("67 %"), 
+                $"Expected to contain '67%' or '67 %', but got: {result}");
         }
 
         [Fact]
