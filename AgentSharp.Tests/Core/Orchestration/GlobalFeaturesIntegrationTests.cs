@@ -5,6 +5,8 @@ using Xunit;
 using AgentSharp.Core.Orchestration;
 using AgentSharp.Core.Memory.Interfaces;
 using AgentSharp.Core.Memory.Services;
+using AgentSharp.Core.Memory.Models;
+using AgentSharp.Core.Memory;
 using AgentSharp.Core;
 using Microsoft.Extensions.Logging;
 
@@ -323,14 +325,24 @@ namespace AgentSharp.Tests.Core.Orchestration
     {
         public bool WasCleared { get; private set; }
 
-        public Task AddItemAsync(AgentSharp.Core.Memory.Models.MemoryItem item)
+        public Task AddItemAsync(MemoryItem item)
         {
             return Task.CompletedTask;
         }
 
-        public Task<List<AgentSharp.Core.Memory.Models.MemoryItem>> SearchAsync(string query, int limit = 10)
+        public Task<List<MemoryItem>> GetItemsAsync(string type = null, int limit = 10)
         {
-            return Task.FromResult(new List<AgentSharp.Core.Memory.Models.MemoryItem>());
+            return Task.FromResult(new List<MemoryItem>());
+        }
+
+        public Task<List<MemoryItem>> SearchAsync(string query, int limit = 10)
+        {
+            return Task.FromResult(new List<MemoryItem>());
+        }
+
+        public Task RemoveItemAsync(string id)
+        {
+            return Task.CompletedTask;
         }
 
         public Task ClearAsync()
@@ -450,25 +462,25 @@ namespace AgentSharp.Tests.Core.Orchestration
         public Task ClearAllAsync() => Task.CompletedTask;
         public Task ConnectAsync() => Task.CompletedTask;
         public Task DisconnectAsync() => Task.CompletedTask;
-        public Task SaveMessageAsync(AgentSharp.Models.Message message) => Task.CompletedTask;
-        public Task<List<AgentSharp.Models.Message>> GetSessionMessagesAsync(string sessionId, int? limit = null) => 
-            Task.FromResult(new List<AgentSharp.Models.Message>());
-        public Task SaveMemoryAsync(AgentSharp.Core.Memory.Models.UserMemory memory) => Task.CompletedTask;
-        public Task<List<AgentSharp.Core.Memory.Models.UserMemory>> GetMemoriesAsync(AgentSharp.Core.Memory.Models.MemoryContext context = null, int? limit = null) => 
-            Task.FromResult(new List<AgentSharp.Core.Memory.Models.UserMemory>());
-        public Task<List<AgentSharp.Core.Memory.Models.UserMemory>> SearchMemoriesAsync(string query, AgentSharp.Core.Memory.Models.MemoryContext context, int limit = 10) => 
-            Task.FromResult(new List<AgentSharp.Core.Memory.Models.UserMemory>());
-        public Task UpdateMemoryAsync(AgentSharp.Core.Memory.Models.UserMemory memory) => Task.CompletedTask;
+        public Task SaveMessageAsync(Message message) => Task.CompletedTask;
+        public Task<List<Message>> GetSessionMessagesAsync(string sessionId, int? limit = null) => 
+            Task.FromResult(new List<Message>());
+        public Task SaveMemoryAsync(UserMemory memory) => Task.CompletedTask;
+        public Task<List<UserMemory>> GetMemoriesAsync(MemoryContext context = null, int? limit = null) => 
+            Task.FromResult(new List<UserMemory>());
+        public Task<List<UserMemory>> SearchMemoriesAsync(string query, MemoryContext context, int limit = 10) => 
+            Task.FromResult(new List<UserMemory>());
+        public Task UpdateMemoryAsync(UserMemory memory) => Task.CompletedTask;
         public Task DeleteMemoryAsync(string id) => Task.CompletedTask;
-        public Task ClearMemoriesAsync(AgentSharp.Core.Memory.Models.MemoryContext context = null) => Task.CompletedTask;
+        public Task ClearMemoriesAsync(MemoryContext context = null) => Task.CompletedTask;
         public Task<AgentSharp.Core.Memory.Interfaces.ISession> GetOrCreateSessionAsync(string sessionId, string userId) => 
             Task.FromResult<AgentSharp.Core.Memory.Interfaces.ISession>(null);
         public Task<List<AgentSharp.Core.Memory.Interfaces.ISession>> GetUserSessionsAsync(string userId, int? limit = null) => 
             Task.FromResult(new List<AgentSharp.Core.Memory.Interfaces.ISession>());
         public Task DeleteSessionAsync(string sessionId) => Task.CompletedTask;
-        public Task<List<AgentSharp.Models.AIMessage>> GetSessionHistoryAsync(string userId, string sessionId, int limit = 10) => 
-            Task.FromResult(new List<AgentSharp.Models.AIMessage>());
-        public Task SaveSessionMessageAsync(string userId, string sessionId, AgentSharp.Models.AIMessage message) => Task.CompletedTask;
+        public Task<List<AIMessage>> GetSessionHistoryAsync(string userId, string sessionId, int limit = 10) => 
+            Task.FromResult(new List<AIMessage>());
+        public Task SaveSessionMessageAsync(string userId, string sessionId, AIMessage message) => Task.CompletedTask;
     }
 
     #endregion

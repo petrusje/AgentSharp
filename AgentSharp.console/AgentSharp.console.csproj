@@ -6,6 +6,7 @@
     <RootNamespace>Agents_console</RootNamespace>
 	<Version>1.0.3</Version>
 	<StartupObject>Agents_console.Program</StartupObject>
+    <IsPackable>false</IsPackable>
     <!-- Desabilitar StyleCop Analyzers -->
     <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
     <RunAnalyzersDuringLiveAnalysis>false</RunAnalyzersDuringLiveAnalysis>
