@@ -176,22 +176,11 @@ namespace AgentSharp.Models
                 Logger.Info("Ollama streaming operation was cancelled");
                 throw;
             }
-            catch (TimeoutException ex)
+            catch (Exception ex)
             {
-                Logger.Error("Timeout in Ollama GenerateStreamingResponseAsync", ex);
-                throw new ModelException($"Timeout in streaming response from Ollama: {ex.Message}", ex);
+                Logger.Error("Error in Ollama GenerateStreamingResponseAsync", ex);
+                throw new ModelException($"Error in streaming response from Ollama: {ex.Message}", ex);
             }
-            catch (TaskCanceledException ex)
-            {
-                Logger.Error("Task was canceled in Ollama GenerateStreamingResponseAsync", ex);
-                throw new ModelException($"Task was canceled in streaming response from Ollama: {ex.Message}", ex);
-            }
-            // If the Ollama client uses HTTP, you may want to catch HttpRequestException:
-            // catch (System.Net.Http.HttpRequestException ex)
-            // {
-            //     Logger.Error("HTTP error in Ollama GenerateStreamingResponseAsync", ex);
-            //     throw new ModelException($"HTTP error in streaming response from Ollama: {ex.Message}", ex);
-            // }
         }
 
         /// <summary>
