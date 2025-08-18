@@ -122,4 +122,5 @@ namespace AgentSharp.Core.Abstractions
         /// </summary>
         public bool SupportsConcurrentAccess { get; set; }
     }
+    
 }

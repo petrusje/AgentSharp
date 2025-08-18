@@ -74,4 +74,5 @@ namespace AgentSharp.Core.Abstractions
         /// </summary>
         public bool SupportsEmbeddings { get; set; }
     }
+    
 }

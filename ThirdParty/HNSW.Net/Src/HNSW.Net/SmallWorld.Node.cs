@@ -1,4 +1,4 @@
-﻿// <copyright file="SmallWorld.Node.cs" company="Microsoft">
+// <copyright file="SmallWorld.Node.cs" company="Microsoft">
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 // </copyright>
@@ -232,13 +232,10 @@ namespace HNSW.Net
                 if (this.Parameters.ExpandBestSelection)
                 {
                     var candidatesIds = new HashSet<int>(candidates.Select(c => c.Id));
-                    foreach (var neighbour in this.GetConnections(this.MaxLevel))
+                    foreach (var neighbour in this.GetConnections(this.MaxLevel).Where(neighbour => !candidatesIds.Contains(neighbour.Id)))
                     {
-                        if (!candidatesIds.Contains(neighbour.Id))
-                        {
-                            candidatesHeap.Push(neighbour);
-                            candidatesIds.Add(neighbour.Id);
-                        }
+                        candidatesHeap.Push(neighbour);
+                        candidatesIds.Add(neighbour.Id);
                     }
                 }
 

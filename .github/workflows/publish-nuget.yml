@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 env:
   DOTNET_NOLOGO: true
@@ -60,12 +57,6 @@ jobs:
           targetdir: './coverage-report'
           reporttypes: 'HtmlInline_AzurePipelines;Cobertura;JsonSummary'
           verbosity: 'Info'
-
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v4
-        with:
-          directory: ./coverage
-          fail_ci_if_error: false
 
       - name: Check coverage threshold
         run: |
@@ -154,6 +145,10 @@ jobs:
 
       - name: Publish to GitHub Packages
         run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source "github" --skip-duplicate
+
+      - name: Publish to NuGet.org
+        if: success()
+        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Upload package artifacts
         uses: actions/upload-artifact@v4

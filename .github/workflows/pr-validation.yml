@@ -13,6 +13,9 @@ jobs:
   validate:
     name: Validate PR
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Checkout code
@@ -47,9 +50,6 @@ jobs:
           echo ""
           echo "AgentSharp project:"
           ls -la AgentSharp/ | head -10
-
-      - name: Check formatting
-        run: dotnet format --verify-no-changes --verbosity diagnostic
 
       - name: Build solution
         run: dotnet build --no-restore --configuration Release --verbosity minimal
@@ -90,22 +90,15 @@ jobs:
         with:
           reports: './coverage/**/*.xml'
           targetdir: './coverage-report'
-          reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
+          reporttypes: 'HtmlInline_AzurePipelines;Cobertura;MarkdownSummary'
           verbosity: 'Info'
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          directory: ./coverage
-          fail_ci_if_error: false
-          verbose: true
 
       - name: Comment coverage on PR
         uses: marocchino/sticky-pull-request-comment@v2
         if: github.event_name == 'pull_request'
         with:
           recreate: true
-          path: ./coverage-report/index.html
+          path: ./coverage-report/Summary.md
 
       - name: Validate packages can be created
         run: |

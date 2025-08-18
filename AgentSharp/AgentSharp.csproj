@@ -18,6 +18,14 @@
 		<IncludePackageReadmeFile>true</IncludePackageReadmeFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
+		
+		<!-- Additional NuGet metadata -->
+		<PackageProjectUrl>https://github.com/petrusje/AgentSharp</PackageProjectUrl>
+		<PackageTags>ai;agent;ai-agents;dotnet;csharp;machine-learning;artificial-intelligence</PackageTags>
+		<PackageReleaseNotes>See https://github.com/petrusje/AgentSharp/releases for release notes.</PackageReleaseNotes>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
