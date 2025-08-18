@@ -90,7 +90,7 @@ jobs:
         with:
           reports: './coverage/**/*.xml'
           targetdir: './coverage-report'
-          reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
+          reporttypes: 'HtmlInline_AzurePipelines;Cobertura;MarkdownSummary'
           verbosity: 'Info'
 
       - name: Comment coverage on PR
@@ -98,7 +98,7 @@ jobs:
         if: github.event_name == 'pull_request'
         with:
           recreate: true
-          path: ./coverage-report/index.html
+          path: ./coverage-report/Summary.md
 
       - name: Validate packages can be created
         run: |
