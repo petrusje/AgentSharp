@@ -120,9 +120,9 @@ namespace AgentSharp.Tests.Core.Orchestration
             teamChat.WithAgent("TestAgent", agent, "Test agent for support and help");
 
             // Assert
-            Assert.True(teamChat.AvailableAgents.ContainsKey("TestAgent"));
-            Assert.Equal("TestAgent", teamChat.AvailableAgents["TestAgent"].Name);
-            Assert.Equal("Test agent for support and help", teamChat.AvailableAgents["TestAgent"].Expertise);
+            Assert.True(teamChat.AvailableAgents.TryGetValue("TestAgent", out var configuredAgent));
+            Assert.Equal("TestAgent", configuredAgent.Name);
+            Assert.Equal("Test agent for support and help", configuredAgent.Expertise);
         }
 
         [Fact]
