@@ -79,7 +79,6 @@ namespace AgentSharp.Storage.Memory
             return new StorageProviderInfo
             {
                 Name = ProviderName,
-                
                 Description = "In-memory storage provider for development, testing, and temporary data",
                 Version = "1.0.0",
                 SupportsTransactions = false,
