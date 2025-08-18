@@ -209,14 +209,14 @@ namespace AgentSharp.Tests.Core.Orchestration
         }
 
         [Fact]
-        public void AdvancedWorkflow_ShouldThrowAfterDispose()
+        public async Task AdvancedWorkflow_ShouldThrowAfterDispose()
         {
             // Arrange
             var workflow = new AdvancedWorkflow<string, string>("test");
             workflow.Dispose();
 
             // Act & Assert
-            Assert.ThrowsAsync<ObjectDisposedException>(() => workflow.ExecuteAsync("test"));
+            await Assert.ThrowsAsync<ObjectDisposedException>(() => workflow.ExecuteAsync("test"));
             Assert.Throws<ObjectDisposedException>(() => workflow.GetMetrics());
         }
 
@@ -265,4 +265,5 @@ namespace AgentSharp.Tests.Core.Orchestration
             }
         }
     }
+
 }
