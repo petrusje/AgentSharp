@@ -96,6 +96,7 @@ jobs:
           directory: ./coverage
           fail_ci_if_error: false
           verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Comment coverage on PR
         uses: marocchino/sticky-pull-request-comment@v2

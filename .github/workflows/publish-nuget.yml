@@ -66,6 +66,7 @@ jobs:
         with:
           directory: ./coverage
           fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Check coverage threshold
         run: |
