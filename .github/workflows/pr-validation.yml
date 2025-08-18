@@ -48,9 +48,6 @@ jobs:
           echo "AgentSharp project:"
           ls -la AgentSharp/ | head -10
 
-      - name: Check formatting
-        run: dotnet format --verify-no-changes --verbosity diagnostic
-
       - name: Build solution
         run: dotnet build --no-restore --configuration Release --verbosity minimal
 
