@@ -90,14 +90,6 @@ jobs:
           reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
           verbosity: 'Info'
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          directory: ./coverage
-          fail_ci_if_error: false
-          verbose: true
-          token: ${{ secrets.CODECOV_TOKEN }}
-
       - name: Comment coverage on PR
         uses: marocchino/sticky-pull-request-comment@v2
         if: github.event_name == 'pull_request'
