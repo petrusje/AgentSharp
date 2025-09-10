@@ -169,6 +169,9 @@ namespace Agents_console
           case "9":
             await ExecuteExample("Workflow Multi-etapa", () => ExemplosWorkflow.ExecutarWorkflowCompleto(modelo));
             break;
+          case "10":
+            await ExecuteExample("Análise de Commits", () => GitCommitAnalysisExample.ExecutarAnaliseCommits());
+            break;
           case "0":
             Console.WriteLine("👋 Obrigado por usar Agents.net!");
             return false; // Sair do loop
@@ -207,9 +210,12 @@ namespace Agents_console
       Console.WriteLine("🔄 EXEMPLOS WORKFLOW:");
       Console.WriteLine("  9. 📈 Workflow Multi-etapa");
       Console.WriteLine();
+      Console.WriteLine("🔍 ANÁLISE DE CÓDIGO:");
+      Console.WriteLine("  10. 📊 Análise de Commits do Repositório");
+      Console.WriteLine();
       Console.WriteLine("  0. ❌ Sair");
       Console.WriteLine();
-      Console.Write("Digite sua escolha (0-9): ");
+      Console.Write("Digite sua escolha (0-10): ");
     }
 
     static async Task ExecuteExample(string exampleName, Func<Task> example)
