@@ -64,7 +64,7 @@ var agent = new Agent<string, string>(model, "Assistente")
     .WithPersona("Você é um assistente útil e direto");
 
 // Executar
-var resultado = await agent.ExecuteAsync("Como posso ajudar?");
+var resultado = await agent.ExecuteAsync("Como funciona uma LLM?");
 Console.WriteLine(resultado.Data);
 ```
 
@@ -83,6 +83,8 @@ var agent = new Agent<Context, string>(model, "Assistente Inteligente")
     .WithContext(new Context { UserId = "user123", SessionId = "session456" });
 
 var resultado = await agent.ExecuteAsync("Prefiro café forte pela manhã, mas leve à tarde");
+var resultado = await agent.ExecuteAsync("Como prefiro Café ?");
+
 ```
 
 ### Workflow Multi-Agentes
@@ -126,9 +128,9 @@ public class Relatorio
 
 // Agente com output tipado
 var gerador = new Agent<string, Relatorio>(model, "Gerador de Relatório");
-var relatorio = await gerador.ExecuteAsync("Crie um relatório sobre IA");
+var relatorio = await gerador.ExecuteAsync("Crie um relatório sobre projetos de IA com os 5 principais tópicos e a confiança da informação");
 
-Console.WriteLine($"Título: {relatorio.Data.Titulo}");
+Console.WriteLine($"Título: {relatorio.Data.Titulo}"); 
 Console.WriteLine($"Confiança: {relatorio.Data.Confianca:P}");
 ```
 
@@ -168,7 +170,7 @@ var team = new TeamOrchestrator<ProjetoContext, string>()
 // Executar projeto colaborativo
 var contexto = new ProjetoContext 
 { 
-    Requisitos = "Sistema de gestão de pedidos",
+    Requisitos = "Sistema todo list CLI em c#",
     UserId = "pm001",
     SessionId = Guid.NewGuid().ToString()
 };
@@ -409,5 +411,6 @@ Este projeto está licenciado sob a Licença MIT. Veja [LICENSE](LICENSE) para m
 - Comunidade .NET pelo ecossistema robusto
 
 ---
+
 
 **AgentSharp** - Framework .NET para agentes de IA modernos
