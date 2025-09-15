@@ -86,7 +86,7 @@ jobs:
           fi
 
       - name: Generate coverage report
-        uses: danielpalme/ReportGenerator-GitHub-Action@5.1.26
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.4.13
         with:
           reports: './coverage/**/*.xml'
           targetdir: './coverage-report'
