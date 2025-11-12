@@ -128,4 +128,5 @@ namespace AgentSharp.Core.Abstractions
         /// </summary>
         public decimal? CostPer1000Tokens { get; set; }
     }
+    
 }

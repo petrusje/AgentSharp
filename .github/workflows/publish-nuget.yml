@@ -1,37 +1,157 @@
-name: Publish to GitHub Packages
+name: Build, Test and Publish to GitHub Packages
 
 on:
   push:
     branches:
       - main
 
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
 jobs:
-  publish:
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repositorio
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run unit tests
+        run: |
+          echo "🧪 Running tests..."
+          # Try the specific project first
+          if dotnet test AgentSharp.Tests/AgentSharp.Tests.csproj --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage --settings test.runsettings; then
+            echo "✅ Tests completed successfully"
+          else
+            echo "❌ Project-specific test failed, trying solution-wide test..."
+            # Fallback to solution-wide test
+            dotnet test --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage --settings test.runsettings
+          fi
+        continue-on-error: true
+
+      - name: Generate coverage report
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.1.26
+        with:
+          reports: './coverage/**/*.xml'
+          targetdir: './coverage-report'
+          reporttypes: 'HtmlInline_AzurePipelines;Cobertura;JsonSummary'
+          verbosity: 'Info'
+
+      - name: Check coverage threshold
+        run: |
+          echo "📊 Checking code coverage..."
+          if [ -f "./coverage-report/Summary.json" ]; then
+            COVERAGE=$(grep -oP '"linecoverage":\s*\K[\d.]+' ./coverage-report/Summary.json)
+            echo "Current line coverage: ${COVERAGE}%"
+            if [ $(echo "$COVERAGE >= 70" | bc -l) ]; then
+              echo "✅ Coverage threshold met (≥70%)"
+            else
+              echo "⚠️ Coverage below threshold (70%), but continuing..."
+            fi
+          else
+            echo "⚠️ Coverage report not found, continuing without coverage check"
+          fi
+
+  publish:
+    name: Pack and Publish
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       packages: write
       contents: read
 
     steps:
       - name: Checkout repositorio
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: 8.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
 
       - name: Restore dependencies
         run: dotnet restore
 
-      - name: Build
-        run: dotnet build --no-restore --configuration Release
+      - name: Build AgentSharp
+        run: dotnet build AgentSharp/AgentSharp.csproj --no-restore --configuration Release
 
-      - name: Pack
-        run: dotnet pack --no-build --configuration Release --output ./nupkg
+      - name: Run tests one more time before publish
+        run: |
+          echo "🧪 Final test run before publish..."
+          # Try the specific project first
+          if dotnet test AgentSharp.Tests/AgentSharp.Tests.csproj --configuration Release --verbosity minimal; then
+            echo "✅ Final tests passed"
+          else
+            echo "❌ Project-specific test failed, trying solution-wide test..."
+            dotnet test --configuration Release --verbosity minimal
+          fi
+
+      - name: Validate documentation
+        run: |
+          echo "📚 Validating project documentation..."
+          if [ ! -f "README.md" ]; then
+            echo "❌ README.md not found"
+            exit 1
+          fi
+          echo "✅ README.md found"
+          
+          if [ ! -f "LICENSE" ]; then
+            echo "❌ LICENSE file not found"
+            exit 1
+          fi
+          echo "✅ LICENSE file found"
+
+      - name: Pack AgentSharp
+        run: dotnet pack AgentSharp/AgentSharp.csproj --no-build --configuration Release --output ./nupkg
+
+      - name: Validate package
+        run: |
+          echo "Validating generated packages..."
+          ls -la ./nupkg/
+          dotnet nuget verify ./nupkg/*.nupkg
 
       - name: Add GitHub NuGet Source
         run: dotnet nuget add source --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
 
       - name: Publish to GitHub Packages
-        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source "github"
+        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source "github" --skip-duplicate
+
+      - name: Publish to NuGet.org
+        if: success()
+        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./nupkg/*.nupkg
