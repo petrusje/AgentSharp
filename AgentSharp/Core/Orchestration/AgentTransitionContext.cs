@@ -6,7 +6,7 @@ namespace AgentSharp.Core.Orchestration
     /// <summary>
     /// Rich context provided to agents for intelligent decision-making
     /// </summary>
-    public class AgentTransitionContext<TContext>
+    public class AgentTransitionContext<TContext> : IAgentTransitionContext
     {
         /// <summary>
         /// Application-specific context data

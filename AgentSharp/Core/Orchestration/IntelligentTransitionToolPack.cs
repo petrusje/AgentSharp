@@ -13,14 +13,14 @@ namespace AgentSharp.Core.Orchestration
     /// </summary>
     public class IntelligentTransitionToolPack : ToolPack
     {
-        private readonly GlobalVariableCollection _globalVariables;
-        private readonly new AgentTransitionContext<object> _context;
-        private readonly IEnhancedStorage _storage;
-        private readonly string _sessionId;
+    private readonly GlobalVariableCollection _globalVariables;
+    private readonly new IAgentTransitionContext _context;
+    private readonly IEnhancedStorage _storage;
+    private readonly string _sessionId;
 
         public IntelligentTransitionToolPack(
-            GlobalVariableCollection globalVariables, 
-            AgentTransitionContext<object> context,
+            GlobalVariableCollection globalVariables,
+            IAgentTransitionContext context,
             IEnhancedStorage storage = null,
             string sessionId = null)
         {
@@ -37,7 +37,7 @@ namespace AgentSharp.Core.Orchestration
         /// </summary>
         [FunctionCall("save_variable")]
         [FunctionCallParameter("name", "Variable name to save")]
-        [FunctionCallParameter("value", "Variable value extracted from conversation")]  
+        [FunctionCallParameter("value", "Variable value extracted from conversation")]
         [FunctionCallParameter("confidence", "Confidence level 0.0-1.0 (default: 1.0)")]
         public async Task<string> SaveVariable(string name, string value, double confidence = 1.0)
         {
@@ -53,7 +53,7 @@ namespace AgentSharp.Core.Orchestration
                     return "❌ Error: Confidence must be between 0.0 and 1.0";
 
                 _globalVariables.SetVariable(name, value, confidence);
-                
+
                 var confidenceText = confidence < 1.0 ? $" with {confidence:P0} confidence" : "";
                 return $"✅ Successfully captured {name} = '{value}'{confidenceText}";
             }
@@ -179,13 +179,13 @@ namespace AgentSharp.Core.Orchestration
         public string AnalyzeContext()
         {
             var analysis = new StringBuilder();
-            
+
             analysis.AppendLine("📊 CURRENT CONTEXT ANALYSIS:");
-            
+
             var progress = _context.GetProgress();
             analysis.AppendLine($"   Progress: {progress.FilledVariables}/{progress.TotalVariables} variables ({progress.CompletionPercentage:P0})");
             analysis.AppendLine($"   Required: {progress.RequiredFilled}/{progress.RequiredVariables} completed ({progress.RequiredCompletionPercentage:P0})");
-            
+
             var missing = _context.GetMissingVariables();
             if (missing.Any())
             {
@@ -199,7 +199,7 @@ namespace AgentSharp.Core.Orchestration
                     analysis.AppendLine($"   • {m.Name} (optional): {m.Description}");
                 }
             }
-            
+
             var collected = _context.GetCollectedVariables();
             if (collected.Any())
             {
@@ -210,10 +210,10 @@ namespace AgentSharp.Core.Orchestration
                     analysis.AppendLine($"   • {c.Name} = '{c.Value}' (by {c.CapturedBy}){confidence}");
                 }
             }
-            
+
             analysis.AppendLine($"\n🤝 AVAILABLE AGENTS: {string.Join(", ", _context.AvailableAgents)}");
             analysis.AppendLine($"💬 CONVERSATION LENGTH: {_context.History.Count} messages");
-            
+
             analysis.AppendLine("\n🎯 RECOMMENDATION:");
             if (progress.IsComplete)
                 analysis.AppendLine("   All required information collected. Consider completing the conversation.");
@@ -221,7 +221,7 @@ namespace AgentSharp.Core.Orchestration
                 analysis.AppendLine("   Consider transferring to agent responsible for missing required variables.");
             else
                 analysis.AppendLine("   Continue conversation to collect remaining information.");
-                
+
             return analysis.ToString();
         }
 
@@ -239,20 +239,20 @@ namespace AgentSharp.Core.Orchestration
 
                 var result = new StringBuilder();
                 result.AppendLine($"📋 Variables for agent '{_context.CurrentAgent}':");
-                
+
                 foreach (var variable in owned)
                 {
-                    var status = variable.IsCollected 
+                    var status = variable.IsCollected
                         ? $"✅ '{variable.Value}'" + (variable.Confidence < 1.0 ? $" ({variable.Confidence:P0} confidence)" : "")
                         : "❌ Not collected";
-                    
+
                     var requiredIndicator = variable.IsRequired ? " (REQUIRED)" : "";
                     result.AppendLine($"  • {variable.Name}: {status}{requiredIndicator}");
-                    
+
                     if (!string.IsNullOrEmpty(variable.Description))
                         result.AppendLine($"    📄 {variable.Description}");
                 }
-                
+
                 return result.ToString().TrimEnd();
             }
             catch (Exception ex)
@@ -271,11 +271,11 @@ namespace AgentSharp.Core.Orchestration
             {
                 var progress = _context.GetProgress();
                 var result = new StringBuilder();
-                
+
                 result.AppendLine("📊 CONVERSATION PROGRESS");
                 result.AppendLine($"   Total: {progress.FilledVariables}/{progress.TotalVariables} variables ({progress.CompletionPercentage:P0})");
                 result.AppendLine($"   Required: {progress.RequiredFilled}/{progress.RequiredVariables} ({progress.RequiredCompletionPercentage:P0})");
-                
+
                 if (progress.IsComplete)
                 {
                     result.AppendLine("🎉 All required variables collected!");
@@ -284,7 +284,7 @@ namespace AgentSharp.Core.Orchestration
                 {
                     var missing = _context.GetMissingVariables();
                     var requiredMissing = missing.Where(v => v.IsRequired).ToList();
-                    
+
                     if (requiredMissing.Any())
                     {
                         result.AppendLine("⚠️ Required variables still missing:");

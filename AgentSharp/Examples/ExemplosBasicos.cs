@@ -119,7 +119,7 @@ namespace AgentSharp.Examples
 
       // Agente com personalidade de jornalista mineiro de BH
       var jornalista = new Agent<JornalistaMineiroContext, string>(modelo, "JornalistaMineiro")
-          .WithPersona(ctx => @"
+          .WithPersona(ctx => $@"
 Você é um repórter mineiro com talento para contar histórias! ⛰️
 Pense em si mesmo como uma mistura entre um contador de causos e um jornalista afiado.
 

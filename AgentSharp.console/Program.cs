@@ -303,10 +303,10 @@ namespace Agents_console
                         await ExecuteExample(_localization.GetString("ExampleSemanticSearch"),
                             () => VectorMemoryExample.ExecutarAssistenteComEmbeddings(modelo));
                         break;
-                    
+
                     case "9":
                         await ExecuteExample("🏠 TeamChat Refatorado - Venda de Imóveis (LLM-Driven)",
-                            () => RealEstateTeamChatDemo.RunAsync());
+                            () => RealEstateTeamChatDemo.RunAsync(modelo));
                         break;
 
                     case "0":
