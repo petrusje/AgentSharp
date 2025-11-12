@@ -249,7 +249,6 @@ namespace Agents_console
             _consoleObj.ResetColor();
             Console.WriteLine($"  {_localization.GetString("MenuOption7")}");
             Console.WriteLine($"  {_localization.GetString("MenuOption8")}");
-            Console.WriteLine("  9. 🏠 TeamChat Refatorado - Demo Venda de Imóveis (LLM-Driven)");
             Console.WriteLine();
 
             Console.WriteLine($"  {_localization.GetString("MenuOptionExit")}");
@@ -302,11 +301,6 @@ namespace Agents_console
                     case "8":
                         await ExecuteExample(_localization.GetString("ExampleSemanticSearch"),
                             () => VectorMemoryExample.ExecutarAssistenteComEmbeddings(modelo));
-                        break;
-
-                    case "9":
-                        await ExecuteExample("🏠 TeamChat Refatorado - Venda de Imóveis (LLM-Driven)",
-                            () => RealEstateTeamChatDemo.RunAsync(modelo));
                         break;
 
                     case "0":
