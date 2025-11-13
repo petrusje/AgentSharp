@@ -5,7 +5,7 @@
 		<Version>1.0.3</Version>
 		<Authors>Petrus Junior Evangelista</Authors>
 		<Description>
-			Ollama provider for AgentSharp - provides model services for local Ollama API.
+			Ollama provider for AgentSharp - provides model and embedding services for local Ollama API using tryAGI/Ollama SDK.
 			Part of the AgentSharp framework for building AI agents.
 		</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -15,13 +15,13 @@
 		<RootNamespace>AgentSharp.Providers.Ollama</RootNamespace>
 	</PropertyGroup>
 
-	<!-- Enable C# 7.3 for compatibility -->
+	<!-- Enable C# 7.3 for .NET Standard 2.0 compatibility -->
 	<PropertyGroup>
 		<LangVersion>7.3</LangVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="System.Text.Json" Version="6.0.10" />
+		<PackageReference Include="Ollama" Version="1.15.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.32" />
 	</ItemGroup>
 

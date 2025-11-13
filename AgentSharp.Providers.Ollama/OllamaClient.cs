@@ -1,21 +1,20 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AgentSharp.Models.Interfaces;
 using AgentSharp.Utils;
+using OllamaSDK = Ollama;
 
 namespace AgentSharp.Providers.Ollama
 {
     /// <summary>
-    /// Concrete implementation of IOllamaClient for communicating with Ollama server
+    /// Ollama client implementation using tryAGI/Ollama SDK - C# 7.3 compatible
     /// </summary>
     public class OllamaClient : IOllamaClient
     {
-        private readonly HttpClient _httpClient;
+        private readonly OllamaSDK.OllamaApiClient _client;
         private readonly string _baseUrl;
         private bool _disposed = false;
 
@@ -25,17 +24,13 @@ namespace AgentSharp.Providers.Ollama
         public string BaseUrl => _baseUrl;
 
         /// <summary>
-        /// Initializes a new instance of the Ollama client
+        /// Initializes a new instance of the Ollama client using tryAGI/Ollama SDK
         /// </summary>
         /// <param name="baseUrl">Base URL of the Ollama server (e.g., "http://localhost:11434")</param>
-        /// <param name="httpClient">Optional HTTP client instance</param>
-        public OllamaClient(string baseUrl, HttpClient httpClient = null)
+        public OllamaClient(string baseUrl = "http://localhost:11434")
         {
-            _baseUrl = baseUrl?.TrimEnd('/') ?? throw new ArgumentNullException(nameof(baseUrl));
-            _httpClient = httpClient ?? new HttpClient();
-            
-            // Set reasonable timeouts for local model generation
-            _httpClient.Timeout = TimeSpan.FromMinutes(10);
+            _baseUrl = baseUrl ?? "http://localhost:11434";
+            _client = new OllamaSDK.OllamaApiClient(baseUri: new Uri(_baseUrl));
         }
 
         /// <summary>
@@ -45,57 +40,74 @@ namespace AgentSharp.Providers.Ollama
             string modelName,
             IEnumerable<OllamaMessage> messages,
             OllamaOptions options = null,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             if (string.IsNullOrWhiteSpace(modelName))
                 throw new ArgumentException("Model name cannot be null or empty", nameof(modelName));
 
-            var request = new
-            {
-                model = modelName,
-                messages = messages,
-                stream = false,
-                options = CreateOptionsObject(options)
-            };
-
-            var json = JsonSerializer.Serialize(request, new JsonSerializerOptions 
-            { 
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase 
-            });
-
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            
             try
             {
-                var response = await _httpClient.PostAsync($"{_baseUrl}/api/chat", content, cancellationToken);
-                response.EnsureSuccessStatusCode();
+                // Convert AgentSharp messages to Ollama SDK format
+                var ollamaMessages = new List<OllamaSDK.Message>();
+                foreach (var msg in messages)
+                {
+                    var role = GetMessageRole(msg.Role);
+                    ollamaMessages.Add(new OllamaSDK.Message
+                    {
+                        Role = role,
+                        Content = msg.Content
+                    });
+                }
 
-                var responseJson = await response.Content.ReadAsStringAsync();
-                var ollamaResponse = JsonSerializer.Deserialize<OllamaApiResponse>(responseJson, new JsonSerializerOptions 
-                { 
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase 
-                });
+                // Create chat request using the new API structure
+                var request = new OllamaSDK.GenerateChatCompletionRequest
+                {
+                    Model = modelName,
+                    Messages = ollamaMessages,
+                    Stream = false
+                };
+
+                // Apply options if provided
+                if (options != null && options.Temperature.HasValue)
+                {
+                    request.Options = new OllamaSDK.RequestOptions
+                    {
+                        Temperature = (float)options.Temperature.Value
+                    };
+                }
+
+                // For non-streaming, get the first (and only) response
+                var responseEnumerable = _client.Chat.GenerateChatCompletionAsync(request, cancellationToken);
+                var enumerator = responseEnumerable.GetAsyncEnumerator(cancellationToken);
+
+                OllamaSDK.GenerateChatCompletionResponse response = null;
+                try
+                {
+                    if (await enumerator.MoveNextAsync())
+                    {
+                        response = enumerator.Current;
+                    }
+                }
+                finally
+                {
+                    await enumerator.DisposeAsync();
+                }
 
                 return new OllamaResponse
                 {
-                    Content = ollamaResponse?.Message?.Content ?? "",
-                    Done = ollamaResponse?.Done ?? true,
-                    PromptEvalCount = ollamaResponse?.PromptEvalCount,
-                    EvalCount = ollamaResponse?.EvalCount,
-                    PromptEvalDuration = ollamaResponse?.PromptEvalDuration,
-                    EvalDuration = ollamaResponse?.EvalDuration,
-                    TotalDuration = ollamaResponse?.TotalDuration
+                    Content = response?.Message?.Content ?? "",
+                    Done = response?.Done ?? true,
+                    PromptEvalCount = response?.PromptEvalCount,
+                    EvalCount = response?.EvalCount,
+                    PromptEvalDuration = response?.PromptEvalDuration,
+                    EvalDuration = response?.EvalDuration,
+                    TotalDuration = response?.TotalDuration
                 };
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex)
             {
-                Logger.Error($"HTTP error calling Ollama API", ex);
+                Logger.Error($"Error calling Ollama API: {ex.Message}", ex);
                 throw new InvalidOperationException($"Failed to call Ollama API: {ex.Message}", ex);
-            }
-            catch (TaskCanceledException ex)
-            {
-                Logger.Error($"Timeout calling Ollama API", ex);
-                throw new TimeoutException("Ollama API call timed out", ex);
             }
         }
 
@@ -107,131 +119,102 @@ namespace AgentSharp.Providers.Ollama
             IEnumerable<OllamaMessage> messages,
             Action<string> onChunk = null,
             OllamaOptions options = null,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             if (string.IsNullOrWhiteSpace(modelName))
                 throw new ArgumentException("Model name cannot be null or empty", nameof(modelName));
 
-            var request = new
-            {
-                model = modelName,
-                messages = messages,
-                stream = true,
-                options = CreateOptionsObject(options)
-            };
-
-            var json = JsonSerializer.Serialize(request, new JsonSerializerOptions 
-            { 
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase 
-            });
-
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            
             try
             {
-                var response = await _httpClient.PostAsync($"{_baseUrl}/api/chat", content, cancellationToken);
-                response.EnsureSuccessStatusCode();
-
-                var responseStream = await response.Content.ReadAsStreamAsync();
-                var buffer = new byte[8192];
-                var responseBuilder = new StringBuilder();
-                var finalResponse = new OllamaResponse();
-
-                while (true)
+                // Convert AgentSharp messages to Ollama SDK format
+                var ollamaMessages = new List<OllamaSDK.Message>();
+                foreach (var msg in messages)
                 {
-                    var bytesRead = await responseStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
-                    if (bytesRead == 0) break;
-
-                    var chunk = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    var lines = chunk.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-                    foreach (var line in lines)
+                    var role = GetMessageRole(msg.Role);
+                    ollamaMessages.Add(new OllamaSDK.Message
                     {
-                        if (string.IsNullOrWhiteSpace(line)) continue;
+                        Role = role,
+                        Content = msg.Content
+                    });
+                }
 
-                        try
+                var request = new OllamaSDK.GenerateChatCompletionRequest
+                {
+                    Model = modelName,
+                    Messages = ollamaMessages,
+                    Stream = true
+                };
+
+                // Apply options if provided
+                if (options != null && options.Temperature.HasValue)
+                {
+                    request.Options = new OllamaSDK.RequestOptions
+                    {
+                        Temperature = (float)options.Temperature.Value
+                    };
+                }
+
+                var responseBuilder = new System.Text.StringBuilder();
+                var finalResponse = new OllamaResponse { Done = false };
+
+                // Use GetAsyncEnumerator for C# 7.3 compatibility
+                var asyncEnumerator = _client.Chat.GenerateChatCompletionAsync(request, cancellationToken).GetAsyncEnumerator(cancellationToken);
+                try
+                {
+                    while (await asyncEnumerator.MoveNextAsync())
+                    {
+                        var response = asyncEnumerator.Current;
+                        if (response?.Message?.Content != null)
                         {
-                            var streamResponse = JsonSerializer.Deserialize<OllamaApiResponse>(line, new JsonSerializerOptions 
-                            { 
-                                PropertyNamingPolicy = JsonNamingPolicy.CamelCase 
-                            });
-
-                            if (streamResponse?.Message?.Content != null)
-                            {
-                                var contentChunk = streamResponse.Message.Content;
-                                responseBuilder.Append(contentChunk);
-                                onChunk?.Invoke(contentChunk);
-                            }
-
-                            if (streamResponse?.Done == true)
-                            {
-                                finalResponse.Done = true;
-                                finalResponse.PromptEvalCount = streamResponse.PromptEvalCount;
-                                finalResponse.EvalCount = streamResponse.EvalCount;
-                                finalResponse.PromptEvalDuration = streamResponse.PromptEvalDuration;
-                                finalResponse.EvalDuration = streamResponse.EvalDuration;
-                                finalResponse.TotalDuration = streamResponse.TotalDuration;
-                                break;
-                            }
+                            var contentChunk = response.Message.Content;
+                            responseBuilder.Append(contentChunk);
+                            onChunk?.Invoke(contentChunk);
                         }
-                        catch (JsonException)
+
+                        if (response?.Done == true)
                         {
-                            // Skip malformed JSON lines
-                            continue;
+                            finalResponse.Done = true;
+                            finalResponse.PromptEvalCount = response.PromptEvalCount;
+                            finalResponse.EvalCount = response.EvalCount;
+                            finalResponse.PromptEvalDuration = response.PromptEvalDuration;
+                            finalResponse.EvalDuration = response.EvalDuration;
+                            finalResponse.TotalDuration = response.TotalDuration;
+                            break;
                         }
                     }
-
-                    if (finalResponse.Done) break;
+                }
+                finally
+                {
+                    await asyncEnumerator.DisposeAsync();
                 }
 
                 finalResponse.Content = responseBuilder.ToString();
                 return finalResponse;
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex)
             {
-                Logger.Error($"HTTP error calling Ollama streaming API", ex);
+                Logger.Error($"Error calling Ollama streaming API: {ex.Message}", ex);
                 throw new InvalidOperationException($"Failed to call Ollama streaming API: {ex.Message}", ex);
-            }
-            catch (TaskCanceledException ex)
-            {
-                Logger.Error($"Timeout calling Ollama streaming API", ex);
-                throw new TimeoutException("Ollama streaming API call timed out", ex);
             }
         }
 
         /// <summary>
         /// Lists available models on the Ollama server
         /// </summary>
-        public async Task<IEnumerable<string>> ListModelsAsync(CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<string>> ListModelsAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{_baseUrl}/api/tags", cancellationToken);
-                response.EnsureSuccessStatusCode();
-
-                var responseJson = await response.Content.ReadAsStringAsync();
-                var modelsResponse = JsonSerializer.Deserialize<OllamaModelsResponse>(responseJson, new JsonSerializerOptions 
-                { 
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase 
-                });
-
-                var modelNames = new List<string>();
-                if (modelsResponse?.Models != null)
+                var response = await _client.Models.ListModelsAsync(cancellationToken);
+                if (response?.Models != null)
                 {
-                    foreach (var model in modelsResponse.Models)
-                    {
-                        if (!string.IsNullOrEmpty(model.Name))
-                        {
-                            modelNames.Add(model.Name);
-                        }
-                    }
+                    return response.Models.Select(m => GetModelName(m)).Where(name => !string.IsNullOrEmpty(name));
                 }
-
-                return modelNames;
+                return Enumerable.Empty<string>();
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex)
             {
-                Logger.Error($"HTTP error listing Ollama models", ex);
+                Logger.Error($"Error listing Ollama models: {ex.Message}", ex);
                 throw new InvalidOperationException($"Failed to list Ollama models: {ex.Message}", ex);
             }
         }
@@ -239,12 +222,15 @@ namespace AgentSharp.Providers.Ollama
         /// <summary>
         /// Checks if the Ollama server is running and accessible
         /// </summary>
-        public async Task<bool> IsServerAccessibleAsync(CancellationToken cancellationToken = default)
+        public async Task<bool> IsServerAccessibleAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{_baseUrl}/", cancellationToken);
-                return response.IsSuccessStatusCode;
+                using (var client = new OllamaSDK.OllamaApiClient(baseUri: new Uri(_baseUrl)))
+                {
+                    var models = await client.Models.ListModelsAsync(cancellationToken);
+                    return models != null;
+                }
             }
             catch
             {
@@ -253,72 +239,77 @@ namespace AgentSharp.Providers.Ollama
         }
 
         /// <summary>
-        /// Creates an options object for the Ollama API
-        /// </summary>
-        private object CreateOptionsObject(OllamaOptions options)
-        {
-            if (options == null) return null;
-
-            var optionsObj = new Dictionary<string, object>();
-
-            if (options.Temperature.HasValue)
-                optionsObj["temperature"] = options.Temperature.Value;
-
-            if (options.TopP.HasValue)
-                optionsObj["top_p"] = options.TopP.Value;
-
-            if (options.MaxTokens.HasValue)
-                optionsObj["num_predict"] = options.MaxTokens.Value;
-
-            if (options.Stop != null && options.Stop.Length > 0)
-                optionsObj["stop"] = options.Stop;
-
-            return optionsObj.Count > 0 ? optionsObj : null;
-        }
-
-        /// <summary>
-        /// Disposes the HTTP client
+        /// Disposes the client
         /// </summary>
         public void Dispose()
         {
             if (!_disposed)
             {
-                _httpClient?.Dispose();
+                _client?.Dispose();
                 _disposed = true;
             }
         }
 
-        #region Internal API Response Classes
-
-        private class OllamaApiResponse
+        /// <summary>
+        /// Helper method to convert string role to SDK MessageRole
+        /// </summary>
+        private OllamaSDK.MessageRole GetMessageRole(string role)
         {
-            public OllamaApiMessage Message { get; set; }
-            public bool Done { get; set; }
-            public int? PromptEvalCount { get; set; }
-            public int? EvalCount { get; set; }
-            public long? PromptEvalDuration { get; set; }
-            public long? EvalDuration { get; set; }
-            public long? TotalDuration { get; set; }
+            if (string.IsNullOrEmpty(role))
+                return OllamaSDK.MessageRole.User;
+
+            switch (role.ToLower())
+            {
+                case "user":
+                    return OllamaSDK.MessageRole.User;
+                case "assistant":
+                    return OllamaSDK.MessageRole.Assistant;
+                case "system":
+                    return OllamaSDK.MessageRole.System;
+                default:
+                    return OllamaSDK.MessageRole.User;
+            }
         }
 
-        private class OllamaApiMessage
+        /// <summary>
+        /// Helper method to get model name from SDK Model object
+        /// </summary>
+        private string GetModelName(OllamaSDK.Model model)
         {
-            public string Role { get; set; }
-            public string Content { get; set; }
-        }
+            if (model == null)
+                return null;
 
-        private class OllamaModelsResponse
-        {
-            public OllamaModelInfo[] Models { get; set; }
-        }
+            // Try different properties that might contain the model name
+            try
+            {
+                // The SDK might have different property names
+                var modelType = model.GetType();
 
-        private class OllamaModelInfo
-        {
-            public string Name { get; set; }
-            public long Size { get; set; }
-            public string Digest { get; set; }
-        }
+                // Try "Name" property first
+                var nameProperty = modelType.GetProperty("Name");
+                if (nameProperty != null)
+                {
+                    var name = nameProperty.GetValue(model)?.ToString();
+                    if (!string.IsNullOrEmpty(name))
+                        return name;
+                }
 
-        #endregion
+                // Try "Model" property
+                var modelProperty = modelType.GetProperty("Model");
+                if (modelProperty != null)
+                {
+                    var name = modelProperty.GetValue(model)?.ToString();
+                    if (!string.IsNullOrEmpty(name))
+                        return name;
+                }
+
+                // Fallback to ToString()
+                return model.ToString();
+            }
+            catch
+            {
+                return "unknown";
+            }
+        }
     }
 }

@@ -3,15 +3,16 @@ using System.Threading.Tasks;
 using AgentSharp.Core.Abstractions;
 using AgentSharp.Models;
 using AgentSharp.Models.Interfaces;
+using OllamaSDK = Ollama;
 
 namespace AgentSharp.Providers.Ollama
 {
     /// <summary>
-    /// Ollama model provider implementation for local model serving
+    /// Ollama model provider implementation for local model serving using tryAGI/Ollama SDK
     /// </summary>
     public class OllamaModelProvider : IModelProvider
     {
-        private readonly IOllamaClient _client;
+        private readonly string _baseUrl;
 
         /// <summary>
         /// Gets the unique name of this provider
@@ -21,16 +22,16 @@ namespace AgentSharp.Providers.Ollama
         /// <summary>
         /// Initializes a new instance of the Ollama model provider
         /// </summary>
-        /// <param name="client">Ollama client instance</param>
-        public OllamaModelProvider(IOllamaClient client)
+        /// <param name="baseUrl">Base URL of the Ollama server (e.g., "http://localhost:11434")</param>
+        public OllamaModelProvider(string baseUrl = "http://localhost:11434")
         {
-            _client = client ?? throw new ArgumentNullException(nameof(client));
+            _baseUrl = baseUrl ?? "http://localhost:11434";
         }
 
         /// <summary>
         /// Creates an Ollama model instance
         /// </summary>
-        /// <param name="modelName">Name of the model (e.g., "llama2", "mistral", "codellama")</param>
+        /// <param name="modelName">Name of the model (e.g., "llama3.2", "mistral", "codellama")</param>
         /// <param name="config">Optional model configuration</param>
         /// <returns>Configured Ollama model instance</returns>
         public IModel CreateModel(string modelName, ModelConfiguration config = null)
@@ -38,8 +39,9 @@ namespace AgentSharp.Providers.Ollama
             if (string.IsNullOrWhiteSpace(modelName))
                 throw new ArgumentException("Model name cannot be null or empty", nameof(modelName));
 
-            // The OllamaModel constructor expects the client to be injected
-            return new OllamaModel(modelName, _client);
+            // Create client and model using the new SDK
+            var client = new OllamaClient(_baseUrl);
+            return new OllamaModel(modelName, client);
         }
 
         /// <summary>
@@ -50,7 +52,11 @@ namespace AgentSharp.Providers.Ollama
         {
             try
             {
-                return await _client.IsServerAccessibleAsync();
+                using (var client = new OllamaSDK.OllamaApiClient(baseUri: new Uri(_baseUrl)))
+                {
+                    var models = await client.Models.ListModelsAsync();
+                    return models != null;
+                }
             }
             catch
             {
@@ -67,24 +73,29 @@ namespace AgentSharp.Providers.Ollama
             return new ProviderInfo
             {
                 Name = ProviderName,
-                Description = "Ollama local model provider for running models locally including Llama 2, Mistral, CodeLlama, and other open-source models",
-                Version = "1.0.0",
+                Description = "Ollama local model provider using tryAGI/Ollama SDK for running models locally including Llama 3.2, Mistral, CodeLlama, and other open-source models",
+                Version = "1.0.3",
                 SupportedModels = new[]
                 {
-                    "llama2",
-                    "llama2:13b",
-                    "llama2:70b",
+                    "llama3.2",
+                    "llama3.2:3b",
+                    "llama3.1",
+                    "llama3.1:8b",
+                    "llama3.1:70b",
                     "mistral",
                     "mistral:7b",
                     "codellama",
                     "codellama:13b",
-                    "phi",
-                    "neural-chat",
-                    "orca-mini"
+                    "phi3",
+                    "phi3:mini",
+                    "gemma2",
+                    "qwen2.5",
+                    "all-minilm", // For embeddings
+                    "nomic-embed-text" // For embeddings
                 },
                 SupportsStreaming = true,
-                SupportsFunctionCalling = false, // Most local models don't support function calling yet
-                SupportsEmbeddings = false
+                SupportsFunctionCalling = true, // SDK supports function calling
+                SupportsEmbeddings = true // Now supports embeddings
             };
         }
     }
