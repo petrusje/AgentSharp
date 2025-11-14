@@ -51,9 +51,9 @@
 		<PackageReference Include="OpenAI" Version="2.1.0" />
 		<PackageReference Include="System.Text.Json" Version="6.0.10" />
 		<PackageReference Include="FluentValidation" Version="9.5.4" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.32" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.32" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.32" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.8" />
 	</ItemGroup>
 
 	<ItemGroup>
